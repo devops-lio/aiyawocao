@@ -60,6 +60,7 @@ public class DHT {
 	}
 
 	private void workProc() {
+		Thread.currentThread().setName("DHT Main WorkProc");
 		int maxPacketSize = config.getMaxPacketSize();
 		KRPC krpc;
 		while (!exit) {

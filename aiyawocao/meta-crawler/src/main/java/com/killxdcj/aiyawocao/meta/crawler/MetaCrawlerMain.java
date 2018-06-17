@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 public class MetaCrawlerMain {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetaCrawlerMain.class);
@@ -89,33 +90,38 @@ public class MetaCrawlerMain {
 			return;
 		}
 
-		fetcherMap.computeIfAbsent(new MetaFetcherKey(infohashStr, peer, config.getMetaFetchTimeout()),
-						metaFetcherKey -> executorService.submit(new MetadataFetcher(peer, infohash,
-										new MetadataFetcher.IFetcherCallback() {
-											@Override
-											public void onFinshed(BencodedString infohash1, byte[] metadata) {
-												if (!metaManager.doesMetaExist(infohashStr)) {
-													LOGGER.info("{} has been fetched by others", infohashStr);
-													return;
-												}
+		fetcherMap.computeIfAbsent(new MetaFetcherKey(infohashStr, peer, config.getMetaFetchTimeout()), new Function<MetaFetcherKey, Future>() {
+			@Override
+			public Future apply(MetaFetcherKey metaFetcherKey) {
+				LOGGER.info("{} {}:{} meta fetch start", infohashStr, peer.getAddr(), peer.getPort());
+				return executorService.submit(new MetadataFetcher(peer, infohash,
+								new MetadataFetcher.IFetcherCallback() {
+									@Override
+									public void onFinshed(BencodedString infohash1, byte[] metadata) {
+										if (!metaManager.doesMetaExist(infohashStr)) {
+											LOGGER.info("{} has been fetched by others", infohashStr);
+											return;
+										}
 
-												metaManager.put(infohashStr, metadata);
-												LOGGER.info("{} meta fetched and udapted", infohashStr);
-											}
+										metaManager.put(infohashStr, metadata);
+										LOGGER.info("{} meta fetched and udapted", infohashStr);
+									}
 
-											@Override
-											public void onException(Exception e) {
-												LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
-												if (LOGGER.isDebugEnabled()) {
-													LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
-												}
-											}
-										})));
+									@Override
+									public void onException(Exception e) {
+										LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
+										if (LOGGER.isDebugEnabled()) {
+											LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
+										}
+									}
+								}));
+			}
+		});
 	}
 
 	private void startTimeoutFetcherCleaner() {
 		executorService.scheduleAtFixedRate(() -> {
-			long cur = System.currentTimeMillis();
+			long cur = TimeUtils.getCurTime();
 			List<MetaFetcherKey> timeOutFetcher = new ArrayList<>();
 			for (Map.Entry<MetaFetcherKey, Future> entry : fetcherMap.entrySet()) {
 				if (cur >= entry.getKey().expireTime) {
@@ -127,7 +133,7 @@ public class MetaCrawlerMain {
 			for (MetaFetcherKey key : timeOutFetcher) {
 				fetcherMap.remove(key);
 			}
-			LOGGER.info("timeouted meta fetcher cleaned, size:{}", timeOutFetcher.size());
+			LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running", timeOutFetcher.size(), fetcherMap.size());
 		}, 60, 60, TimeUnit.SECONDS);
 	}
 

@@ -100,12 +100,15 @@ public class MetaCrawlerMain {
 												}
 
 												metaManager.put(infohashStr, metadata);
-												LOGGER.info("{} meta fetched and udapted");
+												LOGGER.info("{} meta fetched and udapted", infohashStr);
 											}
 
 											@Override
 											public void onException(Exception e) {
-												LOGGER.error("{} meta fetch error", e);
+												LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
+												if (LOGGER.isDebugEnabled()) {
+													LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
+												}
 											}
 										})));
 	}

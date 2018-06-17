@@ -97,8 +97,6 @@ public class MetadataFetcher extends Peer implements Runnable {
 			if (!exit) {
 				exit = true;
 				iFetcherCallback.onException(e);
-				LOGGER.error("fetch etadata error, infohash:{}, ip:{}, port:{}", infohash, addr, port);
-				LOGGER.error(e.getMessage(), e);
 				return;
 			}
 		} finally {

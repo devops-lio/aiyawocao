@@ -127,7 +127,7 @@ public class MetaCrawlerMain {
 			for (MetaFetcherKey key : timeOutFetcher) {
 				fetcherMap.remove(key);
 			}
-			LOGGER.info("timeouted meta fetcher cleaned, size:{}", timeOutFetcher);
+			LOGGER.info("timeouted meta fetcher cleaned, size:{}", timeOutFetcher.size());
 		}, 60, 60, TimeUnit.SECONDS);
 	}
 

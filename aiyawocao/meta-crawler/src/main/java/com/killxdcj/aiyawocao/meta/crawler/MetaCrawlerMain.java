@@ -110,9 +110,9 @@ public class MetaCrawlerMain {
 									@Override
 									public void onException(Exception e) {
 										LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
-										if (LOGGER.isDebugEnabled()) {
+//										if (LOGGER.isDebugEnabled()) {
 											LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
-										}
+//										}
 									}
 								}));
 			}
@@ -133,7 +133,7 @@ public class MetaCrawlerMain {
 			for (MetaFetcherKey key : timeOutFetcher) {
 				fetcherMap.remove(key);
 			}
-			LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running", timeOutFetcher.size(), fetcherMap.size());
+			LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running:{}", timeOutFetcher.size(), fetcherMap.size());
 		}, 60, 60, TimeUnit.SECONDS);
 	}
 

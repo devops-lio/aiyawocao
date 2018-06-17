@@ -87,8 +87,8 @@ public class AliOSSBackendMetaManager implements MetaManager {
 //		}
 
 		return "" + infohash.charAt(0) + infohash.charAt(1) + "/" +
-				infohash.charAt(3) + infohash.charAt(4) + "/" +
-				infohash.charAt(5) + infohash.charAt(6) + "/" +
+				infohash.charAt(2) + infohash.charAt(3) + "/" +
+				infohash.charAt(4) + infohash.charAt(5) + "/" +
 				infohash;
 	}
 

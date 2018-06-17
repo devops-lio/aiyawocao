@@ -10,7 +10,7 @@ public class Transaction {
 	public Transaction(Node node, KRPC krpc, long expiredTime) {
 		this.node = node;
 		this.krpc = krpc;
-		expiredTime = TimeUtils.getExpiredTime(expiredTime);
+		this.expiredTime = TimeUtils.getExpiredTime(expiredTime);
 	}
 
 	public Node getNode() {

@@ -1,0 +1,17 @@
+metaFetchTimeout: 600000
+bittorrentConfig:
+  findNodeInterval: 1000
+  maxPacketSize: 10485760
+  port: 9613
+  primeNodes:
+  - router.bittorrent.com:6881
+  - router.utorrent.com:6881
+  - dht.transmissionbt.com:6881
+  transactionExpireTime: 600000
+  maxNeighbor: 2000
+metaManagerConfig:
+  accessKeyId: example-accesskey-id
+  accessKeySecret: example-accesskey-secret
+  bucketName: bittorrent-meta
+  endpoint: http://oss-cn-shenzhen.aliyuncs.com
+  infohashMetaKey: infohash-meta

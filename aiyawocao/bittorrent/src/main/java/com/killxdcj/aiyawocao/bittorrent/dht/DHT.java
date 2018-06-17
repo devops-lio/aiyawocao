@@ -39,6 +39,7 @@ public class DHT {
 		t.setDaemon(true);
 		return t;
 	});
+	private Thread workProcThread;
 
 	public DHT(BittorrentConfig config, MetaWatcher metaWatcher) throws SocketException {
 		this.config = config;
@@ -47,13 +48,15 @@ public class DHT {
 		datagramSocket = new DatagramSocket(config.getPort());
 		nodeManager = new NodeManager(config.getMaxNeighbor());
 		transactionManager = new TransactionManager();
-		executorService.submit(this::workProc);
+		workProcThread = new Thread(this::workProc);
+		workProcThread.start();
 		executorService.scheduleAtFixedRate(this::nodeFindProc, 1000, config.getFindNodeInterval(),
 				TimeUnit.MILLISECONDS);
 	}
 
 	public void shutdown() {
 		exit = true;
+		workProcThread.interrupt();
 		transactionManager.shutdown();
 		executorService.shutdown();
 		datagramSocket.close();
@@ -92,6 +95,7 @@ public class DHT {
 				LOGGER.error("DHT Main WorkProc fetal error", t);
 			}
 		}
+		LOGGER.info("DHT Main WorkProc exit");
 	}
 
 	private void nodeFindProc() {

@@ -85,9 +85,11 @@ public class DHT {
 						break;
 				}
 			} catch (IOException e) {
-				LOGGER.error("main work proc error", e);
+				LOGGER.error("DHT Main WorkProc error", e);
 			} catch (InvalidBittorrentPacketException e) {
 				LOGGER.debug("decode bittorrent packet error", e);
+			} catch (Throwable t) {
+				LOGGER.error("DHT Main WorkProc fetal error", t);
 			}
 		}
 	}

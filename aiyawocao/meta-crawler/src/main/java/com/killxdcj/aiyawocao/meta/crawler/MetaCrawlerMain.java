@@ -99,7 +99,7 @@ public class MetaCrawlerMain {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
 										LOGGER.info("{} meta fetched", infohashStr);
-										if (!metaManager.doesMetaExist(infohashStr)) {
+										if (metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;
 										}

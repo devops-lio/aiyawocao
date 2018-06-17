@@ -191,7 +191,7 @@ public class DHT {
 	private void handleResponse(DatagramPacket packet, KRPC krpc) {
 		Transaction transaction = transactionManager.getTransaction(krpc.getTransId());
 		if (transaction == null) {
-			LOGGER.warn("transaction not exist, node:{}:{}, krpc:{}", packet.getAddress(), packet.getPort(), krpc);
+			LOGGER.debug("transaction not exist, node:{}:{}, krpc:{}", packet.getAddress(), packet.getPort(), krpc);
 			return;
 		}
 

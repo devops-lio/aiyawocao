@@ -7,7 +7,7 @@ bittorrentConfig:
   - router.bittorrent.com:6881
   - router.utorrent.com:6881
   - dht.transmissionbt.com:6881
-  transactionExpireTime: 600000
+  transactionExpireTime: 60000
   maxNeighbor: 2000
 metaManagerConfig:
   accessKeyId: example-accesskey-id

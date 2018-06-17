@@ -105,6 +105,7 @@ public class MetaCrawlerMain {
 										}
 
 										metaManager.put(infohashStr, metadata);
+										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 										LOGGER.info("{} meta uploaded", infohashStr);
 									}
 

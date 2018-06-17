@@ -48,18 +48,19 @@ public class TransactionManager {
 		scheduledExecutorService.scheduleAtFixedRate(() -> {
 			long startTime = TimeUtils.getCurTime();
 
-			List<Transaction> expiredTrans = new ArrayList<>();
-			Map<BencodedString, Transaction> transactionTableNew = new ConcurrentHashMap<>();
-			transactionTable.forEach((transId, transAction) -> {
-				if (transAction.isExpired()) {
-					expiredTrans.add(transAction);
-				} else {
-					transactionTableNew.put(transId, transAction);
+			List<BencodedString> expiredTrans = new ArrayList<>();
+			for (Map.Entry<BencodedString, Transaction> entry : transactionTable.entrySet()) {
+				if (entry.getValue().isExpired()) {
+					expiredTrans.add(entry.getKey());
 				}
-			});
-			transactionTable = transactionTableNew;
+			}
 
-			LOGGER.info("TransactionExpiredCheckSchedule end, costtime: {} ms", TimeUtils.getElapseTime(startTime));
+			for (BencodedString key : expiredTrans) {
+				transactionTable.remove(key);
+			}
+
+			LOGGER.info("TransactionExpiredCheckSchedule end, expired:{} costtime: {} ms",
+					expiredTrans.size(), TimeUtils.getElapseTime(startTime));
 		}, 0, TRANSACTION_EXPIRED_CHECK_PERIOD, TimeUnit.MILLISECONDS);
 	}
 

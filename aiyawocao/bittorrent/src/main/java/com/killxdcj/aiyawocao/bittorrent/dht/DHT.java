@@ -137,7 +137,7 @@ public class DHT {
 	}
 
 	private void handleQuery(DatagramPacket packet, KRPC krpc) throws IOException {
-		LOGGER.info("recv request packet, id:{}, action:{}, ip:{}, port:{}",
+		LOGGER.debug("recv request packet, id:{}, action:{}, ip:{}, port:{}",
 				krpc.getId(), krpc.action(), packet.getAddress().getHostAddress(), packet.getPort());
 		switch (krpc.action()) {
 			case PING:

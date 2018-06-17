@@ -98,18 +98,20 @@ public class MetaCrawlerMain {
 								new MetadataFetcher.IFetcherCallback() {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
+										LOGGER.info("{} meta fetched", infohashStr);
 										if (!metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;
 										}
 
 										metaManager.put(infohashStr, metadata);
-										LOGGER.info("{} meta fetched and udapted", infohashStr);
+										LOGGER.info("{} meta uploaded", infohashStr);
 									}
 
 									@Override
 									public void onException(Exception e) {
 										LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
+										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 //										if (LOGGER.isDebugEnabled()) {
 											LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
 //										}

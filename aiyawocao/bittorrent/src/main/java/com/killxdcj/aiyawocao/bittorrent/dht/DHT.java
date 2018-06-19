@@ -175,7 +175,16 @@ public class DHT {
 		for (Node nodex : nodes) {
 			peers.add(new Peer(nodex.getAddr(), node.getPort()));
 		}
-		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), nodeId, "caojian", peers);
+
+		byte[] neighborId = new byte[20];
+		for (int i = 0; i < 10; i++) {
+			neighborId[i] = infohash.asBytes()[i];
+		}
+		for (int i = 10; i < 20; i++) {
+			neighborId[i] = nodeId.asBytes()[i];
+		}
+
+		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), new BencodedString(neighborId), "caojian", peers);
 		sendKrpcPacket(node, resp);
 	}
 

@@ -1,5 +1,6 @@
 package com.killxdcj.aiyawocao.bittorrent.dht;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedMap;
@@ -48,6 +49,7 @@ public class DHT {
 	private Meter discardNodeMeter;
 	private Meter getpeersMeter;
 	private Meter announcePeerMeter;
+	private Counter neighborEmpty;
 
 	public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry) throws SocketException {
 		this.config = config;
@@ -81,7 +83,7 @@ public class DHT {
 		discardNodeMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTDiscardNode"));
 		getpeersMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryGetPeers"));
 		announcePeerMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryAnnouncePeer"));
-
+		neighborEmpty = metricRegistry.counter(MetricRegistry.name(DHT.class, "DHTNeighborEmpty"));
 	}
 
 	public void shutdown() {
@@ -154,6 +156,7 @@ public class DHT {
 				Node node = nodeManager.getNode();
 				int sendedData = 0;
 				if (node == null) {
+					neighborEmpty.inc();
 					for (String primeNode : config.getPrimeNodes()) {
 						String[] ipPort = primeNode.split(":");
 						node = new Node(InetAddress.getByName(ipPort[0]), Integer.parseInt(ipPort[1]));

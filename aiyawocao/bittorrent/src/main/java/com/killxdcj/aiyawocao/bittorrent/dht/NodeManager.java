@@ -15,8 +15,8 @@ public class NodeManager {
 		this.neighborQueue = new LinkedBlockingQueue<>(maxNeighbor);
 	}
 
-	public void putNode(Node node) {
-		neighborQueue.offer(node);
+	public boolean putNode(Node node) {
+		return neighborQueue.offer(node);
 	}
 
 	public Node getNode() throws InterruptedException {

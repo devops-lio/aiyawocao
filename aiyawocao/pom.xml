@@ -57,5 +57,16 @@
       <artifactId>snakeyaml</artifactId>
       <version>1.19</version>
     </dependency>
+
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>4.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.davidb</groupId>
+      <artifactId>metrics-influxdb</artifactId>
+      <version>0.9.3</version>
+    </dependency>
   </dependencies>
 </project>

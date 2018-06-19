@@ -4,8 +4,9 @@ import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PutObjectResult;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
-import com.killxdcj.aiyawocao.meta.manager.exception.InvalidInfohashException;
 import com.killxdcj.aiyawocao.meta.manager.exception.MetaNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import java.io.*;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public class AliOSSBackendMetaManager implements MetaManager {
+public class AliOSSBackendMetaManager extends MetaManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AliOSSBackendMetaManager.class);
 
 	private MetaManagerConfig config;
@@ -23,11 +24,13 @@ public class AliOSSBackendMetaManager implements MetaManager {
 	private Thread infohashMetaSaver;
 	private volatile long lastInfohashSize = 0;
 
-	public AliOSSBackendMetaManager(MetaManagerConfig config) {
+	public AliOSSBackendMetaManager(MetricRegistry metricRegistry, MetaManagerConfig config) {
+		super(metricRegistry);
 		this.config = config;
 		ossClient = new OSSClient(config.getEndpoint(), config.getAccessKeyId(), config.getAccessKeySecret());
 		loadInfohashMeta();
 		startInfohashMetaSaver();
+		metricRegistry.register(MetricRegistry.name(MetaManager.class, "TotalMetaNumber"), (Gauge<Integer>)() -> infohashMeta.size());
 	}
 
 	@Override

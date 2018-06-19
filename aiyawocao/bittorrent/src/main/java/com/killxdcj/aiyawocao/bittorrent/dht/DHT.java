@@ -1,5 +1,7 @@
 package com.killxdcj.aiyawocao.bittorrent.dht;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedMap;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
@@ -26,6 +28,7 @@ public class DHT {
 
 	private BittorrentConfig config;
 	private MetaWatcher metaWatcher;
+	private MetricRegistry metricRegistry;
 	private BencodedString nodeId;
 	private DatagramSocket datagramSocket;
 	private TransactionManager transactionManager;
@@ -36,9 +39,21 @@ public class DHT {
 	private RateLimiter findnodeLimiter;
 	private RateLimiter outBandwidthLimit;
 
-	public DHT(BittorrentConfig config, MetaWatcher metaWatcher) throws SocketException {
+	private Meter inBoundwidthMeter;
+	private Meter outBoundwidthMeter;
+	private Meter queryMeter;
+	private Meter responseMeter;
+	private Meter errorMeter;
+	private Meter findNodeMeter;
+	private Meter discardNodeMeter;
+	private Meter getpeersMeter;
+	private Meter announcePeerMeter;
+
+	public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry) throws SocketException {
 		this.config = config;
 		this.metaWatcher = metaWatcher;
+		this.metricRegistry = metricRegistry;
+		initMetrics();
 		nodeId = JTorrentUtils.genNodeId();
 		if (config.getFindnodeLimit() != -1) {
 			findnodeLimiter = RateLimiter.create(config.getFindnodeLimit());
@@ -54,6 +69,19 @@ public class DHT {
 		nodefindThread = new Thread(this::nodeFindProc);
 		nodefindThread.start();
 		LOGGER.info("DHT start, nodeId:{}", nodeId.asHexString());
+	}
+
+	private void initMetrics() {
+		inBoundwidthMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTInBoundwidth"));
+		outBoundwidthMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTOutBoundwidth"));
+		queryMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQuery"));
+		responseMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTResponse"));
+		errorMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTError"));
+		findNodeMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTRequestFindNode"));
+		discardNodeMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTDiscardNode"));
+		getpeersMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryGetPeers"));
+		announcePeerMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryAnnouncePeer"));
+
 	}
 
 	public void shutdown() {
@@ -72,17 +100,21 @@ public class DHT {
 			try {
 				DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
 				datagramSocket.receive(packet);
+				inBoundwidthMeter.mark(packet.getLength());
 				IBencodedValue value = new Bencoding(packet.getData(), 0, packet.getLength()).decode();
 				krpc = new KRPC((BencodedMap)value);
 				krpc.validate();
 				switch (krpc.transType()) {
 					case QUERY:
+						queryMeter.mark();
 						handleQuery(packet, krpc);
 						break;
 					case RESPONSE:
+						responseMeter.mark();
 						handleResponse(packet, krpc);
 						break;
 					case ERR:
+						errorMeter.mark();
 						handleResponseError(packet, krpc);
 						break;
 					default:
@@ -129,6 +161,7 @@ public class DHT {
 					}
 				} else {
 					sendedData = sendFindNodeReq(node, neighborId);
+					findNodeMeter.mark();
 				}
 				idx = ++idx % 1000;
 				if (outBandwidthLimit != null) {
@@ -156,6 +189,7 @@ public class DHT {
 		byte[] packetBytes = krpc.encode();
 		DatagramPacket udpPacket = new DatagramPacket(packetBytes, 0, packetBytes.length, node.getAddr(), node.getPort());
 		datagramSocket.send(udpPacket);
+		outBoundwidthMeter.mark(packetBytes.length);
 		return packetBytes.length;
 	}
 
@@ -181,6 +215,7 @@ public class DHT {
 	}
 
 	private void handleGetPeersQuery(DatagramPacket packet, KRPC krpc) throws IOException {
+		getpeersMeter.mark();
 		Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());
 		BencodedMap reqArgs = (BencodedMap)krpc.getData().get(KRPC.QUERY_ARGS);
 		BencodedString infohash = (BencodedString) reqArgs.get(KRPC.INFO_HASH);
@@ -208,6 +243,7 @@ public class DHT {
 	}
 
 	private void handleAnnouncePeerQuery(DatagramPacket packet, KRPC krpc) throws IOException {
+		announcePeerMeter.mark();
 		BencodedMap reqData = (BencodedMap) krpc.getData().get(KRPC.QUERY_ARGS);
 		BencodedString infohash = (BencodedString) reqData.get(KRPC.INFO_HASH);
 
@@ -256,7 +292,9 @@ public class DHT {
 		List<Node> nodes = JTorrentUtils.deCompactNodeInfos(respData.get(KRPC.NODES).asBytes());
 		for (Node node : nodes) {
 			if (node.port != 0) {
-				nodeManager.putNode(node);
+				if (!nodeManager.putNode(node)) {
+					discardNodeMeter.mark();
+				}
 			}
 		}
 	}

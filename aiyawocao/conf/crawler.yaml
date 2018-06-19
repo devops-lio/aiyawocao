@@ -1,6 +1,11 @@
+influxdbAddr: example-influxdb:port
+influxdbName: example-influxdb-name
+influxdbPassword: example-influxdb-user
+influxdbUser: example-influxdb-user
+metaFetchTimeout: 300000
 bittorrentConfig:
   findnodeLimit: 1500
-  maxNeighbor: 3000
+  maxNeighbor: 1500
   maxPacketSize: 65536
   outBandwidthLimit: 1048576
   port: 9613
@@ -9,7 +14,6 @@ bittorrentConfig:
   - router.utorrent.com:6881
   - dht.transmissionbt.com:6881
   transactionExpireTime: 300000
-metaFetchTimeout: 300000
 metaManagerConfig:
   accessKeyId: example-accesskey-id
   accessKeySecret: example-accesskey-secret

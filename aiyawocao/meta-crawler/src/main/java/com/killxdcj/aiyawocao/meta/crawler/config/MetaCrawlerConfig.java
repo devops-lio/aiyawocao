@@ -9,14 +9,23 @@ import java.io.FileNotFoundException;
 
 public class MetaCrawlerConfig {
 	private long metaFetchTimeout = 5 * 60 * 1000;
+	private String influxdbAddr = "example-influxdb:port";
+	private String influxdbUser = "example-influxdb-user";
+	private String influxdbPassword = "example-influxdb-user";
+	private String influxdbName = "example-influxdb-name";
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 
 	public MetaCrawlerConfig() {
 	}
 
-	public MetaCrawlerConfig(long metaFetchTimeout, BittorrentConfig bittorrentConfig, MetaManagerConfig metaManagerConfig) {
+	public MetaCrawlerConfig(long metaFetchTimeout, String influxdbAddr, String influxdbUser, String influxdbPassword,
+													 String influxdbName, BittorrentConfig bittorrentConfig, MetaManagerConfig metaManagerConfig) {
 		this.metaFetchTimeout = metaFetchTimeout;
+		this.influxdbAddr = influxdbAddr;
+		this.influxdbUser = influxdbUser;
+		this.influxdbPassword = influxdbPassword;
+		this.influxdbName = influxdbName;
 		this.bittorrentConfig = bittorrentConfig;
 		this.metaManagerConfig = metaManagerConfig;
 	}
@@ -45,10 +54,46 @@ public class MetaCrawlerConfig {
 		this.metaManagerConfig = metaManagerConfig;
 	}
 
+	public String getInfluxdbAddr() {
+		return influxdbAddr;
+	}
+
+	public void setInfluxdbAddr(String influxdbAddr) {
+		this.influxdbAddr = influxdbAddr;
+	}
+
+	public String getInfluxdbUser() {
+		return influxdbUser;
+	}
+
+	public void setInfluxdbUser(String influxdbUser) {
+		this.influxdbUser = influxdbUser;
+	}
+
+	public String getInfluxdbPassword() {
+		return influxdbPassword;
+	}
+
+	public void setInfluxdbPassword(String influxdbPassword) {
+		this.influxdbPassword = influxdbPassword;
+	}
+
+	public String getInfluxdbName() {
+		return influxdbName;
+	}
+
+	public void setInfluxdbName(String influxdbName) {
+		this.influxdbName = influxdbName;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
 						"metaFetchTimeout=" + metaFetchTimeout +
+						", influxdbAddr='" + influxdbAddr + '\'' +
+						", influxdbUser='" + influxdbUser + '\'' +
+						", influxdbPassword='" + influxdbPassword + '\'' +
+						", influxdbName='" + influxdbName + '\'' +
 						", bittorrentConfig=" + bittorrentConfig +
 						", metaManagerConfig=" + metaManagerConfig +
 						'}';

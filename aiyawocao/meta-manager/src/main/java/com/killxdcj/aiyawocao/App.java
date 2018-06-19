@@ -1,5 +1,6 @@
 package com.killxdcj.aiyawocao;
 
+import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.meta.manager.AliOSSBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
 
@@ -17,7 +18,7 @@ public class App
 
     public static void testOSS() {
         try {
-            AliOSSBackendMetaManager metacenter = new AliOSSBackendMetaManager(new MetaManagerConfig());
+            AliOSSBackendMetaManager metacenter = new AliOSSBackendMetaManager(new MetricRegistry(), new MetaManagerConfig());
 
             System.out.println(metacenter.doesMetaExist("e433b1b341df7f9559810de8fcfa8ada9bca7415"));
             System.out.println(metacenter.doesMetaExist("e433b1b341df7f9559810de8fcfa8ada9bca7416"));

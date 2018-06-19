@@ -1,5 +1,9 @@
 package com.killxdcj.aiyawocao.meta.crawler;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
@@ -9,6 +13,8 @@ import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.meta.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.meta.manager.AliOSSBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.MetaManager;
+import metrics_influxdb.HttpInfluxdbProtocol;
+import metrics_influxdb.InfluxdbReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +40,12 @@ public class MetaCrawlerMain {
 		t.setDaemon(true);
 		return t;
 	});
+	private ScheduledReporter reporter;
+	private MetricRegistry metricRegistry;
+
+	private Meter metaFetchSuccessed;
+	private Meter metaFetchError;
+	private Meter metaFetchTimeout;
 
 	public void start(String[] args) throws FileNotFoundException, SocketException {
 		LOGGER.info("args = {}", Arrays.toString(args));
@@ -42,7 +54,23 @@ public class MetaCrawlerMain {
 			confPath = args[0];
 		}
 		config = MetaCrawlerConfig.fromYamlConfFile(confPath);
-		metaManager = new AliOSSBackendMetaManager(config.getMetaManagerConfig());
+
+		metricRegistry = new MetricRegistry();
+		String[] addrs = config.getInfluxdbAddr().split(":");
+		reporter = InfluxdbReporter.forRegistry(metricRegistry)
+						.protocol(new HttpInfluxdbProtocol("http", addrs[0], Integer.parseInt(addrs[1]),
+								config.getInfluxdbUser(), config.getInfluxdbPassword(), config.getInfluxdbName()))
+						.convertRatesTo(TimeUnit.SECONDS)
+						.convertDurationsTo(TimeUnit.MILLISECONDS)
+						.filter(MetricFilter.ALL)
+						.build();
+		reporter.start(60, TimeUnit.SECONDS);
+
+		metaFetchSuccessed = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessed"));
+		metaFetchError = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchError"));
+		metaFetchTimeout = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchTimeout"));
+
+		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
 			@Override
 			public void onGetInfoHash(BencodedString infohash) {
@@ -53,7 +81,7 @@ public class MetaCrawlerMain {
 			public void onAnnouncePeer(BencodedString infohash, Peer peer) {
 				submitMetaFetcher(infohash, peer);
 			}
-		});
+		}, metricRegistry);
 
 		startTimeoutFetcherCleaner();
 
@@ -80,6 +108,10 @@ public class MetaCrawlerMain {
 			metaManager.shutdown();
 		}
 
+		if (reporter != null) {
+			reporter.stop();
+		}
+
 		LOGGER.info("MetaCrawler stoped");
 	}
 
@@ -98,6 +130,7 @@ public class MetaCrawlerMain {
 								new MetadataFetcher.IFetcherCallback() {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
+										metaFetchSuccessed.mark();
 										LOGGER.info("{} meta fetched", infohashStr);
 										if (metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
@@ -111,6 +144,7 @@ public class MetaCrawlerMain {
 
 									@Override
 									public void onException(Exception e) {
+										metaFetchError.mark();
 										LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
 										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 //										if (LOGGER.isDebugEnabled()) {
@@ -136,6 +170,7 @@ public class MetaCrawlerMain {
 			for (MetaFetcherKey key : timeOutFetcher) {
 				fetcherMap.remove(key);
 			}
+			metaFetchTimeout.mark(timeOutFetcher.size());
 			LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running:{}", timeOutFetcher.size(), fetcherMap.size());
 		}, 60, 60, TimeUnit.SECONDS);
 	}

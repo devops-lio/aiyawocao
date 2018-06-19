@@ -12,7 +12,7 @@ public class BittorrentConfig {
 		add("dht.transmissionbt.com:6881");
 	}};
 	private long transactionExpireTime = 5 * 60 * 1000;
-	private int maxNeighbor = 1500;
+	private int maxNeighbor = 3000;
 	private long outBandwidthLimit = 1 * 1024 * 1024;
 	private long findnodeLimit = 1500;
 

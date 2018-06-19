@@ -5,7 +5,7 @@ influxdbUser: example-influxdb-user
 metaFetchTimeout: 300000
 bittorrentConfig:
   findnodeLimit: 1500
-  maxNeighbor: 1500
+  maxNeighbor: 3000
   maxPacketSize: 65536
   outBandwidthLimit: 1048576
   port: 9613

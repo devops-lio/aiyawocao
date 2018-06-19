@@ -5,7 +5,7 @@ import java.util.List;
 
 public class BittorrentConfig {
 	private int port = 9613;
-	private int maxPacketSize = 10 * 1024 * 1024;
+	private int maxPacketSize = 64 * 1024;
 	private List<String> primeNodes = new ArrayList(){{
 		add("router.bittorrent.com:6881");
 		add("router.utorrent.com:6881");

@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-main_class=com.killxdcj.aiyawocao.meta.crawler.MetaCrawlerMain
-jvm_opts="-Xmx1g -Xms1g -XX:+PrintGCDetails -Xloggc:./gc.log"
+work_dir=$(cd "$(dirname "$0")";cd ..;pwd)
+cd $work_dir
 
-nohup java -server ${jvm_opts} -Dlog4j.configurationFile=file:conf/log4j2.xml \
-  -cp "./lib/*" ${main_class} 1>crawler.out 2>&1 &
+main_class=com.killxdcj.aiyawocao.meta.crawler.MetaCrawlerMain
+jvm_opts="-Xmx1g -Xms1g -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
+logconf_path=$work_dir/conf/log4j2.xml
+crawler_conf=$work_dir/conf/crawler.yaml
+lib_path=$work_dir/lib/*
+
+java -server ${jvm_opts} -Dlog4j.configurationFile=file:$logconf_path \
+  -cp $lib_path ${main_class} $crawler_conf 1>crawler.out 2>&1 &

@@ -10,4 +10,4 @@ crawler_conf=$work_dir/conf/crawler.yaml
 lib_path=$work_dir/lib/*
 
 java -server ${jvm_opts} -Dlog4j.configurationFile=file:$logconf_path \
-  -cp $lib_path ${main_class} $crawler_conf 1>crawler.out 2>&1 &
+  -cp $lib_path ${main_class} $crawler_conf 1>crawler.out 2>&1

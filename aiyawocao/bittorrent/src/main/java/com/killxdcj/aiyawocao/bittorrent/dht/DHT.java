@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -170,20 +171,21 @@ public class DHT {
 		BencodedMap reqArgs = (BencodedMap)krpc.getData().get(KRPC.QUERY_ARGS);
 		BencodedString infohash = (BencodedString) reqArgs.get(KRPC.INFO_HASH);
 		metaWatcher.onGetInfoHash(infohash);
-		List<Node> nodes = nodeManager.getPeers();
-		List<Peer> peers = new ArrayList<>();
-		for (Node nodex : nodes) {
-			peers.add(new Peer(nodex.getAddr(), node.getPort()));
-		}
+//		List<Node> nodes = nodeManager.getPeers();
+//		List<Peer> peers = new ArrayList<>();
+//		for (Node nodex : nodes) {
+//			peers.add(new Peer(nodex.getAddr(), node.getPort()));
+//		}
 
 		byte[] neighborId = new byte[20];
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 15; i++) {
 			neighborId[i] = infohash.asBytes()[i];
 		}
-		for (int i = 10; i < 20; i++) {
+		for (int i = 15; i < 20; i++) {
 			neighborId[i] = nodeId.asBytes()[i];
 		}
 
+		List<Peer> peers = Collections.emptyList();
 		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), new BencodedString(neighborId), "caojian", peers);
 		sendKrpcPacket(node, resp);
 	}

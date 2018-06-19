@@ -8,7 +8,7 @@ export PATH=$PATH:$JAVA_HOME/bin
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 
 main_class=com.killxdcj.aiyawocao.meta.crawler.MetaCrawlerMain
-jvm_opts="-Xmx1g -Xms1g -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
+jvm_opts="-Xmx2g -Xms2g -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
 logconf_path=$work_dir/conf/log4j2.xml
 crawler_conf=$work_dir/conf/crawler.yaml
 lib_path=$work_dir/lib/*

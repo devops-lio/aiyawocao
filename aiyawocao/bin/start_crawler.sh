@@ -3,6 +3,10 @@
 work_dir=$(cd "$(dirname "$0")";cd ..;pwd)
 cd $work_dir
 
+export JAVA_HOME=real_java_home
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+
 main_class=com.killxdcj.aiyawocao.meta.crawler.MetaCrawlerMain
 jvm_opts="-Xmx1g -Xms1g -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
 logconf_path=$work_dir/conf/log4j2.xml

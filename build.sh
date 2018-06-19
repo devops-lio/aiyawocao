@@ -11,6 +11,9 @@ cp ./aiyawocao/bin/* ./aiyawocao_deploy/bin/
 cp ./aiyawocao/conf/* ./aiyawocao_deploy/conf/
 cp ./aiyawocao/meta-crawler/target/meta-crawler*.jar ./aiyawocao_deploy/lib/
 
+java_home=$JAVA_HOME
+cat ./aiyawocao/start_crawler.sh | sed s:real_java_home:$java_home:g > ./aiyawocao_deploy/bin/start_crawler.sh
+
 start_bash=$(cd "$(dirname "$0")";pwd)/aiyawocao_deploy/bin/start_crawler.sh
 stop_bash=$(cd "$(dirname "$0")";pwd)/aiyawocao_deploy/bin/stop_crawler.sh
 cat ./aiyawocao/service/meta-crawler.service | sed s:start_bash_path:$start_bash:g | sed s:stop_bash_path:$stop_bash:g > ./aiyawocao_deploy/service/meta-crawler.service

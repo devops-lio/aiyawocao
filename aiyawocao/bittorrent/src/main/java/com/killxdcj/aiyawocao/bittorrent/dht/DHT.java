@@ -52,6 +52,7 @@ public class DHT {
 		workProcThread.start();
 		executorService.scheduleAtFixedRate(this::nodeFindProc, 1000, config.getFindNodeInterval(),
 				TimeUnit.MILLISECONDS);
+		LOGGER.info("DHT start, nodeId:{}", nodeId.asHexString());
 	}
 
 	public void shutdown() {

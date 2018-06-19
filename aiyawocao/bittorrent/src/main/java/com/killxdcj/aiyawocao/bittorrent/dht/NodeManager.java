@@ -24,6 +24,14 @@ public class NodeManager {
 	}
 
 	public List<Node> getPeers() {
-		return Collections.emptyList();
+		List<Node> ret = new ArrayList<>();
+		for (int i = 0; i < 5; i++) {
+			Node node = neighborQueue.peek();
+			if (node != null) {
+				ret.add(node);
+			}
+		}
+
+		return ret;
 	}
 }

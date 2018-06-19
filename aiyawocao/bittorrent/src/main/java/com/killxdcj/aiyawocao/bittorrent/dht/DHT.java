@@ -19,7 +19,6 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class DHT {
@@ -191,6 +190,9 @@ public class DHT {
 		List<Peer> peers = new ArrayList<>();
 		for (Node nodex : nodes) {
 			peers.add(new Peer(nodex.getAddr(), node.getPort()));
+		}
+		if (peers.size() == 0) {
+			LOGGER.warn("Peers is empty, maybe neighbors is empty");
 		}
 
 		byte[] neighborId = new byte[20];

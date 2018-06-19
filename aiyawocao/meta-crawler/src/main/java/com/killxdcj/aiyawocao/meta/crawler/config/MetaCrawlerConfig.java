@@ -8,7 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class MetaCrawlerConfig {
-	private long metaFetchTimeout = 10 * 60 * 1000;
+	private long metaFetchTimeout = 5 * 60 * 1000;
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 

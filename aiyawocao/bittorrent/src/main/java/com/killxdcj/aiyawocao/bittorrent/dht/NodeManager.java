@@ -1,35 +1,29 @@
 package com.killxdcj.aiyawocao.bittorrent.dht;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class NodeManager {
-	private final long maxNeighbor;
-	List<Node> allNode = new ArrayList<>();
+	BlockingQueue<Node> neighborQueue;
 
-	public NodeManager(long maxNeighbor) {
-		this.maxNeighbor = maxNeighbor;
-	}
-
-	public List<Node> getAllNode() {
-		List<Node> oldNodes = allNode;
-		allNode = new ArrayList<>();
-		return oldNodes;
+	public NodeManager(int maxNeighbor) {
+		this.neighborQueue = new LinkedBlockingQueue<>(maxNeighbor);
 	}
 
 	public void putNode(Node node) {
-		if (allNode.size() > maxNeighbor) {
-			return;
-		}
-		allNode.add(node);
+		neighborQueue.offer(node);
+	}
+
+	public Node getNode() throws InterruptedException {
+		return neighborQueue.poll(5, TimeUnit.SECONDS);
 	}
 
 	public List<Node> getPeers() {
-		int size = allNode.size();
-		if (size > 5) {
-			return allNode.subList(0, 5);
-		} else {
-			return allNode.subList(0, size);
-		}
+		return Collections.emptyList();
 	}
 }

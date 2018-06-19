@@ -8,7 +8,7 @@ import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
-import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
+import com.revinate.guava.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class DHT {
 	public static final Logger LOGGER = LoggerFactory.getLogger(DHT.class);
@@ -35,32 +32,36 @@ public class DHT {
 	private TransactionManager transactionManager;
 	private NodeManager nodeManager;
 	private volatile boolean exit = false;
-	private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
-		Thread t = new Thread(r, "DHT_ThreadPool");
-		t.setDaemon(true);
-		return t;
-	});
 	private Thread workProcThread;
+	private Thread nodefindThread;
+	private RateLimiter findnodeLimiter;
+	private RateLimiter outBandwidthLimit;
 
 	public DHT(BittorrentConfig config, MetaWatcher metaWatcher) throws SocketException {
 		this.config = config;
 		this.metaWatcher = metaWatcher;
 		nodeId = JTorrentUtils.genNodeId();
+		if (config.getFindnodeLimit() != -1) {
+			findnodeLimiter = RateLimiter.create(config.getFindnodeLimit());
+		}
+		if (config.getOutBandwidthLimit() != -1) {
+			outBandwidthLimit = RateLimiter.create(config.getOutBandwidthLimit());
+		}
 		datagramSocket = new DatagramSocket(config.getPort());
 		nodeManager = new NodeManager(config.getMaxNeighbor());
 		transactionManager = new TransactionManager();
 		workProcThread = new Thread(this::workProc);
 		workProcThread.start();
-		executorService.scheduleAtFixedRate(this::nodeFindProc, 1000, config.getFindNodeInterval(),
-				TimeUnit.MILLISECONDS);
+		nodefindThread = new Thread(this::nodeFindProc);
+		nodefindThread.start();
 		LOGGER.info("DHT start, nodeId:{}", nodeId.asHexString());
 	}
 
 	public void shutdown() {
 		exit = true;
+		nodefindThread.interrupt();
 		workProcThread.interrupt();
 		transactionManager.shutdown();
-		executorService.shutdown();
 		datagramSocket.close();
 	}
 
@@ -101,48 +102,62 @@ public class DHT {
 	}
 
 	private void nodeFindProc() {
-		try {
-			long startTime = TimeUtils.getCurTime();
-			byte[] randomId = Arrays.copyOf(nodeId.asBytes(), 20);
-			byte[] randomIdNext = JTorrentUtils.genByte(10);
-			for (int i = 0; i < randomIdNext.length; i++) {
-				randomId[i] = randomIdNext[i];
-			}
-			BencodedString neighborId = new BencodedString(randomId);
+		Thread.currentThread().setName("DHT FindNode Proc");
+		int idx = 0;
+		BencodedString neighborId = null;
+		while (!exit) {
+			try {
+				if (findnodeLimiter != null) {
+					findnodeLimiter.acquire();
+				}
 
-			List<Node> oldNodes = nodeManager.getAllNode();
-			if (oldNodes.size() == 0) {
-				for (String primeNode : config.getPrimeNodes()) {
-					String[] ipPort = primeNode.split(":");
-					Node node = new Node(InetAddress.getByName(ipPort[0]), Integer.parseInt(ipPort[1]));
-					sendFindNodeReq(node, neighborId);
+				if (idx == 0 || neighborId == null) {
+					byte[] randomId = Arrays.copyOf(nodeId.asBytes(), 20);
+					byte[] randomIdNext = JTorrentUtils.genByte(10);
+					for (int i = 0; i < randomIdNext.length; i++) {
+						randomId[i] = randomIdNext[i];
+					}
+					neighborId = new BencodedString(randomId);
 				}
-			} else {
-				for (Node node : oldNodes) {
-					sendFindNodeReq(node, neighborId);
+
+				Node node = nodeManager.getNode();
+				int sendedData = 0;
+				if (node == null) {
+					for (String primeNode : config.getPrimeNodes()) {
+						String[] ipPort = primeNode.split(":");
+						node = new Node(InetAddress.getByName(ipPort[0]), Integer.parseInt(ipPort[1]));
+						sendedData += sendFindNodeReq(node, neighborId);
+					}
+				} else {
+					sendedData = sendFindNodeReq(node, neighborId);
 				}
+				idx = ++idx % 1000;
+				if (outBandwidthLimit != null) {
+					outBandwidthLimit.acquire(sendedData);
+				}
+			} catch (Throwable e) {
+				LOGGER.error("nodeFindProc error", e);
 			}
-			LOGGER.info("nodeFindProc ,prenodes:{}, costtime:{}ms", oldNodes.size(), TimeUtils.getElapseTime(startTime));
-		} catch (Exception e) {
-			LOGGER.error("nodeFindProc error", e);
 		}
 	}
 
-	private void sendFindNodeReq(Node node, BencodedString targetNodeId) {
+	private int sendFindNodeReq(Node node, BencodedString targetNodeId) {
 		try {
 			KRPC krpc = KRPC.buildFindNodeReqPacket(this.nodeId, targetNodeId);
-			sendKrpcPacket(node, krpc);
 			transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
+			return sendKrpcPacket(node, krpc);
 		} catch (Exception e) {
 			LOGGER.error("sendFindNodeReq error, node:{}", node, e);
+			return 0;
 		}
 	}
 
-	private void sendKrpcPacket(Node node, KRPC krpc) throws IOException {
+	private int sendKrpcPacket(Node node, KRPC krpc) throws IOException {
 //		transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
 		byte[] packetBytes = krpc.encode();
 		DatagramPacket udpPacket = new DatagramPacket(packetBytes, 0, packetBytes.length, node.getAddr(), node.getPort());
 		datagramSocket.send(udpPacket);
+		return packetBytes.length;
 	}
 
 	private void handleQuery(DatagramPacket packet, KRPC krpc) throws IOException {
@@ -171,11 +186,12 @@ public class DHT {
 		BencodedMap reqArgs = (BencodedMap)krpc.getData().get(KRPC.QUERY_ARGS);
 		BencodedString infohash = (BencodedString) reqArgs.get(KRPC.INFO_HASH);
 		metaWatcher.onGetInfoHash(infohash);
-//		List<Node> nodes = nodeManager.getPeers();
-//		List<Peer> peers = new ArrayList<>();
-//		for (Node nodex : nodes) {
-//			peers.add(new Peer(nodex.getAddr(), node.getPort()));
-//		}
+
+		List<Node> nodes = nodeManager.getPeers();
+		List<Peer> peers = new ArrayList<>();
+		for (Node nodex : nodes) {
+			peers.add(new Peer(nodex.getAddr(), node.getPort()));
+		}
 
 		byte[] neighborId = new byte[20];
 		for (int i = 0; i < 15; i++) {
@@ -185,7 +201,6 @@ public class DHT {
 			neighborId[i] = nodeId.asBytes()[i];
 		}
 
-		List<Peer> peers = Collections.emptyList();
 		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), new BencodedString(neighborId), "caojian", peers);
 		sendKrpcPacket(node, resp);
 	}

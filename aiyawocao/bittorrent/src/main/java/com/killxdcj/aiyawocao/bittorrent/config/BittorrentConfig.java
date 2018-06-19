@@ -11,21 +11,23 @@ public class BittorrentConfig {
 		add("router.utorrent.com:6881");
 		add("dht.transmissionbt.com:6881");
 	}};
-	private long findNodeInterval = 1000;
-	private long transactionExpireTime = 10 * 60 * 1000;
-	private long maxNeighbor = 2000;
+	private long transactionExpireTime = 5 * 60 * 1000;
+	private int maxNeighbor = 1500;
+	private long outBandwidthLimit = 1 * 1024 * 1024;
+	private long findnodeLimit = 1500;
 
 	public BittorrentConfig() {
 	}
 
-	public BittorrentConfig(int port, int maxPacketSize, List<String> primeNodes, long findNodeInterval,
-													long transactionExpireTime, long maxNeighbor) {
+	public BittorrentConfig(int port, int maxPacketSize, List<String> primeNodes, long transactionExpireTime,
+													int maxNeighbor, long outBandwidthLimit, long findnodeLimit) {
 		this.port = port;
 		this.maxPacketSize = maxPacketSize;
 		this.primeNodes = primeNodes;
-		this.findNodeInterval = findNodeInterval;
 		this.transactionExpireTime = transactionExpireTime;
 		this.maxNeighbor = maxNeighbor;
+		this.outBandwidthLimit = outBandwidthLimit;
+		this.findnodeLimit = findnodeLimit;
 	}
 
 	public int getPort() {
@@ -52,14 +54,6 @@ public class BittorrentConfig {
 		this.primeNodes = primeNodes;
 	}
 
-	public long getFindNodeInterval() {
-		return findNodeInterval;
-	}
-
-	public void setFindNodeInterval(long findNodeInterval) {
-		this.findNodeInterval = findNodeInterval;
-	}
-
 	public long getTransactionExpireTime() {
 		return transactionExpireTime;
 	}
@@ -68,11 +62,40 @@ public class BittorrentConfig {
 		this.transactionExpireTime = transactionExpireTime;
 	}
 
-	public long getMaxNeighbor() {
+	public int getMaxNeighbor() {
 		return maxNeighbor;
 	}
 
-	public void setMaxNeighbor(long maxNeighbor) {
+	public void setMaxNeighbor(int maxNeighbor) {
 		this.maxNeighbor = maxNeighbor;
+	}
+
+	public long getOutBandwidthLimit() {
+		return outBandwidthLimit;
+	}
+
+	public void setOutBandwidthLimit(long outBandwidthLimit) {
+		this.outBandwidthLimit = outBandwidthLimit;
+	}
+
+	public long getFindnodeLimit() {
+		return findnodeLimit;
+	}
+
+	public void setFindnodeLimit(long findnodeLimit) {
+		this.findnodeLimit = findnodeLimit;
+	}
+
+	@Override
+	public String toString() {
+		return "BittorrentConfig{" +
+						"port=" + port +
+						", maxPacketSize=" + maxPacketSize +
+						", primeNodes=" + primeNodes +
+						", transactionExpireTime=" + transactionExpireTime +
+						", maxNeighbor=" + maxNeighbor +
+						", outBandwidthLimit=" + outBandwidthLimit +
+						", findnodeLimit=" + findnodeLimit +
+						'}';
 	}
 }

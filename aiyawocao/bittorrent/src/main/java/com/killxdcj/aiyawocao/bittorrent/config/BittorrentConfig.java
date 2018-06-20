@@ -14,20 +14,20 @@ public class BittorrentConfig {
 	private long transactionExpireTime = 5 * 60 * 1000;
 	private int maxNeighbor = 3000;
 	private long outBandwidthLimit = 1 * 1024 * 1024;
-	private long findnodeLimit = 1500;
+	private long requestLimit = 1500;
 
 	public BittorrentConfig() {
 	}
 
 	public BittorrentConfig(int port, int maxPacketSize, List<String> primeNodes, long transactionExpireTime,
-													int maxNeighbor, long outBandwidthLimit, long findnodeLimit) {
+													int maxNeighbor, long outBandwidthLimit, long requestLimit) {
 		this.port = port;
 		this.maxPacketSize = maxPacketSize;
 		this.primeNodes = primeNodes;
 		this.transactionExpireTime = transactionExpireTime;
 		this.maxNeighbor = maxNeighbor;
 		this.outBandwidthLimit = outBandwidthLimit;
-		this.findnodeLimit = findnodeLimit;
+		this.requestLimit = requestLimit;
 	}
 
 	public int getPort() {
@@ -78,12 +78,12 @@ public class BittorrentConfig {
 		this.outBandwidthLimit = outBandwidthLimit;
 	}
 
-	public long getFindnodeLimit() {
-		return findnodeLimit;
+	public long getRequestLimit() {
+		return requestLimit;
 	}
 
-	public void setFindnodeLimit(long findnodeLimit) {
-		this.findnodeLimit = findnodeLimit;
+	public void setRequestLimit(long requestLimit) {
+		this.requestLimit = requestLimit;
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class BittorrentConfig {
 						", transactionExpireTime=" + transactionExpireTime +
 						", maxNeighbor=" + maxNeighbor +
 						", outBandwidthLimit=" + outBandwidthLimit +
-						", findnodeLimit=" + findnodeLimit +
+						", requestLimit=" + requestLimit +
 						'}';
 	}
 }

@@ -37,7 +37,7 @@ public class DHT {
 	private volatile boolean exit = false;
 	private Thread workProcThread;
 	private Thread nodefindThread;
-	private RateLimiter findnodeLimiter;
+	private RateLimiter requestLimiter;
 	private RateLimiter outBandwidthLimit;
 
 	private Meter inBoundwidthMeter;
@@ -57,8 +57,8 @@ public class DHT {
 		this.metricRegistry = metricRegistry;
 		initMetrics();
 		nodeId = JTorrentUtils.genNodeId();
-		if (config.getFindnodeLimit() != -1) {
-			findnodeLimiter = RateLimiter.create(config.getFindnodeLimit());
+		if (config.getRequestLimit() != -1) {
+			requestLimiter = RateLimiter.create(config.getRequestLimit());
 		}
 		if (config.getOutBandwidthLimit() != -1) {
 			outBandwidthLimit = RateLimiter.create(config.getOutBandwidthLimit());
@@ -140,10 +140,6 @@ public class DHT {
 		BencodedString neighborId = null;
 		while (!exit) {
 			try {
-				if (findnodeLimiter != null) {
-					findnodeLimiter.acquire();
-				}
-
 				if (idx == 0 || neighborId == null) {
 					byte[] randomId = Arrays.copyOf(nodeId.asBytes(), 20);
 					byte[] randomIdNext = JTorrentUtils.genByte(10);
@@ -154,22 +150,18 @@ public class DHT {
 				}
 
 				Node node = nodeManager.getNode();
-				int sendedData = 0;
 				if (node == null) {
 					neighborEmpty.inc();
 					for (String primeNode : config.getPrimeNodes()) {
 						String[] ipPort = primeNode.split(":");
 						node = new Node(InetAddress.getByName(ipPort[0]), Integer.parseInt(ipPort[1]));
-						sendedData += sendFindNodeReq(node, neighborId);
+						sendFindNodeReq(node, neighborId);
 					}
 				} else {
-					sendedData = sendFindNodeReq(node, neighborId);
+					sendFindNodeReq(node, neighborId);
 					findNodeMeter.mark();
 				}
 				idx = ++idx % 1000;
-				if (outBandwidthLimit != null) {
-					outBandwidthLimit.acquire(sendedData);
-				}
 			} catch (Throwable e) {
 				LOGGER.error("nodeFindProc error", e);
 			}
@@ -189,10 +181,16 @@ public class DHT {
 
 	private int sendKrpcPacket(Node node, KRPC krpc) throws IOException {
 //		transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
+		if (requestLimiter != null) {
+			requestLimiter.acquire();
+		}
 		byte[] packetBytes = krpc.encode();
 		DatagramPacket udpPacket = new DatagramPacket(packetBytes, 0, packetBytes.length, node.getAddr(), node.getPort());
 		datagramSocket.send(udpPacket);
 		outBoundwidthMeter.mark(packetBytes.length);
+		if (outBandwidthLimit != null) {
+			outBandwidthLimit.acquire(packetBytes.length);
+		}
 		return packetBytes.length;
 	}
 

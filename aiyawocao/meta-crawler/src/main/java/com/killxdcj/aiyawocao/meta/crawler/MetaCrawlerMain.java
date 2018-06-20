@@ -1,9 +1,6 @@
 package com.killxdcj.aiyawocao.meta.crawler;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.ScheduledReporter;
+import com.codahale.metrics.*;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
@@ -46,6 +43,8 @@ public class MetaCrawlerMain {
 	private Meter metaFetchSuccessed;
 	private Meter metaFetchError;
 	private Meter metaFetchTimeout;
+	private Timer metaFetchSuccessedTimer;
+	private Timer metaFetchErrorTimer;
 
 	public void start(String[] args) throws FileNotFoundException, SocketException {
 		LOGGER.info("args = {}", Arrays.toString(args));
@@ -69,6 +68,8 @@ public class MetaCrawlerMain {
 		metaFetchSuccessed = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessed"));
 		metaFetchError = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchError"));
 		metaFetchTimeout = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchTimeout"));
+		metaFetchSuccessedTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessedCose"));
+		metaFetchErrorTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCosr"));
 
 		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
@@ -126,12 +127,14 @@ public class MetaCrawlerMain {
 			@Override
 			public Future apply(MetaFetcherKey metaFetcherKey) {
 				LOGGER.info("{} {}:{} meta fetch start", infohashStr, peer.getAddr(), peer.getPort());
+				long start = TimeUtils.getCurTime();
 				return executorService.submit(new MetadataFetcher(peer, infohash,
 								new MetadataFetcher.IFetcherCallback() {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
 										metaFetchSuccessed.mark();
-										LOGGER.info("{} {}:{} meta fetched", infohashStr, peer.getAddr(), peer.getPort());
+										metaFetchSuccessedTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+										LOGGER.info("{} {}:{} meta fetched, costtime:{}", infohashStr, peer.getAddr(), peer.getPort(), TimeUtils.getElapseTime(start));
 										if (metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;
@@ -145,7 +148,8 @@ public class MetaCrawlerMain {
 									@Override
 									public void onException(Exception e) {
 										metaFetchError.mark();
-										LOGGER.info("{} {}:{} meta fetch error", infohashStr, peer.getAddr(), peer.getPort());
+										metaFetchErrorTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+										LOGGER.info("{} {}:{} meta fetch error, costtime:{}", infohashStr, peer.getAddr(), peer.getPort(), TimeUtils.getElapseTime(start));
 										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 //										if (LOGGER.isDebugEnabled()) {
 											LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);

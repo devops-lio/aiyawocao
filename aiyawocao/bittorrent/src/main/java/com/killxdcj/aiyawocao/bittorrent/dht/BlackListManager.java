@@ -53,12 +53,12 @@ public class BlackListManager {
 				for (Map.Entry<String, AtomicInteger> entry : oldGetpeersCnt.entrySet()) {
 					if (entry.getValue().get() > blackThreshold) {
 						newBlackList.add(entry.getKey());
-						sbBlk.append(entry.getKey() + "->" + entry.getValue().get());
+						sbBlk.append(" " + entry.getKey() + "->" + entry.getValue().get());
 					}
 				}
 
 				blackList.addAll(newBlackList);
-				LOGGER.info("BlackListManager Blacklist Calc Proc, costtime:{}, total:{}, black:{}\r\n{}",
+				LOGGER.info("BlackListManager Blacklist Calc Proc, costtime:{}, total:{}, black:{}, blks:{}",
 						TimeUtils.getElapseTime(cur), oldGetpeersCnt.size(), newBlackList.size(), sbBlk.toString());
 			} catch (InterruptedException e) {
 			} catch (Throwable t) {

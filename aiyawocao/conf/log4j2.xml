@@ -5,7 +5,7 @@
             <PatternLayout pattern="ROOT:%d %-5p %C %L - %m%n" />
         </Console>
         <RollingFile name="aiyawocao" fileName="./logs/log.log" filePattern="./logs/logs_%d{yyyy-MM-dd}_%i.log">
-            <PatternLayout pattern="%d %p %c{1} %m%n" />
+            <PatternLayout pattern="%d %p %c{1}: %m%n" />
             <Policies>
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB" />

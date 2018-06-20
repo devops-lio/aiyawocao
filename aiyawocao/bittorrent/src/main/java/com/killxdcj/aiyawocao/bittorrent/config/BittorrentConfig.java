@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BittorrentConfig {
-	private int port = 9613;
+	private int port = 10240;
 	private int maxPacketSize = 64 * 1024;
 	private List<String> primeNodes = new ArrayList(){{
 		add("router.bittorrent.com:6881");
@@ -15,12 +15,14 @@ public class BittorrentConfig {
 	private int maxNeighbor = 3000;
 	private long outBandwidthLimit = 1 * 1024 * 1024;
 	private long requestLimit = 1500;
+	private int blackThreshold = 30;
+	private boolean enableBlack = false;
 
 	public BittorrentConfig() {
 	}
 
 	public BittorrentConfig(int port, int maxPacketSize, List<String> primeNodes, long transactionExpireTime,
-													int maxNeighbor, long outBandwidthLimit, long requestLimit) {
+													int maxNeighbor, long outBandwidthLimit, long requestLimit, int blackThreshold, boolean enableBlack) {
 		this.port = port;
 		this.maxPacketSize = maxPacketSize;
 		this.primeNodes = primeNodes;
@@ -28,6 +30,8 @@ public class BittorrentConfig {
 		this.maxNeighbor = maxNeighbor;
 		this.outBandwidthLimit = outBandwidthLimit;
 		this.requestLimit = requestLimit;
+		this.blackThreshold = blackThreshold;
+		this.enableBlack = enableBlack;
 	}
 
 	public int getPort() {
@@ -86,6 +90,22 @@ public class BittorrentConfig {
 		this.requestLimit = requestLimit;
 	}
 
+	public int getBlackThreshold() {
+		return blackThreshold;
+	}
+
+	public void setBlackThreshold(int blackThreshold) {
+		this.blackThreshold = blackThreshold;
+	}
+
+	public boolean getEnableBlack() {
+		return enableBlack;
+	}
+
+	public void setEnableBlack(boolean enableBlack) {
+		this.enableBlack = enableBlack;
+	}
+
 	@Override
 	public String toString() {
 		return "BittorrentConfig{" +
@@ -96,6 +116,8 @@ public class BittorrentConfig {
 						", maxNeighbor=" + maxNeighbor +
 						", outBandwidthLimit=" + outBandwidthLimit +
 						", requestLimit=" + requestLimit +
+						", blackThreshold=" + blackThreshold +
+						", enableBlack=" + enableBlack +
 						'}';
 	}
 }

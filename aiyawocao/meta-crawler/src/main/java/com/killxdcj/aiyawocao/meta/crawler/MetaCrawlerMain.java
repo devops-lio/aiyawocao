@@ -131,7 +131,7 @@ public class MetaCrawlerMain {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
 										metaFetchSuccessed.mark();
-										LOGGER.info("{} meta fetched", infohashStr);
+										LOGGER.info("{} {}:{} meta fetched", infohashStr, peer.getAddr(), peer.getPort());
 										if (metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;

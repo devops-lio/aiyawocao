@@ -39,6 +39,8 @@ public class DHT {
 	private Thread nodefindThread;
 	private RateLimiter requestLimiter;
 	private RateLimiter outBandwidthLimit;
+	private BlackListManager blkManager;
+	private boolean enableBlk;
 
 	private Meter inBoundwidthMeter;
 	private Meter outBoundwidthMeter;
@@ -55,6 +57,7 @@ public class DHT {
 		this.config = config;
 		this.metaWatcher = metaWatcher;
 		this.metricRegistry = metricRegistry;
+		enableBlk = config.getEnableBlack();
 		initMetrics();
 		nodeId = JTorrentUtils.genNodeId();
 		if (config.getRequestLimit() != -1) {
@@ -65,6 +68,7 @@ public class DHT {
 		}
 		datagramSocket = new DatagramSocket(config.getPort());
 		nodeManager = new NodeManager(config.getMaxNeighbor());
+		blkManager = new BlackListManager(config.getBlackThreshold());
 		transactionManager = new TransactionManager();
 		workProcThread = new Thread(this::workProc);
 		workProcThread.start();
@@ -88,6 +92,7 @@ public class DHT {
 
 	public void shutdown() {
 		exit = true;
+		blkManager.shutdown();
 		nodefindThread.interrupt();
 		workProcThread.interrupt();
 		transactionManager.shutdown();
@@ -216,6 +221,12 @@ public class DHT {
 	}
 
 	private void handleGetPeersQuery(DatagramPacket packet, KRPC krpc) throws IOException {
+		String addr = "" + packet.getAddress().getHostAddress() + ":" + packet.getPort();
+		if (enableBlk && blkManager.isInBlackList(addr)) {
+			return;
+		}
+
+		blkManager.mark(addr);
 		getpeersMeter.mark();
 		Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());
 		BencodedMap reqArgs = (BencodedMap)krpc.getData().get(KRPC.QUERY_ARGS);

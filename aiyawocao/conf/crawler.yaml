@@ -4,15 +4,17 @@ influxdbPassword: example-influxdb-user
 influxdbUser: example-influxdb-user
 metaFetchTimeout: 300000
 bittorrentConfig:
-  requestLimit: 1500
+  blackThreshold: 30
+  enableBlack: false
   maxNeighbor: 3000
   maxPacketSize: 65536
   outBandwidthLimit: 1048576
-  port: 9613
+  port: 10240
   primeNodes:
   - router.bittorrent.com:6881
   - router.utorrent.com:6881
   - dht.transmissionbt.com:6881
+  requestLimit: 1500
   transactionExpireTime: 300000
 metaManagerConfig:
   accessKeyId: example-accesskey-id

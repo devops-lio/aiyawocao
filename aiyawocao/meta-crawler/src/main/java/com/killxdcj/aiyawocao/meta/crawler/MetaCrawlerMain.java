@@ -75,7 +75,7 @@ public class MetaCrawlerMain {
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
 			@Override
 			public void onGetInfoHash(BencodedString infohash) {
-				LOGGER.debug("catch infohash : {}", infohash.asHexString());
+				LOGGER.info("catch infohash : {}", infohash.asHexString());
 			}
 
 			@Override

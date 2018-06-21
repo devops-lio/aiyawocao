@@ -68,14 +68,14 @@ public class MetaCrawlerMain {
 		metaFetchSuccessed = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessed"));
 		metaFetchError = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchError"));
 		metaFetchTimeout = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchTimeout"));
-		metaFetchSuccessedTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessedCose"));
-		metaFetchErrorTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCosr"));
+		metaFetchSuccessedTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessedCost"));
+		metaFetchErrorTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
 
 		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
 			@Override
 			public void onGetInfoHash(BencodedString infohash) {
-				LOGGER.info("catch infohash : {}", infohash.asHexString());
+				LOGGER.debug("catch infohash : {}", infohash.asHexString());
 			}
 
 			@Override

@@ -54,7 +54,8 @@ public class MetaCrawlerMain {
 	private Meter metaFetchTimeout;
 	private Timer metaFetchSuccessedTimer;
 	private Timer metaFetchErrorTimer;
-	private Meter metaFetchIgnore;
+	private Meter metaFetchIgnoreByInfohash;
+	private Meter metaFetchIgnoreByNode;
 
 	public void start(String[] args) throws FileNotFoundException, SocketException {
 		LOGGER.info("args = {}", Arrays.toString(args));
@@ -101,7 +102,8 @@ public class MetaCrawlerMain {
 		metaFetchErrorTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
 		metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchRunning"),
 						(Gauge<Integer>) () -> fetcherMap.size());
-		metaFetchIgnore = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnore"));
+		metaFetchIgnoreByInfohash = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByIP"));
+		metaFetchIgnoreByNode = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByNode"));
 
 		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
@@ -161,15 +163,15 @@ public class MetaCrawlerMain {
 
 		AtomicInteger infohashFetchCnt = infohashConcurrentFetchCntMap.getUnchecked(infohashStr);
 		if (infohashFetchCnt.get() >= infohashMaxConcurrentFetch ) {
-			LOGGER.debug("{} ignore by info concurrent fetch limit", infohashStr);
-			metaFetchIgnore.mark();
+			LOGGER.info("{} ignore by info concurrent fetch limit", infohashStr);
+			metaFetchIgnoreByInfohash.mark();
 			return;
 		}
 		AtomicInteger nodeFetchCnt = nodeConcurrentFetchCntMap.getUnchecked(peer.getAddr().getHostAddress());
 		if (nodeFetchCnt.get() >= nodeMaxConcurrentFetch) {
-			LOGGER.debug("{} ignore by node concurrent fetch limit, node:{}:{}",
+			LOGGER.info("{} ignore by node concurrent fetch limit, node:{}:{}",
 					infohashStr, peer.getAddr().getHostAddress(), peer.getPort());
-			metaFetchIgnore.mark();
+			metaFetchIgnoreByNode.mark();
 			return;
 		}
 		infohashFetchCnt.incrementAndGet();

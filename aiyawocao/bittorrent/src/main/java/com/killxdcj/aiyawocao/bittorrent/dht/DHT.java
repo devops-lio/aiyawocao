@@ -163,7 +163,7 @@ public class DHT {
 						sendFindNodeReq(node, neighborId);
 					}
 				} else {
-					sendFindNodeReq(node, neighborId);
+					sendFindNodeReq(node, buildDummyNodeId(node.id), neighborId);
 					findNodeMeter.mark();
 				}
 				idx = ++idx % 1000;
@@ -173,15 +173,19 @@ public class DHT {
 		}
 	}
 
-	private int sendFindNodeReq(Node node, BencodedString targetNodeId) {
+	private int sendFindNodeReq(Node node, BencodedString dummyLocalNodeId, BencodedString targetNodeId) {
 		try {
-			KRPC krpc = KRPC.buildFindNodeReqPacket(this.nodeId, targetNodeId);
+			KRPC krpc = KRPC.buildFindNodeReqPacket(dummyLocalNodeId, targetNodeId);
 			transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
 			return sendKrpcPacket(node, krpc);
 		} catch (Exception e) {
 			LOGGER.error("sendFindNodeReq error, node:{}", node, e);
 			return 0;
 		}
+	}
+
+	private int sendFindNodeReq(Node node, BencodedString targetNodeId) {
+		return sendFindNodeReq(node, this.nodeId, targetNodeId);
 	}
 
 	private int sendKrpcPacket(Node node, KRPC krpc) throws IOException {
@@ -242,15 +246,7 @@ public class DHT {
 			LOGGER.warn("Peers is empty, maybe neighbors is empty");
 		}
 
-		byte[] neighborId = new byte[20];
-		for (int i = 0; i < 15; i++) {
-			neighborId[i] = infohash.asBytes()[i];
-		}
-		for (int i = 15; i < 20; i++) {
-			neighborId[i] = nodeId.asBytes()[i];
-		}
-
-		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), new BencodedString(neighborId), "caojian", peers);
+		KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(),buildDummyNodeId(infohash), "caojian", peers);
 		sendKrpcPacket(node, resp);
 	}
 
@@ -313,5 +309,12 @@ public class DHT {
 
 	private void handleResponseError(DatagramPacket packet, KRPC krpc) {
 		LOGGER.debug("recive error resp, from: {}:{}, packet:{}", packet.getAddress(), packet.getPort(), krpc);
+	}
+
+	private BencodedString buildDummyNodeId(BencodedString targetId) {
+		byte[] dummyId = new byte[20];
+		System.arraycopy(targetId.asBytes(), 0, dummyId, 0, 15);
+		System.arraycopy(nodeId.asBytes(), 16, dummyId, 15, 5);
+		return new BencodedString(dummyId);
 	}
 }

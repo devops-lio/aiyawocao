@@ -64,6 +64,7 @@ public class MetadataFetcher extends Peer implements Runnable {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("MetaFetcher " + infohash.asHexString() + ", " + addr.getHostAddress() + ":" + port);
 		try {
 			cliChannel = SocketChannel.open();
 			cliChannel.configureBlocking(false);
@@ -102,6 +103,7 @@ public class MetadataFetcher extends Peer implements Runnable {
 		} finally {
 			closeCliChannel();
 			exit = true;
+			Thread.currentThread().setName("MetaFetcher ThreadPool");
 		}
 	}
 

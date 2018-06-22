@@ -37,7 +37,7 @@ public class MetaCrawlerMain {
 	private volatile boolean exit = false;
 	private ConcurrentMap<MetaFetcherKey, Future> fetcherMap = new ConcurrentHashMap<>();
 	private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
-		Thread t = new Thread(r, "Crawler ThreadPool");
+		Thread t = new Thread(r, "MetaFetcher ThreadPool");
 		t.setDaemon(true);
 		return t;
 	});
@@ -47,6 +47,7 @@ public class MetaCrawlerMain {
 	private LoadingCache<String, AtomicInteger> nodeConcurrentFetchCntMap;
 	private int infohashMaxConcurrentFetch;
 	private int nodeMaxConcurrentFetch;
+	private Thread timeoutFetcherCleaner;
 
 	private Meter metaFetchSuccessed;
 	private Meter metaFetchError;
@@ -140,6 +141,10 @@ public class MetaCrawlerMain {
 			metaManager.shutdown();
 		}
 
+		if (timeoutFetcherCleaner != null) {
+			timeoutFetcherCleaner.interrupt();
+		}
+
 		if (reporter != null) {
 			reporter.stop();
 		}
@@ -213,22 +218,32 @@ public class MetaCrawlerMain {
 	}
 
 	private void startTimeoutFetcherCleaner() {
-		executorService.scheduleAtFixedRate(() -> {
-			long cur = TimeUtils.getCurTime();
-			List<MetaFetcherKey> timeOutFetcher = new ArrayList<>();
-			for (Map.Entry<MetaFetcherKey, Future> entry : fetcherMap.entrySet()) {
-				if (cur >= entry.getKey().expireTime) {
-					timeOutFetcher.add(entry.getKey());
-					entry.getValue().cancel(true);
-					LOGGER.warn("{} {} fetch timeout, ", entry.getKey().infohashStr, entry.getKey().peer);
+		timeoutFetcherCleaner = new Thread(() -> {
+			Thread.currentThread().setName("TimeoutFetcher Cleaner");
+			while (!exit) {
+				try {
+					Thread.sleep(60 * 1000);
+					long cur = TimeUtils.getCurTime();
+					List<MetaFetcherKey> timeOutFetcher = new ArrayList<>();
+					for (Map.Entry<MetaFetcherKey, Future> entry : fetcherMap.entrySet()) {
+						if (cur >= entry.getKey().expireTime) {
+							timeOutFetcher.add(entry.getKey());
+							entry.getValue().cancel(true);
+							LOGGER.warn("{} {} fetch timeout, ", entry.getKey().infohashStr, entry.getKey().peer);
+						}
+					}
+					for (MetaFetcherKey key : timeOutFetcher) {
+						fetcherMap.remove(key);
+					}
+					metaFetchTimeout.mark(timeOutFetcher.size());
+					LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running:{}", timeOutFetcher.size(), fetcherMap.size());
+				} catch (InterruptedException e) {
+				} catch (Throwable t) {
+					LOGGER.error("timeoutFetcherCleaner error", t);
 				}
 			}
-			for (MetaFetcherKey key : timeOutFetcher) {
-				fetcherMap.remove(key);
-			}
-			metaFetchTimeout.mark(timeOutFetcher.size());
-			LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running:{}", timeOutFetcher.size(), fetcherMap.size());
-		}, 60, 60, TimeUnit.SECONDS);
+		});
+		timeoutFetcherCleaner.start();
 	}
 
 	private class MetaFetcherKey {

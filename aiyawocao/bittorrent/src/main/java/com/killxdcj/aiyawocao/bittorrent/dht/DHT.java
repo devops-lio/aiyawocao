@@ -314,7 +314,7 @@ public class DHT {
 	private BencodedString buildDummyNodeId(BencodedString targetId) {
 		byte[] dummyId = new byte[20];
 		System.arraycopy(targetId.asBytes(), 0, dummyId, 0, 15);
-		System.arraycopy(nodeId.asBytes(), 16, dummyId, 15, 5);
+		System.arraycopy(nodeId.asBytes(), 15, dummyId, 15, 5);
 		return new BencodedString(dummyId);
 	}
 }

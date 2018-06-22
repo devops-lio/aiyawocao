@@ -16,7 +16,7 @@ public class BittorrentConfig {
 	private long outBandwidthLimit = 1 * 1024 * 1024;
 	private long requestLimit = 1500;
 	private int blackThreshold = 30;
-	private boolean enableBlack = false;
+	private boolean enableBlack = true;
 
 	public BittorrentConfig() {
 	}

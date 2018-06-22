@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 
 public class MetaCrawlerConfig {
 	private long metaFetchTimeout = 5 * 60 * 1000;
+	private int infohashMaxConcurrentFetch = 5;
+	private int nodeMaxConcurrentFetch = 5;
 	private String influxdbAddr = "example-influxdb:port";
 	private String influxdbUser = "example-influxdb-user";
 	private String influxdbPassword = "example-influxdb-user";
@@ -40,6 +42,22 @@ public class MetaCrawlerConfig {
 
 	public BittorrentConfig getBittorrentConfig() {
 		return bittorrentConfig;
+	}
+
+	public int getInfohashMaxConcurrentFetch() {
+		return infohashMaxConcurrentFetch;
+	}
+
+	public void setInfohashMaxConcurrentFetch(int infohashMaxConcurrentFetch) {
+		this.infohashMaxConcurrentFetch = infohashMaxConcurrentFetch;
+	}
+
+	public int getNodeMaxConcurrentFetch() {
+		return nodeMaxConcurrentFetch;
+	}
+
+	public void setNodeMaxConcurrentFetch(int nodeMaxConcurrentFetch) {
+		this.nodeMaxConcurrentFetch = nodeMaxConcurrentFetch;
 	}
 
 	public void setBittorrentConfig(BittorrentConfig bittorrentConfig) {
@@ -90,6 +108,8 @@ public class MetaCrawlerConfig {
 	public String toString() {
 		return "MetaCrawlerConfig{" +
 						"metaFetchTimeout=" + metaFetchTimeout +
+						", infohashMaxConcurrentFetch=" + infohashMaxConcurrentFetch +
+						", nodeMaxConcurrentFetch=" + nodeMaxConcurrentFetch +
 						", influxdbAddr='" + influxdbAddr + '\'' +
 						", influxdbUser='" + influxdbUser + '\'' +
 						", influxdbPassword='" + influxdbPassword + '\'' +

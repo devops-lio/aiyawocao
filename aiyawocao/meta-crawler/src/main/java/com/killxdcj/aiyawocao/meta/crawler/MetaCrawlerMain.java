@@ -1,6 +1,9 @@
 package com.killxdcj.aiyawocao.meta.crawler;
 
 import com.codahale.metrics.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
@@ -22,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class MetaCrawlerMain {
@@ -39,12 +43,17 @@ public class MetaCrawlerMain {
 	});
 	private ScheduledReporter reporter;
 	private MetricRegistry metricRegistry;
+	private LoadingCache<String, AtomicInteger> infohashConcurrentFetchCntMap;
+	private LoadingCache<String, AtomicInteger> nodeConcurrentFetchCntMap;
+	private int infohashMaxConcurrentFetch;
+	private int nodeMaxConcurrentFetch;
 
 	private Meter metaFetchSuccessed;
 	private Meter metaFetchError;
 	private Meter metaFetchTimeout;
 	private Timer metaFetchSuccessedTimer;
 	private Timer metaFetchErrorTimer;
+	private Meter metaFetchIgnore;
 
 	public void start(String[] args) throws FileNotFoundException, SocketException {
 		LOGGER.info("args = {}", Arrays.toString(args));
@@ -53,6 +62,25 @@ public class MetaCrawlerMain {
 			confPath = args[0];
 		}
 		config = MetaCrawlerConfig.fromYamlConfFile(confPath);
+		infohashMaxConcurrentFetch = config.getInfohashMaxConcurrentFetch();
+		nodeMaxConcurrentFetch = config.getNodeMaxConcurrentFetch();
+
+		infohashConcurrentFetchCntMap = CacheBuilder.newBuilder()
+						.expireAfterAccess(config.getMetaFetchTimeout(), TimeUnit.MILLISECONDS)
+						.build(new CacheLoader<String, AtomicInteger>() {
+							@Override
+							public AtomicInteger load(String s) throws Exception {
+								return new AtomicInteger(0);
+							}
+						});
+		nodeConcurrentFetchCntMap = CacheBuilder.newBuilder()
+						.expireAfterAccess(config.getMetaFetchTimeout(), TimeUnit.MILLISECONDS)
+						.build(new CacheLoader<String, AtomicInteger>() {
+							@Override
+							public AtomicInteger load(String s) throws Exception {
+								return new AtomicInteger(0);
+							}
+						});
 
 		metricRegistry = new MetricRegistry();
 		String[] addrs = config.getInfluxdbAddr().split(":");
@@ -70,6 +98,9 @@ public class MetaCrawlerMain {
 		metaFetchTimeout = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchTimeout"));
 		metaFetchSuccessedTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessedCost"));
 		metaFetchErrorTimer = metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
+		metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchRunning"),
+						(Gauge<Integer>) () -> fetcherMap.size());
+		metaFetchIgnore = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnore"));
 
 		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
@@ -123,6 +154,22 @@ public class MetaCrawlerMain {
 			return;
 		}
 
+		AtomicInteger infohashFetchCnt = infohashConcurrentFetchCntMap.getUnchecked(infohashStr);
+		if (infohashFetchCnt.get() >= infohashMaxConcurrentFetch ) {
+			LOGGER.debug("{} ignore by info concurrent fetch limit", infohashStr);
+			metaFetchIgnore.mark();
+			return;
+		}
+		AtomicInteger nodeFetchCnt = nodeConcurrentFetchCntMap.getUnchecked(peer.getAddr().getHostAddress());
+		if (nodeFetchCnt.get() >= nodeMaxConcurrentFetch) {
+			LOGGER.debug("{} ignore by node concurrent fetch limit, node:{}:{}",
+					infohashStr, peer.getAddr().getHostAddress(), peer.getPort());
+			metaFetchIgnore.mark();
+			return;
+		}
+		infohashFetchCnt.incrementAndGet();
+		nodeFetchCnt.incrementAndGet();
+
 		fetcherMap.computeIfAbsent(new MetaFetcherKey(infohashStr, peer, config.getMetaFetchTimeout()), new Function<MetaFetcherKey, Future>() {
 			@Override
 			public Future apply(MetaFetcherKey metaFetcherKey) {
@@ -132,27 +179,32 @@ public class MetaCrawlerMain {
 								new MetadataFetcher.IFetcherCallback() {
 									@Override
 									public void onFinshed(BencodedString infohash1, byte[] metadata) {
+										LOGGER.info("{} {}:{} meta fetched, costtime:{}", infohashStr, peer.getAddr().getHostAddress(), peer.getPort(), TimeUtils.getElapseTime(start));
+										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
+										infohashFetchCnt.decrementAndGet();
+										nodeFetchCnt.decrementAndGet();
+
 										metaFetchSuccessed.mark();
 										metaFetchSuccessedTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
-										LOGGER.info("{} {}:{} meta fetched, costtime:{}", infohashStr, peer.getAddr(), peer.getPort(), TimeUtils.getElapseTime(start));
 										if (metaManager.doesMetaExist(infohashStr)) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;
 										}
 
 										metaManager.put(infohashStr, metadata);
-										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 										LOGGER.info("{} meta uploaded", infohashStr);
 									}
 
 									@Override
 									public void onException(Exception e) {
+										LOGGER.info("{} {}:{} meta fetch error, costtime:{}", infohashStr, peer.getAddr().getHostAddress(), peer.getPort(), TimeUtils.getElapseTime(start));
+										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
+										infohashFetchCnt.decrementAndGet();
+										nodeFetchCnt.decrementAndGet();
 										metaFetchError.mark();
 										metaFetchErrorTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
-										LOGGER.info("{} {}:{} meta fetch error, costtime:{}", infohashStr, peer.getAddr(), peer.getPort(), TimeUtils.getElapseTime(start));
-										fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
 //										if (LOGGER.isDebugEnabled()) {
-											LOGGER.error(infohashStr + " " + peer.getAddr() + ":" + peer.getPort() + " meta fetch error", e);
+											LOGGER.error(infohashStr + " " + peer.getAddr().getHostAddress() + ":" + peer.getPort() + " meta fetch error", e);
 //										}
 									}
 								}));

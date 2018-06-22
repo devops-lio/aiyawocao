@@ -263,7 +263,7 @@ public class DHT {
 		Peer peer = new Peer(packet.getAddress(), port);
 		metaWatcher.onAnnouncePeer(infohash, peer);
 
-		KRPC resp = KRPC.buildAnnouncePeerRespPacket(krpc.getTransId(), nodeId);
+		KRPC resp = KRPC.buildAnnouncePeerRespPacket(krpc.getTransId(), buildDummyNodeId(krpc.getId()));
 		Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());
 		sendKrpcPacket(node, resp);
 	}

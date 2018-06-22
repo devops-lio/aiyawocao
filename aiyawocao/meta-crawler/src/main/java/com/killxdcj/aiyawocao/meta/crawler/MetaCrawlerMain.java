@@ -36,7 +36,7 @@ public class MetaCrawlerMain {
 	private DHT dht;
 	private volatile boolean exit = false;
 	private ConcurrentMap<MetaFetcherKey, Future> fetcherMap = new ConcurrentHashMap<>();
-	private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
+	private ExecutorService executorService = Executors.newCachedThreadPool(r -> {
 		Thread t = new Thread(r, "MetaFetcher ThreadPool");
 		t.setDaemon(true);
 		return t;

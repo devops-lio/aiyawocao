@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MetaFetcher implements Comparable {
+public class MetaFetcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetaFetcher.class);
 
 	private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
@@ -366,11 +366,6 @@ public class MetaFetcher implements Comparable {
 		int result = infohash != null ? infohash.hashCode() : 0;
 		result = 31 * result + (peer != null ? peer.hashCode() : 0);
 		return result;
-	}
-
-	@Override
-	public int compareTo(Object o) {
-		return this.hashCode() - o.hashCode();
 	}
 
 	private enum FetchProgress {

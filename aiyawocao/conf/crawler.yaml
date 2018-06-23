@@ -6,6 +6,7 @@ infohashMaxConcurrentFetch: 5
 metaFetchTimeout: 300000
 nodeMaxConcurrentFetch: 5
 useNIOMetaFetcher: true
+nioFetcher: 20
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true

@@ -16,25 +16,11 @@ public class MetaCrawlerConfig {
 	private String influxdbPassword = "example-influxdb-user";
 	private String influxdbName = "example-influxdb-name";
 	private boolean useNIOMetaFetcher = true;
+	private int nioFetcher = 20;
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 
 	public MetaCrawlerConfig() {
-	}
-
-	public MetaCrawlerConfig(long metaFetchTimeout, int infohashMaxConcurrentFetch, int nodeMaxConcurrentFetch,
-													 String influxdbAddr, String influxdbUser, String influxdbPassword, String influxdbName,
-													 boolean useNIOMetaFetcher, BittorrentConfig bittorrentConfig, MetaManagerConfig metaManagerConfig) {
-		this.metaFetchTimeout = metaFetchTimeout;
-		this.infohashMaxConcurrentFetch = infohashMaxConcurrentFetch;
-		this.nodeMaxConcurrentFetch = nodeMaxConcurrentFetch;
-		this.influxdbAddr = influxdbAddr;
-		this.influxdbUser = influxdbUser;
-		this.influxdbPassword = influxdbPassword;
-		this.influxdbName = influxdbName;
-		this.useNIOMetaFetcher = useNIOMetaFetcher;
-		this.bittorrentConfig = bittorrentConfig;
-		this.metaManagerConfig = metaManagerConfig;
 	}
 
 	public long getMetaFetchTimeout() {
@@ -117,6 +103,14 @@ public class MetaCrawlerConfig {
 		this.useNIOMetaFetcher = useNIOMetaFetcher;
 	}
 
+	public int getNioFetcher() {
+		return nioFetcher;
+	}
+
+	public void setNioFetcher(int nioFetcher) {
+		this.nioFetcher = nioFetcher;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
@@ -128,6 +122,7 @@ public class MetaCrawlerConfig {
 						", influxdbPassword='" + influxdbPassword + '\'' +
 						", influxdbName='" + influxdbName + '\'' +
 						", useNIOMetaFetcher=" + useNIOMetaFetcher +
+						", nioFetcher=" + nioFetcher +
 						", bittorrentConfig=" + bittorrentConfig +
 						", metaManagerConfig=" + metaManagerConfig +
 						'}';

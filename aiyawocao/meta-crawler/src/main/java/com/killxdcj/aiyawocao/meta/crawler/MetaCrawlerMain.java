@@ -113,7 +113,7 @@ public class MetaCrawlerMain {
 		if (!config.getUseNIOMetaFetcher()) {
 			startTimeoutFetcherCleaner();
 		} else {
-			nioMetaFetcher = new NIOMetaFetcher(metricRegistry, config.getMetaFetchTimeout(), 10);
+			nioMetaFetcher = new NIOMetaFetcher(metricRegistry, config.getMetaFetchTimeout(), config.getNioFetcher());
 		}
 
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {

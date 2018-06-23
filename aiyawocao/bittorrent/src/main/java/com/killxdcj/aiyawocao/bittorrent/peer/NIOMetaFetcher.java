@@ -104,11 +104,14 @@ public class NIOMetaFetcher {
 	private void startNewFetcher(Selector selector) {
 		MetaFetcher fetcher = fetcherWaiting.poll();
 		while (fetcher != null) {
-			try {
-				fetcher.start(selector);
-				LOGGER.info("meta fetcher started, {}", fetcher);
-			} catch (IOException e) {
-				LOGGER.error("meta fetcher start error, " + fetcher, e);
+			if (fetchers.add(fetcher)) {
+				try {
+					fetcher.start(selector);
+					LOGGER.info("meta fetcher started, {}", fetcher);
+				} catch (IOException e) {
+					fetchers.remove(fetcher);
+					LOGGER.error("meta fetcher start error, " + fetcher, e);
+				}
 			}
 			fetcher = fetcherWaiting.poll();
 		}

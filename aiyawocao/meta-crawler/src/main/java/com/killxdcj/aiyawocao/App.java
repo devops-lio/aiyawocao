@@ -24,9 +24,35 @@ public class App
         testNIOFetcher();
     }
 
+    public static void testNIOFetcher() {
+        try {
+            BencodedString infohash = new BencodedString(Hex.decodeHex("66fd3b3a2d3df1d53a106acbdbd7fc0bfc0dd6f3".toCharArray()));
+            NIOMetaFetcher fetcher = new NIOMetaFetcher(new MetricRegistry(),60*1000, 5);
+            Peer peer = new Peer(InetAddress.getByName("42.238.54.140"), 3465);
+            fetcher.submit(infohash, peer, new MetaFetchWatcher() {
+                @Override
+                public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {
+                    System.out.println("successed");
+                }
+
+                @Override
+                public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
+                    t.printStackTrace();
+                }
+            });
+            while (true) {
+                Thread.sleep(5000);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void testNormalFetcher() {
         try {
-            MetadataFetcher fetcher = new MetadataFetcher(InetAddress.getByName("35.159.11.252"), 8114, new BencodedString(Hex.decodeHex("d779ef6d7f805488759bc78068ad1be9aa026755".toCharArray())), new MetadataFetcher.IFetcherCallback() {
+            MetadataFetcher fetcher = new MetadataFetcher(InetAddress.getByName("46.166.187.44"), 2009,
+                    new BencodedString(Hex.decodeHex("66fd3b3a2d3df1d53a106acbdbd7fc0bfc0dd6f3".toCharArray())),
+                    new MetadataFetcher.IFetcherCallback() {
                 @Override
                 public void onFinshed(BencodedString infohash, byte[] metadata) {
                     System.out.println("ok");
@@ -50,30 +76,6 @@ public class App
             });
             Thread thread = new Thread(fetcher);
             thread.start();
-            while (true) {
-                Thread.sleep(5000);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void testNIOFetcher() {
-        try {
-            BencodedString infohash = new BencodedString(Hex.decodeHex("d779ef6d7f805488759bc78068ad1be9aa026755".toCharArray()));
-            NIOMetaFetcher fetcher = new NIOMetaFetcher(new MetricRegistry(),60*1000, 5);
-            Peer peer = new Peer(InetAddress.getByName("35.159.11.252"), 8114);
-            fetcher.submit(infohash, peer, new MetaFetchWatcher() {
-                @Override
-                public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {
-                    System.out.println("successed");
-                }
-
-                @Override
-                public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
-                    t.printStackTrace();
-                }
-            });
             while (true) {
                 Thread.sleep(5000);
             }

@@ -129,9 +129,7 @@ public class NIOMetaFetcher {
 				}
 
 				for (MetaFetcher fetcher : fetchersTimeout) {
-					if (!fetchers.remove(fetcher)) {
-						LOGGER.warn("remove fetcher failed");
-					}
+					fetchers.remove(fetcher);
 					fetcher.finish();
 				}
 				LOGGER.info("NIOMetaFetcher metafetcher cleaned, running:{}, timeout:{}", fetchers.size(), fetchersTimeout.size());

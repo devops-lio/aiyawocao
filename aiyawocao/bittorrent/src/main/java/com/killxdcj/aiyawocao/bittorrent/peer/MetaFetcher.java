@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MetaFetcher {
+public class MetaFetcher implements Comparable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetaFetcher.class);
 
 	private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
@@ -293,18 +293,6 @@ public class MetaFetcher {
 		}
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		MetaFetcher that = (MetaFetcher) o;
-
-		if (infohash != null ? !infohash.equals(that.infohash) : that.infohash != null) return false;
-		if (peer != null ? !peer.equals(that.peer) : that.peer != null) return false;
-		return watcher != null ? watcher.equals(that.watcher) : that.watcher == null;
-	}
-
 	private static byte[] buildHandshakePacketPrefix() {
 		ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
 		packet.put((byte) 19);
@@ -363,11 +351,28 @@ public class MetaFetcher {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		MetaFetcher that = (MetaFetcher) o;
+
+		if (infohash != null ? !infohash.equals(that.infohash) : that.infohash != null) return false;
+		if (peer != null ? !peer.equals(that.peer) : that.peer != null) return false;
+		return watcher != null ? watcher.equals(that.watcher) : that.watcher == null;
+	}
+
+	@Override
 	public int hashCode() {
 		int result = infohash != null ? infohash.hashCode() : 0;
 		result = 31 * result + (peer != null ? peer.hashCode() : 0);
 		result = 31 * result + (watcher != null ? watcher.hashCode() : 0);
 		return result;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		return this.hashCode() - o.hashCode();
 	}
 
 	private enum FetchProgress {

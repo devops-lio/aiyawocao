@@ -39,6 +39,8 @@ public class NIOMetaFetcher {
 		executor.submit(this::timeoutFetcherCleanProc);
 		metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "runing"),
 						(Gauge<Integer>) () -> fetchers.size());
+		metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "pending"),
+						(Gauge<Integer>) () -> fetcherWaiting.size());
 	}
 
 	public void shutdown() {

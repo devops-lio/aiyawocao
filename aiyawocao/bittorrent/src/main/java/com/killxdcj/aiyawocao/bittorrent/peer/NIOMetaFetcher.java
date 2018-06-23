@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.bittorrent.peer;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
+import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,16 +13,13 @@ import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class NIOMetaFetcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NIOMetaFetcher.class);
 
 	private volatile boolean exit = false;
-	private ConcurrentSkipListSet<MetaFetcher> fetchers = new ConcurrentSkipListSet<>();
+	private ConcurrentMap<MetaFetcher, Long> fetchers = new ConcurrentHashMap<>();
 	private Queue<MetaFetcher> fetcherWaiting = new LinkedBlockingQueue<>();
 	private ExecutorService executor = Executors.newCachedThreadPool(r -> {
 		Thread t = new Thread(r, "NIOMetaFetcher ThreadPool");
@@ -48,12 +46,13 @@ public class NIOMetaFetcher {
 
 	public boolean submit(BencodedString infohash, Peer peer, MetaFetchWatcher watcher) throws Exception {
 		MetaFetcher fetcher = new MetaFetcher(infohash, peer, watcher);
-		if (fetchers.contains(fetcher)) {
-			return false;
+
+		if (!fetchers.containsKey(fetcher)) {
+			fetcherWaiting.add(fetcher);
+			LOGGER.info("meta fetcher submited, {}", fetcher);
+			return true;
 		}
-		fetcherWaiting.add(fetcher);
-		LOGGER.info("meta fetcher submited, {}", fetcher);
-		return true;
+		return false;
 	}
 
 	private void selectProc() {
@@ -103,7 +102,7 @@ public class NIOMetaFetcher {
 	private void startNewFetcher(Selector selector) {
 		MetaFetcher fetcher = fetcherWaiting.poll();
 		while (fetcher != null) {
-			if (fetchers.add(fetcher)) {
+			if (fetchers.putIfAbsent(fetcher, TimeUtils.getCurTime()) == null) {
 				try {
 					fetcher.start(selector);
 					LOGGER.info("meta fetcher started, {}", fetcher);
@@ -122,7 +121,7 @@ public class NIOMetaFetcher {
 			try {
 				Thread.sleep(60 * 1000);
 				List<MetaFetcher> fetchersTimeout = new ArrayList<>();
-				for (MetaFetcher fetcher : fetchers) {
+				for (MetaFetcher fetcher : fetchers.keySet()) {
 					if (fetcher.getElapseTime() > metafetchTimeout) {
 						fetchersTimeout.add(fetcher);
 					}

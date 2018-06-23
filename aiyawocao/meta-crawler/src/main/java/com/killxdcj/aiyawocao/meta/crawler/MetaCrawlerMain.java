@@ -260,7 +260,11 @@ public class MetaCrawlerMain {
 				@Override
 				public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
 					LOGGER.info("meta fetch error, {}, {}， costtime:{}", infohashStr, peer, costtime);
-					metaFetchError.mark();
+					if (t instanceof TimeoutException) {
+						metaFetchTimeout.mark();
+					} else {
+						metaFetchError.mark();
+					}
 					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
 					LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
 				}

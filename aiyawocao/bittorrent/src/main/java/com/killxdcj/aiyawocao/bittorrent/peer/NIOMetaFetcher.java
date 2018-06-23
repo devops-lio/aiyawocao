@@ -3,7 +3,6 @@ package com.killxdcj.aiyawocao.bittorrent.peer;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
-import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,7 +129,9 @@ public class NIOMetaFetcher {
 				}
 
 				for (MetaFetcher fetcher : fetchersTimeout) {
-					fetchers.remove(fetcher);
+					if (!fetchers.remove(fetcher)) {
+						LOGGER.warn("remove fetcher failed");
+					}
 					fetcher.finish();
 				}
 				LOGGER.info("NIOMetaFetcher metafetcher cleaned, running:{}, timeout:{}", fetchers.size(), fetchersTimeout.size());

@@ -262,7 +262,7 @@ public class MetaCrawlerMain {
 					LOGGER.info("meta fetch error, {}, {}， costtime:{}", infohashStr, peer, costtime);
 					metaFetchError.mark();
 					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
-					LOGGER.error(infohashStr + peer + " meta fetch error", t);
+					LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
 				}
 			});
 		} catch (Exception e) {

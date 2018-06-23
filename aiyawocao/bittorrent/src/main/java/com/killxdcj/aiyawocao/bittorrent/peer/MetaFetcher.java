@@ -136,7 +136,7 @@ public class MetaFetcher implements Comparable {
 							}
 						}
 					}
-				} while (fillinCurrentPacket());
+				} while (!successed && fillinCurrentPacket());
 			}
 		}
 	}
@@ -355,18 +355,16 @@ public class MetaFetcher implements Comparable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		MetaFetcher that = (MetaFetcher) o;
+		MetaFetcher fetcher = (MetaFetcher) o;
 
-		if (infohash != null ? !infohash.equals(that.infohash) : that.infohash != null) return false;
-		if (peer != null ? !peer.equals(that.peer) : that.peer != null) return false;
-		return watcher != null ? watcher.equals(that.watcher) : that.watcher == null;
+		if (infohash != null ? !infohash.equals(fetcher.infohash) : fetcher.infohash != null) return false;
+		return peer != null ? peer.equals(fetcher.peer) : fetcher.peer == null;
 	}
 
 	@Override
 	public int hashCode() {
 		int result = infohash != null ? infohash.hashCode() : 0;
 		result = 31 * result + (peer != null ? peer.hashCode() : 0);
-		result = 31 * result + (watcher != null ? watcher.hashCode() : 0);
 		return result;
 	}
 

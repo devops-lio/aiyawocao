@@ -15,19 +15,24 @@ public class MetaCrawlerConfig {
 	private String influxdbUser = "example-influxdb-user";
 	private String influxdbPassword = "example-influxdb-user";
 	private String influxdbName = "example-influxdb-name";
+	private boolean useNIOMetaFetcher = true;
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 
 	public MetaCrawlerConfig() {
 	}
 
-	public MetaCrawlerConfig(long metaFetchTimeout, String influxdbAddr, String influxdbUser, String influxdbPassword,
-													 String influxdbName, BittorrentConfig bittorrentConfig, MetaManagerConfig metaManagerConfig) {
+	public MetaCrawlerConfig(long metaFetchTimeout, int infohashMaxConcurrentFetch, int nodeMaxConcurrentFetch,
+													 String influxdbAddr, String influxdbUser, String influxdbPassword, String influxdbName,
+													 boolean useNIOMetaFetcher, BittorrentConfig bittorrentConfig, MetaManagerConfig metaManagerConfig) {
 		this.metaFetchTimeout = metaFetchTimeout;
+		this.infohashMaxConcurrentFetch = infohashMaxConcurrentFetch;
+		this.nodeMaxConcurrentFetch = nodeMaxConcurrentFetch;
 		this.influxdbAddr = influxdbAddr;
 		this.influxdbUser = influxdbUser;
 		this.influxdbPassword = influxdbPassword;
 		this.influxdbName = influxdbName;
+		this.useNIOMetaFetcher = useNIOMetaFetcher;
 		this.bittorrentConfig = bittorrentConfig;
 		this.metaManagerConfig = metaManagerConfig;
 	}
@@ -104,6 +109,14 @@ public class MetaCrawlerConfig {
 		this.influxdbName = influxdbName;
 	}
 
+	public boolean getUseNIOMetaFetcher() {
+		return useNIOMetaFetcher;
+	}
+
+	public void setUseNIOMetaFetcher(boolean useNIOMetaFetcher) {
+		this.useNIOMetaFetcher = useNIOMetaFetcher;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
@@ -114,6 +127,7 @@ public class MetaCrawlerConfig {
 						", influxdbUser='" + influxdbUser + '\'' +
 						", influxdbPassword='" + influxdbPassword + '\'' +
 						", influxdbName='" + influxdbName + '\'' +
+						", useNIOMetaFetcher=" + useNIOMetaFetcher +
 						", bittorrentConfig=" + bittorrentConfig +
 						", metaManagerConfig=" + metaManagerConfig +
 						'}';

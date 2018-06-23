@@ -47,9 +47,6 @@ public class Peer {
 
 	@Override
 	public String toString() {
-		return "Peer{" +
-						"addr=" + addr +
-						", port=" + port +
-						'}';
+		return "" + addr.getHostAddress() + ":" + port;
 	}
 }

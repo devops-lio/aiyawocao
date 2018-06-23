@@ -2,13 +2,14 @@ influxdbAddr: example-influxdb:port
 influxdbName: example-influxdb-name
 influxdbPassword: example-influxdb-user
 influxdbUser: example-influxdb-user
-metaFetchTimeout: 600000
 infohashMaxConcurrentFetch: 5
+metaFetchTimeout: 300000
 nodeMaxConcurrentFetch: 5
+useNIOMetaFetcher: true
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
-  maxNeighbor: 10000
+  maxNeighbor: 3000
   maxPacketSize: 65536
   outBandwidthLimit: 1048576
   port: 10240

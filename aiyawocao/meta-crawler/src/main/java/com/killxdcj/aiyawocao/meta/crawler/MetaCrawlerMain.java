@@ -7,7 +7,9 @@ import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
+import com.killxdcj.aiyawocao.bittorrent.peer.MetaFetchWatcher;
 import com.killxdcj.aiyawocao.bittorrent.peer.MetadataFetcher;
+import com.killxdcj.aiyawocao.bittorrent.peer.NIOMetaFetcher;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.meta.crawler.config.MetaCrawlerConfig;
@@ -48,6 +50,7 @@ public class MetaCrawlerMain {
 	private int infohashMaxConcurrentFetch;
 	private int nodeMaxConcurrentFetch;
 	private Thread timeoutFetcherCleaner;
+	private NIOMetaFetcher nioMetaFetcher = null;
 
 	private Meter metaFetchSuccessed;
 	private Meter metaFetchError;
@@ -106,6 +109,13 @@ public class MetaCrawlerMain {
 		metaFetchIgnoreByNode = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByNode"));
 
 		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+
+		if (!config.getUseNIOMetaFetcher()) {
+			startTimeoutFetcherCleaner();
+		} else {
+			nioMetaFetcher = new NIOMetaFetcher(metricRegistry, config.getMetaFetchTimeout(), 10);
+		}
+
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
 			@Override
 			public void onGetInfoHash(BencodedString infohash) {
@@ -114,11 +124,13 @@ public class MetaCrawlerMain {
 
 			@Override
 			public void onAnnouncePeer(BencodedString infohash, Peer peer) {
-				submitMetaFetcher(infohash, peer);
+				if (config.getUseNIOMetaFetcher()) {
+					submitNIOMetafetcher(infohash, peer);
+				} else {
+					submitMetaFetcher(infohash, peer);
+				}
 			}
 		}, metricRegistry);
-
-		startTimeoutFetcherCleaner();
 
 		while (!exit) {
 			try {
@@ -141,6 +153,10 @@ public class MetaCrawlerMain {
 		if (metaManager != null) {
 			LOGGER.info("Shutdown metamanager");
 			metaManager.shutdown();
+		}
+
+		if (nioMetaFetcher != null) {
+			nioMetaFetcher.shutdown();
 		}
 
 		if (timeoutFetcherCleaner != null) {
@@ -217,6 +233,41 @@ public class MetaCrawlerMain {
 								}));
 			}
 		});
+	}
+
+	private void submitNIOMetafetcher(BencodedString infohash, Peer peer) {
+		String infohashStr = infohash.asHexString();
+		if (metaManager.doesMetaExist(infohashStr)) {
+			LOGGER.info("infohash has been fetched, {}", infohashStr);
+			return;
+		}
+
+		try {
+			nioMetaFetcher.submit(infohash, peer, new MetaFetchWatcher() {
+				@Override
+				public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {
+					LOGGER.info("meta fetched, {}, {}, costtime:{}", infohashStr, peer, costtime);
+					metaFetchSuccessed.mark();
+					metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
+					if (metaManager.doesMetaExist(infohashStr)) {
+						LOGGER.info("{} has been fetched by others", infohashStr);
+						return;
+					}
+					metaManager.put(infohashStr, metadata);
+					LOGGER.info("{} meta uploaded", infohashStr);
+				}
+
+				@Override
+				public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
+					LOGGER.info("meta fetch error, {}, {}， costtime:{}", infohashStr, peer, costtime);
+					metaFetchError.mark();
+					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+					LOGGER.error(infohashStr + peer + " meta fetch error", t);
+				}
+			});
+		} catch (Exception e) {
+			LOGGER.error("submit metafetcher error", e);
+		}
 	}
 
 	private void startTimeoutFetcherCleaner() {

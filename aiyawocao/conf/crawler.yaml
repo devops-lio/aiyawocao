@@ -6,7 +6,6 @@ infohashMaxConcurrentFetch: 5
 metaFetchTimeout: 300000
 nodeMaxConcurrentFetch: 5
 useNIOMetaFetcher: true
-nioFetcher: 20
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
@@ -20,6 +19,11 @@ bittorrentConfig:
   - dht.transmissionbt.com:6881
   requestLimit: 1500
   transactionExpireTime: 300000
+metaFetchConfig:
+  blackThreshold: 3
+  blackTimeMs: 3600000
+  fetcherNum: 20
+  metafetchTimeoutMs: 600000
 metaManagerConfig:
   accessKeyId: example-accesskey-id
   accessKeySecret: example-accesskey-secret

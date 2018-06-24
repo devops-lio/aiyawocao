@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.meta.crawler.config;
 
 import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
+import com.killxdcj.aiyawocao.bittorrent.config.MetaFetchConfig;
 import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
 import org.yaml.snakeyaml.Yaml;
 
@@ -16,9 +17,9 @@ public class MetaCrawlerConfig {
 	private String influxdbPassword = "example-influxdb-user";
 	private String influxdbName = "example-influxdb-name";
 	private boolean useNIOMetaFetcher = true;
-	private int nioFetcher = 20;
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
+	private MetaFetchConfig metaFetchConfig;
 
 	public MetaCrawlerConfig() {
 	}
@@ -103,29 +104,29 @@ public class MetaCrawlerConfig {
 		this.useNIOMetaFetcher = useNIOMetaFetcher;
 	}
 
-	public int getNioFetcher() {
-		return nioFetcher;
+	public MetaFetchConfig getMetaFetchConfig() {
+		return metaFetchConfig;
 	}
 
-	public void setNioFetcher(int nioFetcher) {
-		this.nioFetcher = nioFetcher;
+	public void setMetaFetchConfig(MetaFetchConfig metaFetchConfig) {
+		this.metaFetchConfig = metaFetchConfig;
 	}
 
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
-						"metaFetchTimeout=" + metaFetchTimeout +
-						", infohashMaxConcurrentFetch=" + infohashMaxConcurrentFetch +
-						", nodeMaxConcurrentFetch=" + nodeMaxConcurrentFetch +
-						", influxdbAddr='" + influxdbAddr + '\'' +
-						", influxdbUser='" + influxdbUser + '\'' +
-						", influxdbPassword='" + influxdbPassword + '\'' +
-						", influxdbName='" + influxdbName + '\'' +
-						", useNIOMetaFetcher=" + useNIOMetaFetcher +
-						", nioFetcher=" + nioFetcher +
-						", bittorrentConfig=" + bittorrentConfig +
-						", metaManagerConfig=" + metaManagerConfig +
-						'}';
+				"metaFetchTimeout=" + metaFetchTimeout +
+				", infohashMaxConcurrentFetch=" + infohashMaxConcurrentFetch +
+				", nodeMaxConcurrentFetch=" + nodeMaxConcurrentFetch +
+				", influxdbAddr='" + influxdbAddr + '\'' +
+				", influxdbUser='" + influxdbUser + '\'' +
+				", influxdbPassword='" + influxdbPassword + '\'' +
+				", influxdbName='" + influxdbName + '\'' +
+				", useNIOMetaFetcher=" + useNIOMetaFetcher +
+				", bittorrentConfig=" + bittorrentConfig +
+				", metaManagerConfig=" + metaManagerConfig +
+				", metaFetchConfig=" + metaFetchConfig +
+				'}';
 	}
 
 	public static MetaCrawlerConfig fromYamlString(String yamlConf) {
@@ -147,6 +148,7 @@ public class MetaCrawlerConfig {
 		MetaCrawlerConfig metaCrawlerConfig = new MetaCrawlerConfig();
 		metaCrawlerConfig.setBittorrentConfig(new BittorrentConfig());
 		metaCrawlerConfig.setMetaManagerConfig(new MetaManagerConfig());
+		metaCrawlerConfig.setMetaFetchConfig(new MetaFetchConfig());
 		String yamlConf = metaCrawlerConfig.toYamlConf();
 		System.out.println(yamlConf);
 		System.out.println(MetaCrawlerConfig.fromYamlString(yamlConf).toString());

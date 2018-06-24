@@ -74,6 +74,7 @@ public class MetaFetcher {
 	}
 
 	public boolean execute() {
+		boolean finished = false;
 		try {
 			if (selectionKey.isConnectable()) {
 				onConnectAble();
@@ -82,12 +83,13 @@ public class MetaFetcher {
 			} else if (selectionKey.isReadable()) {
 				onReadAble();
 			}
+			finished = successed;
 		} catch (Exception e) {
 			t = e;
-			return true;
+			finished = true;
 		}
 
-		return successed;
+		return finished;
 	}
 
 	private void onConnectAble() throws IOException {
@@ -385,5 +387,17 @@ public class MetaFetcher {
 	@Override
 	public String toString() {
 		return infohash.asHexString() + ", " + peer;
+	}
+
+	public Peer getPeer() {
+		return peer;
+	}
+
+	public boolean getResult() {
+		if (successed) {
+			return successed;
+		}
+
+		return false;
 	}
 }

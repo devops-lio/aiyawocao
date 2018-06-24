@@ -24,6 +24,7 @@ metaFetchConfig:
   blackTimeMs: 3600000
   fetcherNum: 20
   metafetchTimeoutMs: 600000
+  infohashMaxPending: 3
 metaManagerConfig:
   accessKeyId: example-accesskey-id
   accessKeySecret: example-accesskey-secret

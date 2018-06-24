@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class NIOMetaFetcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NIOMetaFetcher.class);
@@ -32,16 +33,21 @@ public class NIOMetaFetcher {
 	});
 	private long metafetchTimeout;
 	private int blackThreshold;
+	private int infohashMaxPending;
 
 	private LoadingCache<String, NodeFetchersManager> nodeFetchersMgr;
 	private Cache<String, Object> blackNodeMgr;
 	private Queue<String> pendingNode = new LinkedBlockingQueue<>();
 	private ConcurrentHashMap<MetaFetcher, Long> runningFetchers = new ConcurrentHashMap<>();
+	private LoadingCache<String, AtomicInteger> infohashPending;
 	private Meter ignoreByNodeMeter;
+	private Meter ignoreByInfohashMeter;
 
 	public NIOMetaFetcher(MetaFetchConfig config, MetricRegistry metricRegistry) {
 		this.metafetchTimeout = config.getMetafetchTimeoutMs();
 		this.blackThreshold = config.getBlackThreshold();
+		this.infohashMaxPending = config.getInfohashMaxPending();
+
 		nodeFetchersMgr = CacheBuilder.newBuilder()
 				.expireAfterAccess(config.getMetafetchTimeoutMs() * 2, TimeUnit.MILLISECONDS)
 				.build(new CacheLoader<String, NodeFetchersManager>() {
@@ -53,6 +59,14 @@ public class NIOMetaFetcher {
 		blackNodeMgr = CacheBuilder.newBuilder()
 				.expireAfterWrite(config.getBlackTimeMs(), TimeUnit.MILLISECONDS)
 				.build();
+		infohashPending = CacheBuilder.newBuilder()
+				.expireAfterWrite(config.getMetafetchTimeoutMs(), TimeUnit.MILLISECONDS)
+				.build(new CacheLoader<String, AtomicInteger>() {
+					@Override
+					public AtomicInteger load(String s) throws Exception {
+						return new AtomicInteger(0);
+					}
+				});
 
 		for (int i = 0; i < config.getFetcherNum(); i++) {
 			executor.submit(this::selectProc);
@@ -65,6 +79,7 @@ public class NIOMetaFetcher {
 		metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "blacknode"),
 				(Gauge<Long>) () -> blackNodeMgr.size());
 		ignoreByNodeMeter = metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByNode"));
+		ignoreByInfohashMeter = metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByInfohash"));
 	}
 
 	public void shutdown() {
@@ -72,6 +87,11 @@ public class NIOMetaFetcher {
 	}
 
 	public boolean submit(BencodedString infohash, Peer peer, MetaFetchWatcher watcher) throws Exception {
+		if (infohashPending.getUnchecked(infohash.asHexString()).incrementAndGet() > infohashMaxPending) {
+			ignoreByInfohashMeter.mark();
+			return false;
+		}
+
 		String nodekey = buildNodeKey(peer);
 		if (blackNodeMgr.getIfPresent(nodekey) != null) {
 			ignoreByNodeMeter.mark();
@@ -109,17 +129,19 @@ public class NIOMetaFetcher {
 							MetaFetcher fetcher = (MetaFetcher) key.attachment();
 							if (fetcher != null) {
 								if (fetcher.execute()) {
-									String nodekey = buildNodeKey(fetcher.getPeer());
-									executor.submit(() -> fetcher.finish());
-									runningFetchers.remove(fetcher);
-									key.cancel();
-									NodeFetchersManager fetchersManager = nodeFetchersMgr.getUnchecked(nodekey);
-									if (fetchersManager.updateResult(fetcher.getResult()) >= blackThreshold ) {
-										blackNodeMgr.put(nodekey, new Object());
-										fetchersManager.clean();
-										LOGGER.info("{} failed too much, add to blk list", nodekey);
-									} else {
-										startNextNodeFetcher(nodekey, selector);
+									if (fetcher.markNotify()) {
+										executor.submit(() -> fetcher.notifyWatcher());
+										String nodekey = buildNodeKey(fetcher.getPeer());
+										runningFetchers.remove(fetcher);
+										key.cancel();
+										NodeFetchersManager fetchersManager = nodeFetchersMgr.getUnchecked(nodekey);
+										if (fetchersManager.updateResult(fetcher.getResult()) >= blackThreshold) {
+											blackNodeMgr.put(nodekey, new Object());
+											fetchersManager.clean();
+											LOGGER.info("{} failed too much, add to blk list", nodekey);
+										} else {
+											startNextNodeFetcher(nodekey, selector);
+										}
 									}
 								}
 							} else {
@@ -181,7 +203,19 @@ public class NIOMetaFetcher {
 
 				for (MetaFetcher fetcher : fetchersTimeout) {
 					runningFetchers.remove(fetcher);
-					fetcher.finish();
+					if (fetcher.markNotify()) {
+						String nodekey = buildNodeKey(fetcher.getPeer());
+						NodeFetchersManager fetchersManager = nodeFetchersMgr.getUnchecked(nodekey);
+						if (fetchersManager.updateResult(fetcher.getResult()) >= blackThreshold) {
+							blackNodeMgr.put(nodekey, new Object());
+							fetchersManager.clean();
+							LOGGER.info("{} failed too much, add to blk list", nodekey);
+						} else {
+							pendingNode.add(nodekey);
+						}
+
+						fetcher.notifyWatcher();
+					}
 				}
 				LOGGER.info("NIOMetaFetcher metafetcher cleaned, running:{}, timeout:{}", runningFetchers.size(),
 						fetchersTimeout.size());

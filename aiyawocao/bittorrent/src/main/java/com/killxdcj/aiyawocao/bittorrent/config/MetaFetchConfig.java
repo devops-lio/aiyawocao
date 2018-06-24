@@ -5,6 +5,7 @@ public class MetaFetchConfig {
     private int blackTimeMs = 60 * 60 * 1000;
     private int metafetchTimeoutMs = 10 * 60 * 1000;
     private int fetcherNum = 20;
+    private int infohashMaxPending = 3;
 
     public MetaFetchConfig() {
     }
@@ -41,6 +42,14 @@ public class MetaFetchConfig {
         this.fetcherNum = fetcherNum;
     }
 
+    public int getInfohashMaxPending() {
+        return infohashMaxPending;
+    }
+
+    public void setInfohashMaxPending(int infohashMaxPending) {
+        this.infohashMaxPending = infohashMaxPending;
+    }
+
     @Override
     public String toString() {
         return "MetaFetchConfig{" +
@@ -48,6 +57,7 @@ public class MetaFetchConfig {
                 ", blackTimeMs=" + blackTimeMs +
                 ", metafetchTimeoutMs=" + metafetchTimeoutMs +
                 ", fetcherNum=" + fetcherNum +
+                ", infohashMaxPending=" + infohashMaxPending +
                 '}';
     }
 }

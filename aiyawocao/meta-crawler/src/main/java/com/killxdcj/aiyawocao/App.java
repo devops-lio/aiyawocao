@@ -27,9 +27,9 @@ public class App
 
     public static void testNIOFetcher() {
         try {
-            BencodedString infohash = new BencodedString(Hex.decodeHex("eacce87cabc7159b73e6c6159a324d45c73c71e3".toCharArray()));
+            BencodedString infohash = new BencodedString(Hex.decodeHex("cc82d513a72c6fdd7e6b45393592f03e2182e51f".toCharArray()));
             NIOMetaFetcher fetcher = new NIOMetaFetcher(new MetaFetchConfig(), new MetricRegistry());
-            Peer peer = new Peer(InetAddress.getByName("54.93.49.165"), 8112);
+            Peer peer = new Peer(InetAddress.getByName("109.201.133.134"), 20024);
             MetaFetchWatcher watcher = new MetaFetchWatcher() {
                 @Override
                 public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {

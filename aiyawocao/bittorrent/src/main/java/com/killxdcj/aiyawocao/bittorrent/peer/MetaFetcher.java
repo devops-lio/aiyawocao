@@ -330,21 +330,19 @@ public class MetaFetcher {
 		return ByteBuffer.wrap(packet);
 	}
 
-	public void finish() {
-		if (notifyed.compareAndSet(false, true)) {
-			try {
-				selectionKey.cancel();
-				channel.close();
-			} catch (IOException e) {
-			}
+	public void notifyWatcher() {
+		try {
+			selectionKey.cancel();
+			channel.close();
+		} catch (IOException e) {
+		}
 
-			if (successed) {
-				watcher.onSuccessed(infohash, peer, metadata, TimeUtils.getElapseTime(startTime));
-			} else if (t != null) {
-				watcher.onException(infohash, peer, t, TimeUtils.getElapseTime(startTime));
-			} else {
-				watcher.onException(infohash, peer, new TimeoutException("meta fetch timeout"), TimeUtils.getElapseTime(startTime));
-			}
+		if (successed) {
+			watcher.onSuccessed(infohash, peer, metadata, TimeUtils.getElapseTime(startTime));
+		} else if (t != null) {
+			watcher.onException(infohash, peer, t, TimeUtils.getElapseTime(startTime));
+		} else {
+			watcher.onException(infohash, peer, new TimeoutException("meta fetch timeout"), TimeUtils.getElapseTime(startTime));
 		}
 	}
 
@@ -398,6 +396,13 @@ public class MetaFetcher {
 			return successed;
 		}
 
+		return false;
+	}
+
+	public boolean markNotify() {
+		if (notifyed.compareAndSet(false, true)) {
+			return true;
+		}
 		return false;
 	}
 }

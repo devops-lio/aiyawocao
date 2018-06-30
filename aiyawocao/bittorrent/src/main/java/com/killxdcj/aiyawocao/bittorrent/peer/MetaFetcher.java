@@ -25,7 +25,7 @@ public class MetaFetcher {
 
 	private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
 	private static final byte[] extHandshake = buildExtHandshake();
-	private static final byte[] peerId = JTorrentUtils.genPeerId().asBytes();
+	private byte[] peerId = JTorrentUtils.genPeerId().asBytes();
 
 	private static final byte EXTENDED = (byte) 20;
 	private static final byte HANDSHAKE = (byte) 0;

@@ -297,7 +297,7 @@ public class PeerFetcher {
 					}
 				}
 			} else {
-				task.getListener().onFailed(task.getPeer(), task.getInfohash(), t);
+				executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t));
 			}
 		}
 	}

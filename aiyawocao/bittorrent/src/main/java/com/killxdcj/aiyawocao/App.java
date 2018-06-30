@@ -41,11 +41,11 @@ public class App
     public static void testNewFetcher() throws DecoderException, UnknownHostException {
         MetadataFetcher fetcher = new MetadataFetcher();
         List<String> seeds = new ArrayList(){{
-            add("e27f683e1cf18ba789e4db29552550cd537a2dab 54.190.185.139:8114");
-            add("bfa15e9c015e14a0f4d2dbb1d37850395716ae7e 159.224.97.182:33729");
-            add("df009e2eae1263c08e83e87bc5ceca11e9900a67 83.233.20.59:21643");
-            add("7b1e58d398e808d6242d8e1cd4c91ffe02539cbb 79.115.170.168:58759");
-            add("198273d921b029904e25062d334fe166dbdba670 77.123.121.103:25288");
+//            add("e27f683e1cf18ba789e4db29552550cd537a2dab 54.190.185.139:8114");
+//            add("bfa15e9c015e14a0f4d2dbb1d37850395716ae7e 159.224.97.182:33729");
+//            add("df009e2eae1263c08e83e87bc5ceca11e9900a67 83.233.20.59:21643");
+//            add("7b1e58d398e808d6242d8e1cd4c91ffe02539cbb 79.115.170.168:58759");
+            add("beb4852b19fa57bec492ac2682b313bd8c9ce16d 31.207.204.209:48377");
         }};
         for (String seed : seeds) {
             String[] tmps = seed.split(" ");

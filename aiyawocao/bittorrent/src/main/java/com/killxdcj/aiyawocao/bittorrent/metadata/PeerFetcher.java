@@ -142,7 +142,7 @@ public class PeerFetcher {
 				}
 
 				ByteBuf resp = buffer.readBytes(68);
-				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp.array(), 28, 48)))) {
+				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(bytebuf2array(resp), 28, 48)))) {
 					t = new Exception("handshakepredix verify error");
 				}
 
@@ -176,7 +176,7 @@ public class PeerFetcher {
 		}
 
 		private void onHandShake(ByteBuf packet, ChannelHandlerContext ctx) throws Exception {
-			Bencoding bencoding = new Bencoding(packet.readBytes(packet.readableBytes()).array());
+			Bencoding bencoding = new Bencoding(bytebuf2array(packet));
 			BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
 			if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
 				throw new Exception("invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
@@ -197,7 +197,7 @@ public class PeerFetcher {
 		}
 
 		private void onUtMetadata(ByteBuf packet) throws Exception {
-			byte[] packetBytes = packet.readBytes(packet.readableBytes()).array();
+			byte[] packetBytes = bytebuf2array(packet);
 			Bencoding bencoding = new Bencoding(packetBytes);
 			BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
 
@@ -205,14 +205,14 @@ public class PeerFetcher {
 			switch (msgType) {
 				case DATA:
 					int piece = bencodedMap.get("piece").asLong().intValue();
-					byte[] data = Arrays.copyOfRange(packetBytes, 2 + bencoding.getCurIndex(), packetBytes.length);
+					byte[] data = Arrays.copyOfRange(packetBytes, bencoding.getCurIndex(), packetBytes.length);
 					if (piece > pieceTotal - 1) {
 						throw new Exception("piece outof range");
 					}
 
 					if (pieceTotal == 1) {
 						if (meatadataSize != data.length) {
-							throw new Exception("piece size not match");
+							throw new Exception("piece size not match, expect:" + meatadataSize + ", real:" + data.length);
 						}
 					} else {
 						if (piece != pieceTotal - 1) {
@@ -257,6 +257,10 @@ public class PeerFetcher {
 		}
 
 		private void finish() {
+			if (!notifyed.compareAndSet(false, true)) {
+				return;
+			}
+
 			startNextTask();
 
 			if (successed) {
@@ -267,11 +271,12 @@ public class PeerFetcher {
 						buf.writeBytes(metadata.get(i));
 					}
 
-					if (!infohashHex.equals(DigestUtils.sha1Hex(buf.array()))) {
+					byte[] data = bytebuf2array(buf);
+					if (!infohashHex.equals(DigestUtils.sha1Hex(data))) {
 						executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(),
 										new Exception("fetched metadata, but sha1 is error")));
 					} else {
-						executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), buf.array()));
+						executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data));
 					}
 				}
 			} else {
@@ -306,7 +311,7 @@ public class PeerFetcher {
 		BencodedMap data = new BencodedMap();
 		data.put("ut_metadata", new BencodedInteger(UT_METADATA));
 		extHandshake.put("m", data);
-		return buildPacket(HANDSHAKE, extHandshake.serialize()).array();
+		return bytebuf2array(buildPacket(HANDSHAKE, extHandshake.serialize()));
 	}
 
 	private static ByteBuf buildPacket(byte extendedId, byte[] payload) {
@@ -319,11 +324,18 @@ public class PeerFetcher {
 		return ret;
 	}
 
-	private ByteBuf buildHandShakePacket(BencodedString peerId, BencodedString infohash) {
+	private static ByteBuf buildHandShakePacket(BencodedString peerId, BencodedString infohash) {
 		ByteBuf ret = Unpooled.buffer(28 + 20 + 20);
 		ret.writeBytes(handshakePrefix);
 		ret.writeBytes(infohash.asBytes());
 		ret.writeBytes(peerId.asBytes());
+		return ret;
+	}
+
+	private static byte[] bytebuf2array(ByteBuf buf) {
+		int length = buf.readableBytes();
+		byte[] ret = new byte[length];
+		buf.readBytes(ret);
 		return ret;
 	}
 }

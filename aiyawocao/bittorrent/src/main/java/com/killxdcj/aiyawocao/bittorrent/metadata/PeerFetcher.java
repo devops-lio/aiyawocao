@@ -87,18 +87,20 @@ public class PeerFetcher {
 		@Override
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
 			ctx.writeAndFlush(buildHandShakePacket(JTorrentUtils.genNodeId(), task.getInfohash()));
+			LOGGER.debug("handshake sended");
 		}
 
 		@Override
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 			LOGGER.debug("connection closed, {}", peer);
 			ctx.close();
+			t = new Exception("connection closed by remote, " + peer);
 			finish();
 		}
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-			LOGGER.debug("recive data, {}, {}bytes", peer, ((ByteBuf)msg).readableBytes());
+			LOGGER.debug("recive data, {}, {} bytes", peer, ((ByteBuf)msg).readableBytes());
 			buffer.writeBytes((ByteBuf)msg);
 			try {
 				handlePacket(ctx);
@@ -122,7 +124,6 @@ public class PeerFetcher {
 
 		@Override
 		public void operationComplete(Future future) throws Exception {
-			LOGGER.debug("connect to peer failed, {}", peer);
 			if (!future.isSuccess()) {
 				if (future.cause() != null) {
 					t = future.cause();
@@ -141,13 +142,22 @@ public class PeerFetcher {
 					return;
 				}
 
-				ByteBuf resp = buffer.readBytes(68);
-				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(bytebuf2array(resp), 28, 48)))) {
+				byte[] resp = bytebuf2array(buffer.readBytes(68));
+				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48))) ||
+						(resp[25] & 0x10) == 0) {
 					t = new Exception("handshakepredix verify error");
+					return;
 				}
 
+				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48)))) {
+					t = new Exception("handshake error, infohash is diferent");
+					return;
+				}
+
+				LOGGER.debug("handshake successed");
 				handshaked = true;
 				ctx.writeAndFlush(Unpooled.copiedBuffer(extHandshake));
+				LOGGER.debug("exthandshake sended");
 			} else {
 				for (ByteBuf packet = readPacket(); packet != null; packet = readPacket()) {
 					if (packet.readableBytes() == 0) {
@@ -158,6 +168,7 @@ public class PeerFetcher {
 					byte extended = packet.readByte();
 					if (extended != EXTENDED) {
 						LOGGER.warn("unknow extended: {}", extended);
+						continue;
 					}
 
 					byte msgType = packet.readByte();
@@ -181,6 +192,7 @@ public class PeerFetcher {
 			if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
 				throw new Exception("invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
 			}
+			LOGGER.debug("exthandshake successed");
 
 			remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
 			meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
@@ -193,6 +205,7 @@ public class PeerFetcher {
 				req.put("msg_type", new BencodedInteger(REQUEST));
 				req.put("piece", new BencodedInteger(i));
 				ctx.writeAndFlush(buildPacket(remoteUtMetadataId, req.serialize()));
+				LOGGER.debug("request piece {}", i);
 			}
 		}
 
@@ -248,6 +261,10 @@ public class PeerFetcher {
 
 			buffer.markReaderIndex();
 			int length = buffer.readInt();
+			if (length == 0) {
+				return Unpooled.buffer();
+			}
+
 			if (buffer.readableBytes() < length) {
 				buffer.resetReaderIndex();
 				return null;

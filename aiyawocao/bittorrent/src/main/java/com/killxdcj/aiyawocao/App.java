@@ -20,6 +20,8 @@ import org.apache.commons.codec.binary.Hex;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
@@ -38,26 +40,36 @@ public class App
 
     public static void testNewFetcher() throws DecoderException, UnknownHostException {
         MetadataFetcher fetcher = new MetadataFetcher();
-        BencodedString infohash = new BencodedString(Hex.decodeHex("c570cf9cb7f649a457d4f38970471767c5bd5813".toCharArray()));
-        Peer peer = new Peer(InetAddress.getByName("52.59.194.172"), 8102);
-        for (int i = 0; i < 5; i++) {
-            fetcher.submit(infohash, peer, new MetadataListener() {
-                @Override
-                public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata) {
-                    System.out.println("fetched");
-                    Bencoding e = new Bencoding(metadata);
-                    try {
-                        System.out.println(e.decode().toHuman());
-                    } catch (InvalidBittorrentPacketException e1) {
-                        e1.printStackTrace();
+        List<String> seeds = new ArrayList(){{
+            add("e27f683e1cf18ba789e4db29552550cd537a2dab 54.190.185.139:8114");
+            add("bfa15e9c015e14a0f4d2dbb1d37850395716ae7e 159.224.97.182:33729");
+            add("df009e2eae1263c08e83e87bc5ceca11e9900a67 83.233.20.59:21643");
+            add("7b1e58d398e808d6242d8e1cd4c91ffe02539cbb 79.115.170.168:58759");
+            add("198273d921b029904e25062d334fe166dbdba670 77.123.121.103:25288");
+        }};
+        for (String seed : seeds) {
+            String[] tmps = seed.split(" ");
+            BencodedString infohash = new BencodedString(Hex.decodeHex(tmps[0].toCharArray()));
+            Peer peer = new Peer(InetAddress.getByName(tmps[1].split(":")[0]), Integer.parseInt(tmps[1].split(":")[1]));
+            for (int i = 0; i < 3; i++) {
+                fetcher.submit(infohash, peer, new MetadataListener() {
+                    @Override
+                    public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata) {
+                        System.out.println("fetched");
+                        Bencoding e = new Bencoding(metadata);
+                        try {
+                            System.out.println(e.decode().toHuman());
+                        } catch (InvalidBittorrentPacketException e1) {
+                            e1.printStackTrace();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailed(Peer peer, BencodedString infohash, Throwable t) {
-                    t.printStackTrace();
-                }
-            });
+                    @Override
+                    public void onFailed(Peer peer, BencodedString infohash, Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
+            }
         }
     }
 

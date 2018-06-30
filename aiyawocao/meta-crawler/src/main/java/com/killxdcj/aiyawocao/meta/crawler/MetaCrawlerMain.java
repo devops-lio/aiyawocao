@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
+import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataListener;
 import com.killxdcj.aiyawocao.bittorrent.peer.MetaFetchWatcher;
 import com.killxdcj.aiyawocao.bittorrent.peer.MetadataFetcher;
 import com.killxdcj.aiyawocao.bittorrent.peer.NIOMetaFetcher;
@@ -51,6 +52,7 @@ public class MetaCrawlerMain {
 	private int nodeMaxConcurrentFetch;
 	private Thread timeoutFetcherCleaner;
 	private NIOMetaFetcher nioMetaFetcher = null;
+	private com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher fetcher = null;
 
 	private Meter metaFetchSuccessed;
 	private Meter metaFetchError;
@@ -113,7 +115,8 @@ public class MetaCrawlerMain {
 		if (!config.getUseNIOMetaFetcher()) {
 			startTimeoutFetcherCleaner();
 		} else {
-			nioMetaFetcher = new NIOMetaFetcher(config.getMetaFetchConfig(), metricRegistry);
+//			nioMetaFetcher = new NIOMetaFetcher(config.getMetaFetchConfig(), metricRegistry);
+			fetcher = new com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher();
 		}
 
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
@@ -150,9 +153,8 @@ public class MetaCrawlerMain {
 
 		executorService.shutdown();
 
-		if (metaManager != null) {
-			LOGGER.info("Shutdown metamanager");
-			metaManager.shutdown();
+		if (fetcher != null) {
+			fetcher.shutdown();
 		}
 
 		if (nioMetaFetcher != null) {
@@ -165,6 +167,11 @@ public class MetaCrawlerMain {
 
 		if (reporter != null) {
 			reporter.stop();
+		}
+
+		if (metaManager != null) {
+			LOGGER.info("Shutdown metamanager");
+			metaManager.shutdown();
 		}
 
 		LOGGER.info("MetaCrawler stoped");
@@ -243,12 +250,11 @@ public class MetaCrawlerMain {
 		}
 
 		try {
-			nioMetaFetcher.submit(infohash, peer, new MetaFetchWatcher() {
+			fetcher.submit(infohash, peer, new MetadataListener() {
 				@Override
-				public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {
-					LOGGER.info("meta fetched, {}, {}, costtime:{}", infohashStr, peer, costtime);
+				public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata) {
+					LOGGER.info("meta fetched, {}, {}", infohashStr, peer);
 					metaFetchSuccessed.mark();
-					metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
 					if (metaManager.doesMetaExist(infohashStr)) {
 						LOGGER.info("{} has been fetched by others", infohashStr);
 						return;
@@ -258,20 +264,50 @@ public class MetaCrawlerMain {
 				}
 
 				@Override
-				public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
-					LOGGER.info("meta fetch error, {}, {}， costtime:{}", infohashStr, peer, costtime);
+				public void onFailed(Peer peer, BencodedString infohash, Throwable t) {
+					LOGGER.info("meta fetch error, {}, {}", infohashStr, peer);
 					if (t instanceof TimeoutException) {
 						metaFetchTimeout.mark();
 					} else {
 						metaFetchError.mark();
 					}
-					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
 					LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
 				}
 			});
 		} catch (Exception e) {
 			LOGGER.error("submit metafetcher error", e);
 		}
+
+//		try {
+//			nioMetaFetcher.submit(infohash, peer, new MetaFetchWatcher() {
+//				@Override
+//				public void onSuccessed(BencodedString infohash, Peer peer, byte[] metadata, long costtime) {
+//					LOGGER.info("meta fetched, {}, {}, costtime:{}", infohashStr, peer, costtime);
+//					metaFetchSuccessed.mark();
+//					metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
+//					if (metaManager.doesMetaExist(infohashStr)) {
+//						LOGGER.info("{} has been fetched by others", infohashStr);
+//						return;
+//					}
+//					metaManager.put(infohashStr, metadata);
+//					LOGGER.info("{} meta uploaded", infohashStr);
+//				}
+//
+//				@Override
+//				public void onException(BencodedString infohash, Peer peer, Throwable t, long costtime) {
+//					LOGGER.info("meta fetch error, {}, {}， costtime:{}", infohashStr, peer, costtime);
+//					if (t instanceof TimeoutException) {
+//						metaFetchTimeout.mark();
+//					} else {
+//						metaFetchError.mark();
+//					}
+//					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+//					LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
+//				}
+//			});
+//		} catch (Exception e) {
+//			LOGGER.error("submit metafetcher error", e);
+//		}
 	}
 
 	private void startTimeoutFetcherCleaner() {

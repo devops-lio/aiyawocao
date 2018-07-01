@@ -86,7 +86,8 @@ public class PeerFetcher {
 
 		@Override
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			ctx.writeAndFlush(buildHandShakePacket(JTorrentUtils.genNodeId(), task.getInfohash()));
+			BencodedString peerId = JTorrentUtils.buildDummyNodeId(task.getInfohash(), JTorrentUtils.genNodeId());
+			ctx.writeAndFlush(buildHandShakePacket(peerId, task.getInfohash()));
 			LOGGER.debug("handshake sended");
 		}
 

@@ -141,4 +141,11 @@ public class JTorrentUtils {
 	public static int nextInt(int bound) {
 		return RANDOM.nextInt(bound);
 	}
+
+	public static BencodedString buildDummyNodeId(BencodedString targetId, BencodedString realId) {
+		byte[] dummyId = new byte[20];
+		System.arraycopy(targetId.asBytes(), 0, dummyId, 0, 15);
+		System.arraycopy(realId.asBytes(), 15, dummyId, 15, 5);
+		return new BencodedString(dummyId);
+	}
 }

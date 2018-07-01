@@ -67,7 +67,7 @@ public class PeerFetcher {
 		LOGGER.info("fetcher started, {}", nextTask);
 	}
 
-	private class Fetcher extends ChannelInboundHandlerAdapter implements GenericFutureListener {
+	private class Fetcher extends SimpleChannelInboundHandler implements GenericFutureListener {
 		private Task task;
 		private volatile boolean successed = false;
 		private AtomicBoolean notifyed = new AtomicBoolean(false);
@@ -99,7 +99,7 @@ public class PeerFetcher {
 		}
 
 		@Override
-		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 			LOGGER.debug("recive data, {}, {} bytes", peer, ((ByteBuf)msg).readableBytes());
 			buffer.writeBytes((ByteBuf)msg);
 			try {

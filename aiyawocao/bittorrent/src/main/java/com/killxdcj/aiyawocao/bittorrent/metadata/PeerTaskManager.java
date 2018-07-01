@@ -5,9 +5,12 @@ import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PeerTaskManager {
-	private HashMap<Peer, List<Task>> peerTasks = new HashMap<>();
+	private ConcurrentMap<Peer, List<Task>> peerTasks = new ConcurrentHashMap<>();
 
 	public boolean submitTask(Task task) {
 		boolean isNewPeer = false;
@@ -31,5 +34,17 @@ public class PeerTaskManager {
 				return tasks.remove(0);
 			}
 		}
+	}
+
+	public int getPending() {
+		int pending = 0;
+		for (List<Task> tasks : peerTasks.values()) {
+			pending += tasks.size();
+		}
+		return pending;
+	}
+
+	public int getRunning() {
+		return peerTasks.size();
 	}
 }

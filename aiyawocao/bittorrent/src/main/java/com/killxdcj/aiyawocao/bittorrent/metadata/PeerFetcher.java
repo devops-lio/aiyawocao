@@ -6,6 +6,7 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
+import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -78,7 +79,8 @@ public class PeerFetcher {
 		private int meatadataSize;
 		private int pieceTotal;
 		private Map<Integer, byte[]> metadata = new HashMap<>();
-		ByteBuf buffer = Unpooled.buffer();
+		private ByteBuf buffer = Unpooled.buffer();
+		private long startTime = TimeUtils.getCurTime();
 
 		public Fetcher(Task task) {
 			this.task = task;
@@ -281,6 +283,7 @@ public class PeerFetcher {
 
 			buffer.release();
 			startNextTask();
+			long costtime = TimeUtils.getElapseTime(startTime);
 
 			if (successed) {
 				String infohashHex = task.getInfohash().asHexString();
@@ -293,13 +296,13 @@ public class PeerFetcher {
 					byte[] data = bytebuf2array(buf);
 					if (!infohashHex.equals(DigestUtils.sha1Hex(data))) {
 						executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(),
-										new Exception("fetched metadata, but sha1 is error")));
+										new Exception("fetched metadata, but sha1 is error"), costtime));
 					} else {
-						executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data));
+						executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data, costtime));
 					}
 				}
 			} else {
-				executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t));
+				executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t, costtime));
 			}
 		}
 	}

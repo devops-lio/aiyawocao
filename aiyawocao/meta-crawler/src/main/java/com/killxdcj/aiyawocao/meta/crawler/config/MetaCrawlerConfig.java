@@ -17,6 +17,7 @@ public class MetaCrawlerConfig {
 	private String influxdbPassword = "example-influxdb-user";
 	private String influxdbName = "example-influxdb-name";
 	private boolean useNIOMetaFetcher = true;
+	private String cluster = "default";
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 	private MetaFetchConfig metaFetchConfig;
@@ -112,6 +113,14 @@ public class MetaCrawlerConfig {
 		this.metaFetchConfig = metaFetchConfig;
 	}
 
+	public String getCluster() {
+		return cluster;
+	}
+
+	public void setCluster(String cluster) {
+		this.cluster = cluster;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
@@ -123,6 +132,7 @@ public class MetaCrawlerConfig {
 				", influxdbPassword='" + influxdbPassword + '\'' +
 				", influxdbName='" + influxdbName + '\'' +
 				", useNIOMetaFetcher=" + useNIOMetaFetcher +
+				", cluster='" + cluster + '\'' +
 				", bittorrentConfig=" + bittorrentConfig +
 				", metaManagerConfig=" + metaManagerConfig +
 				", metaFetchConfig=" + metaFetchConfig +

@@ -54,7 +54,7 @@ public class App
             for (int i = 0; i < 3; i++) {
                 fetcher.submit(infohash, peer, new MetadataListener() {
                     @Override
-                    public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata) {
+                    public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
                         System.out.println("fetched");
                         Bencoding e = new Bencoding(metadata);
                         try {
@@ -65,7 +65,7 @@ public class App
                     }
 
                     @Override
-                    public void onFailed(Peer peer, BencodedString infohash, Throwable t) {
+                    public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
                         t.printStackTrace();
                     }
                 });

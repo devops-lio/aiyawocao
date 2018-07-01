@@ -97,6 +97,7 @@ public class MetaCrawlerMain {
 						.convertRatesTo(TimeUnit.SECONDS)
 						.convertDurationsTo(TimeUnit.MILLISECONDS)
 						.filter(MetricFilter.ALL)
+						.tag("cluster", config.getCluster())
 						.build();
 		reporter.start(60, TimeUnit.SECONDS);
 
@@ -116,7 +117,7 @@ public class MetaCrawlerMain {
 			startTimeoutFetcherCleaner();
 		} else {
 //			nioMetaFetcher = new NIOMetaFetcher(config.getMetaFetchConfig(), metricRegistry);
-			fetcher = new com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher();
+			fetcher = new com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher(metricRegistry);
 		}
 
 		dht = new DHT(config.getBittorrentConfig(), new MetaWatcher() {
@@ -252,9 +253,10 @@ public class MetaCrawlerMain {
 		try {
 			fetcher.submit(infohash, peer, new MetadataListener() {
 				@Override
-				public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata) {
-					LOGGER.info("meta fetched, {}, {}", infohashStr, peer);
+				public void onSuccedded(Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
+					LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
 					metaFetchSuccessed.mark();
+					metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
 					if (metaManager.doesMetaExist(infohashStr)) {
 						LOGGER.info("{} has been fetched by others", infohashStr);
 						return;
@@ -264,13 +266,14 @@ public class MetaCrawlerMain {
 				}
 
 				@Override
-				public void onFailed(Peer peer, BencodedString infohash, Throwable t) {
-					LOGGER.info("meta fetch error, {}, {}", infohashStr, peer);
+				public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
+					LOGGER.info("meta fetch error, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
 					if (t instanceof TimeoutException) {
 						metaFetchTimeout.mark();
 					} else {
 						metaFetchError.mark();
 					}
+					metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
 					LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
 				}
 			});

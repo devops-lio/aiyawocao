@@ -1,5 +1,7 @@
 package com.killxdcj.aiyawocao.bittorrent.metadata;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import io.netty.channel.EventLoopGroup;
@@ -27,6 +29,16 @@ public class MetadataFetcher {
 	});
 
 	private PeerTaskManager peerTaskManager = new PeerTaskManager();
+
+	public MetadataFetcher() {
+	}
+
+	public MetadataFetcher(MetricRegistry metricRegistry) {
+		metricRegistry.register(MetricRegistry.name(MetadataFetcher.class, "runing"),
+				(Gauge<Integer>) () -> peerTaskManager.getRunning());
+		metricRegistry.register(MetricRegistry.name(MetadataFetcher.class, "pending"),
+				(Gauge<Integer>) () -> peerTaskManager.getPending());
+	}
 
 	public void shutdown() {
 		eventLoopGroup.shutdownGracefully();

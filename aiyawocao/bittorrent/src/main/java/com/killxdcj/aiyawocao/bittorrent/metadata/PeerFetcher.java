@@ -33,7 +33,6 @@ public class PeerFetcher {
 	private PeerTaskManager peerTaskManager;
 	private EventLoopGroup eventLoopGroup;
 	private ExecutorService executorService;
-	ByteBuf buffer = Unpooled.buffer();
 
 	public PeerFetcher(Peer peer, PeerTaskManager peerTaskManager, EventLoopGroup eventLoopGroup, ExecutorService executorService) {
 		this.peer = peer;
@@ -79,6 +78,7 @@ public class PeerFetcher {
 		private int meatadataSize;
 		private int pieceTotal;
 		private Map<Integer, byte[]> metadata = new HashMap<>();
+		ByteBuf buffer = Unpooled.buffer();
 
 		public Fetcher(Task task) {
 			this.task = task;
@@ -278,6 +278,7 @@ public class PeerFetcher {
 				return;
 			}
 
+			buffer.release();
 			startNextTask();
 
 			if (successed) {
@@ -353,6 +354,7 @@ public class PeerFetcher {
 		int length = buf.readableBytes();
 		byte[] ret = new byte[length];
 		buf.readBytes(ret);
+		buf.release();
 		return ret;
 	}
 }

@@ -45,7 +45,7 @@ public class App
 //            add("bfa15e9c015e14a0f4d2dbb1d37850395716ae7e 159.224.97.182:33729");
 //            add("df009e2eae1263c08e83e87bc5ceca11e9900a67 83.233.20.59:21643");
 //            add("7b1e58d398e808d6242d8e1cd4c91ffe02539cbb 79.115.170.168:58759");
-            add("beb4852b19fa57bec492ac2682b313bd8c9ce16d 31.207.204.209:48377");
+            add("1ae4ec6fe6478f4c04a7b2782b47a0922f5ed818 93.70.247.194:28800");
         }};
         for (String seed : seeds) {
             String[] tmps = seed.split(" ");

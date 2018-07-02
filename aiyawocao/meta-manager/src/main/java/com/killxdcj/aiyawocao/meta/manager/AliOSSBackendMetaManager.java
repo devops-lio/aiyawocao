@@ -24,6 +24,14 @@ public class AliOSSBackendMetaManager extends MetaManager {
 	private Thread infohashMetaSaver;
 	private volatile long lastInfohashSize = 0;
 
+	public AliOSSBackendMetaManager(MetaManagerConfig config) {
+		super(null);
+		this.config = config;
+		ossClient = new OSSClient(config.getEndpoint(), config.getAccessKeyId(), config.getAccessKeySecret());
+		loadInfohashMeta();
+		startInfohashMetaSaver();
+	}
+
 	public AliOSSBackendMetaManager(MetricRegistry metricRegistry, MetaManagerConfig config) {
 		super(metricRegistry);
 		this.config = config;
@@ -38,6 +46,7 @@ public class AliOSSBackendMetaManager extends MetaManager {
 		infohashMetaSaver.interrupt();
 		saveInfohashMeta();
 		ossClient.shutdown();
+		LOGGER.info("alioss backend metamanager shutdowned");
 	}
 
 	@Override

@@ -8,16 +8,9 @@ public class MetaManagerConfig {
 	private String endpoint = "http://oss-cn-shenzhen.aliyuncs.com";
 	private String accessKeyId = "example-accesskey-id";
 	private String accessKeySecret = "example-accesskey-secret";
+	private String metaCentreAddr = "127.0.0.1:10241";
 
 	public MetaManagerConfig() {
-	}
-
-	public MetaManagerConfig(String bucketName, String infohashMetaKey, String endpoint, String accessKeyId, String accessKeySecret) {
-		this.bucketName = bucketName;
-		this.infohashMetaKey = infohashMetaKey;
-		this.endpoint = endpoint;
-		this.accessKeyId = accessKeyId;
-		this.accessKeySecret = accessKeySecret;
 	}
 
 	public String getBucketName() {
@@ -60,15 +53,24 @@ public class MetaManagerConfig {
 		this.accessKeySecret = accessKeySecret;
 	}
 
+	public String getMetaCentreAddr() {
+		return metaCentreAddr;
+	}
+
+	public void setMetaCentreAddr(String metaCentreAddr) {
+		this.metaCentreAddr = metaCentreAddr;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaManagerConfig{" +
-						"bucketName='" + bucketName + '\'' +
-						", infohashMetaKey='" + infohashMetaKey + '\'' +
-						", endpoint='" + endpoint + '\'' +
-						", accessKeyId='" + accessKeyId + '\'' +
-						", accessKeySecret='" + accessKeySecret + '\'' +
-						'}';
+				"bucketName='" + bucketName + '\'' +
+				", infohashMetaKey='" + infohashMetaKey + '\'' +
+				", endpoint='" + endpoint + '\'' +
+				", accessKeyId='" + accessKeyId + '\'' +
+				", accessKeySecret='" + accessKeySecret + '\'' +
+				", metaCentreAddr='" + metaCentreAddr + '\'' +
+				'}';
 	}
 
 	public static MetaManagerConfig fromYamlConf(String yamlConf) {

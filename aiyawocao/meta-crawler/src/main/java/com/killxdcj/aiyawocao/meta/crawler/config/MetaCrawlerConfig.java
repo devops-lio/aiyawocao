@@ -18,6 +18,7 @@ public class MetaCrawlerConfig {
 	private String influxdbName = "example-influxdb-name";
 	private boolean useNIOMetaFetcher = true;
 	private String cluster = "default";
+	private boolean useProxyMetaManager = false;
 	private BittorrentConfig bittorrentConfig;
 	private MetaManagerConfig metaManagerConfig;
 	private MetaFetchConfig metaFetchConfig;
@@ -121,6 +122,14 @@ public class MetaCrawlerConfig {
 		this.cluster = cluster;
 	}
 
+	public boolean getUseProxyMetaManager() {
+		return useProxyMetaManager;
+	}
+
+	public void setUseProxyMetaManager(boolean useProxyMetaManager) {
+		this.useProxyMetaManager = useProxyMetaManager;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaCrawlerConfig{" +
@@ -133,6 +142,7 @@ public class MetaCrawlerConfig {
 				", influxdbName='" + influxdbName + '\'' +
 				", useNIOMetaFetcher=" + useNIOMetaFetcher +
 				", cluster='" + cluster + '\'' +
+				", useProxyMetaManager=" + useProxyMetaManager +
 				", bittorrentConfig=" + bittorrentConfig +
 				", metaManagerConfig=" + metaManagerConfig +
 				", metaFetchConfig=" + metaFetchConfig +

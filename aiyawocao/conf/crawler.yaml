@@ -7,6 +7,7 @@ metaFetchTimeout: 300000
 nodeMaxConcurrentFetch: 5
 useNIOMetaFetcher: true
 cluster: va-bwg
+useProxyMetaManager: false
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
@@ -32,3 +33,4 @@ metaManagerConfig:
   bucketName: bittorrent-meta
   endpoint: http://oss-cn-shenzhen.aliyuncs.com
   infohashMetaKey: infohash-meta
+  metaCentreAddr: 127.0.0.1:10241

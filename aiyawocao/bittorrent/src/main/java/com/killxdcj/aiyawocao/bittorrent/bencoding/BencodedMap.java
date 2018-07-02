@@ -40,9 +40,9 @@ public class BencodedMap extends AbstractBencodedValue {
 	public Object toHuman() {
 		Map<String, Object> ret = new HashMap<>();
 		for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
-			if (entry.getKey().equals("pieces")) {
-//                ret.put(entry.getKey(), ((BencodedString)entry.getValue()).asHexString());
-				ret.put(entry.getKey(), "pieces and ignore");
+			String key = entry.getKey();
+			if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")) {
+				// ignore
 			} else {
 				ret.put(entry.getKey(), entry.getValue().toHuman());
 			}

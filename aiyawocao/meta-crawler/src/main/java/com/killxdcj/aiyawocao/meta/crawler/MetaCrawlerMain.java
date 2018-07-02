@@ -15,6 +15,7 @@ import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.meta.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.meta.manager.AliOSSBackendMetaManager;
+import com.killxdcj.aiyawocao.meta.manager.MetaCentreBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.MetaManager;
 import metrics_influxdb.HttpInfluxdbProtocol;
 import metrics_influxdb.InfluxdbReporter;
@@ -111,7 +112,11 @@ public class MetaCrawlerMain {
 		metaFetchIgnoreByInfohash = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByInfohash"));
 		metaFetchIgnoreByNode = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByNode"));
 
-		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+		if (config.getUseProxyMetaManager()) {
+			metaManager = new MetaCentreBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+		} else {
+			metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+		}
 
 		if (!config.getUseNIOMetaFetcher()) {
 			startTimeoutFetcherCleaner();

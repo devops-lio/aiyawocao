@@ -9,3 +9,4 @@ metaManagerConfig:
   bucketName: bittorrent-meta
   endpoint: http://oss-cn-shenzhen.aliyuncs.com
   infohashMetaKey: infohash-meta
+  metaCentreAddr: ''

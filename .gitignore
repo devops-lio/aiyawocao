@@ -11,7 +11,6 @@ buildNumber.properties
 .idea/
 .DS_Store
 App.java
-meta-proxy.yaml
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar

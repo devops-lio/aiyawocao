@@ -1,0 +1,9 @@
+maxContentLength: 10485760
+port: 10241
+metaManagerConfig:
+  accessKeyId: example-accesskey-id
+  accessKeySecret: example-accesskey-secret
+  bucketName: bittorrent-meta
+  endpoint: http://oss-cn-shenzhen.aliyuncs.com
+  infohashMetaKey: infohash-meta
+  metaCentreAddr: ''

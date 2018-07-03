@@ -141,13 +141,15 @@ public class AliOSSBackendMetaManager extends MetaManager {
 			@Override
 			public void run() {
 				Thread.currentThread().setName("Infohash Meta Saver Thread");
-				try {
-					while (true) {
+				while (true) {
+					try {
 						Thread.sleep(10 * 60 * 1000);
 						saveInfohashMeta();
+					} catch (InterruptedException e) {
+						return;
+					} catch (Exception e) {
+						LOGGER.error("save infohash meta error", e);
 					}
-				} catch (InterruptedException e) {
-					return;
 				}
 			}
 		});

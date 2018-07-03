@@ -58,7 +58,7 @@ public class HttpResuestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		LOGGER.error("HttpResuestHandler", cause);
+//		LOGGER.error("HttpResuestHandler", cause);
 		ctx.close();
 	}
 

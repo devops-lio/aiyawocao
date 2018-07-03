@@ -129,6 +129,7 @@ public class AliOSSBackendMetaManager extends MetaManager {
 
 		long newSize = infohashMeta.size();
 		if (newSize != lastInfohashSize) {
+			LOGGER.info("start save infohash meta, {} -> {}", lastInfohashSize, newSize);
 			String meta = String.join("\n", infohashMeta);
 			ossClient.putObject(config.getBucketName(), config.getInfohashMetaKey(), new ByteArrayInputStream(meta.getBytes()));
 			lastInfohashSize = newSize;

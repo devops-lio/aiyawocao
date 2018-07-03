@@ -51,6 +51,17 @@ public class HttpResuestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 		}
 	}
 
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		ctx.close();
+	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		LOGGER.error("HttpResuestHandler", cause);
+		ctx.close();
+	}
+
 	private void handleExist(ChannelHandlerContext ctx, String infohash) {
 		writeResponse(ctx, new HashMap<String, Object>(){{
 			put("errno", 0);

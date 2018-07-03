@@ -1,6 +1,8 @@
 package com.killxdcj.aiyawocao.meta.proxy;
 
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
 import com.killxdcj.aiyawocao.meta.manager.AliOSSBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.MetaManager;
 import com.killxdcj.aiyawocao.meta.proxy.config.MetaProxyConfig;
@@ -11,16 +13,20 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import metrics_influxdb.HttpInfluxdbProtocol;
+import metrics_influxdb.InfluxdbReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 
 public class MetaProxyMain {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetaProxyMain.class);
 
 	private Channel channel;
 	private MetaManager metaManager;
+	private ScheduledReporter reporter;
 
 	public void start(String[] args) throws FileNotFoundException, InterruptedException {
 		String confFile = "./conf/meta-proxy.yaml";
@@ -29,10 +35,23 @@ public class MetaProxyMain {
 		}
 
 		MetaProxyConfig config = MetaProxyConfig.fromYamlConf(confFile);
-		metaManager = new AliOSSBackendMetaManager(new MetricRegistry(), config.getMetaManagerConfig());
+
+		MetricRegistry metricRegistry = new MetricRegistry();
+		String[] addrs = config.getInfluxdbAddr().split(":");
+		reporter = InfluxdbReporter.forRegistry(metricRegistry)
+				.protocol(new HttpInfluxdbProtocol("http", addrs[0], Integer.parseInt(addrs[1]),
+						config.getInfluxdbUser(), config.getInfluxdbPassword(), config.getInfluxdbName()))
+				.convertRatesTo(TimeUnit.SECONDS)
+				.convertDurationsTo(TimeUnit.MILLISECONDS)
+				.filter(MetricFilter.ALL)
+				.tag("cluster", config.getCluster())
+				.build();
+		reporter.start(60, TimeUnit.SECONDS);
+
+		metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
 
 		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-		EventLoopGroup workGroup = new NioEventLoopGroup(2);
+		EventLoopGroup workGroup = new NioEventLoopGroup();
 		try {
 			ServerBootstrap b = new ServerBootstrap();
 			b.option(ChannelOption.SO_BACKLOG, 1024);
@@ -57,6 +76,7 @@ public class MetaProxyMain {
 	public void shutdown() {
 		channel.close();
 		metaManager.shutdown();
+		reporter.stop();
 		LOGGER.info("MetaProxy shutdowned");
 	}
 

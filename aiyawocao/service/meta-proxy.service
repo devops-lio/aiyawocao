@@ -1,5 +1,5 @@
 [Unit]
-Description=meta-centre
+Description=meta-proxy
 [Service]
 ExecStart=start_bash_path
 ExecStop=stop_bash_path

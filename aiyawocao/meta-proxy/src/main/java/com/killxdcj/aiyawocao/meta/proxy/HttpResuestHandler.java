@@ -9,12 +9,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HttpResuestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpResuestHandler.class);
 
 	private MetaManager metaManager;
 	private Pattern metaPattern = Pattern.compile("/meta/(\\w+)/(\\w+)");
@@ -57,13 +60,22 @@ public class HttpResuestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 	}
 
 	private void handlePut(ChannelHandlerContext ctx, String infohash, ByteBuf metadata) {
-		byte[] meta = new byte[metadata.readableBytes()];
-		metadata.readBytes(meta);
-		metaManager.put(infohash, meta);
-		writeResponse(ctx, new HashMap<String, Object>(){{
-			put("errno", 0);
-			put("errmsg", "successed");
-		}});
+		try {
+			byte[] meta = new byte[metadata.readableBytes()];
+			metadata.readBytes(meta);
+			metaManager.put(infohash, meta);
+			writeResponse(ctx, new HashMap<String, Object>() {{
+				put("errno", 0);
+				put("errmsg", "successed");
+			}});
+			LOGGER.info("meta saved, {} -> {} bytes", infohash, meta.length);
+		} catch (Exception e) {
+			LOGGER.error("save meta error, " + infohash, e);
+			writeResponse(ctx, new HashMap<String, Object>() {{
+				put("errno", -1);
+				put("errmsg", e.getMessage());
+			}});
+		}
 	}
 
 	private void handleParse(ChannelHandlerContext ctx, String infohash) {
@@ -88,7 +100,7 @@ public class HttpResuestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 						Unpooled.copiedBuffer(JSON.toJSONString(obj), CharsetUtil.UTF_8));
 		resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
 		resp.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, resp.content().readableBytes());
-		resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+//		resp.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		ctx.writeAndFlush(resp);
 	}
 }

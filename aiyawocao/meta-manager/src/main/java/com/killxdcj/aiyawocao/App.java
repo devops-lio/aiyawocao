@@ -21,9 +21,25 @@ public class App
     public static void main( String[] args ) {
         System.out.println( "Hello World!" );
 //        App.testOSS();
-        for (int i = 0; i < 10000; i++) {
-            App.testProxy();
-            System.out.println("test ----------------> " + i);
+
+        for (int i = 0; i < 10; i++) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int j = 0; j < 5000; j++) {
+                        App.testProxy();
+                    }
+                }
+            });
+            t.start();
+        }
+
+        while (true) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -43,7 +59,7 @@ public class App
     public static void testProxy() {
         try {
             MetaManagerConfig config = new MetaManagerConfig();
-            config.setMetaCentreAddr("dev.test:10241");
+            config.setMetaCentreAddr("127.0.0.1:10241");
             MetaCentreBackendMetaManager metaManager = new MetaCentreBackendMetaManager(new MetricRegistry(), config);
 
             List<String> infohashs = new ArrayList(){{

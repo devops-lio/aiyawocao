@@ -13,6 +13,7 @@
     <module>meta-crawler</module>
     <module>bittorrent</module>
     <module>meta-centre</module>
+    <module>meta-proxy</module>
   </modules>
 
   <name>aiyawocao-parent</name>

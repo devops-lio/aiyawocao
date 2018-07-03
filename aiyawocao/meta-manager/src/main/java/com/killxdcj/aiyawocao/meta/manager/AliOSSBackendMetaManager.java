@@ -148,7 +148,7 @@ public class AliOSSBackendMetaManager extends MetaManager {
 						saveInfohashMeta();
 					} catch (InterruptedException e) {
 						return;
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						LOGGER.error("save infohash meta error", e);
 					}
 				}

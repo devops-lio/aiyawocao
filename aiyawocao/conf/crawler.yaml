@@ -8,7 +8,6 @@ nodeMaxConcurrentFetch: 5
 useNIOMetaFetcher: true
 cluster: va-bwg
 useProxyMetaManager: false
-nodeidChangeThreshold: 1000
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
@@ -22,6 +21,7 @@ bittorrentConfig:
   - dht.transmissionbt.com:6881
   requestLimit: 1500
   transactionExpireTime: 300000
+  nodeidChangeThreshold: 1000
 metaFetchConfig:
   blackThreshold: 3
   blackTimeMs: 3600000

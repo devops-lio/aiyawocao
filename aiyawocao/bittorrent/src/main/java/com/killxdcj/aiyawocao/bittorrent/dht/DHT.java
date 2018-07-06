@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class DHT {
 	public static final Logger LOGGER = LoggerFactory.getLogger(DHT.class);
@@ -66,7 +67,11 @@ public class DHT {
 		if (config.getOutBandwidthLimit() != -1) {
 			outBandwidthLimit = RateLimiter.create(config.getOutBandwidthLimit());
 		}
-		datagramSocket = new DatagramSocket(config.getPort());
+		int port = config.getPort();
+		if (port == -1) {
+			port = 10000 + (new Random(System.currentTimeMillis())).nextInt(10000);
+		}
+		datagramSocket = new DatagramSocket(port);
 		nodeManager = new NodeManager(config.getMaxNeighbor());
 		blkManager = new BlackListManager(config.getBlackThreshold());
 		transactionManager = new TransactionManager();
@@ -166,7 +171,7 @@ public class DHT {
 					sendFindNodeReq(node, buildDummyNodeId(node.id), neighborId);
 					findNodeMeter.mark();
 				}
-				idx = ++idx % 1000;
+				idx = ++idx % 100;
 			} catch (Throwable e) {
 				LOGGER.error("nodeFindProc error", e);
 			}

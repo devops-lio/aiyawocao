@@ -42,6 +42,7 @@ public class DHT {
 	private RateLimiter outBandwidthLimit;
 	private BlackListManager blkManager;
 	private boolean enableBlk;
+	private int nodeidChangeThreshold;
 
 	private Meter inBoundwidthMeter;
 	private Meter outBoundwidthMeter;
@@ -58,6 +59,7 @@ public class DHT {
 		this.config = config;
 		this.metaWatcher = metaWatcher;
 		this.metricRegistry = metricRegistry;
+		this.nodeidChangeThreshold = config.getNodeidChangeThreshold();
 		enableBlk = config.getEnableBlack();
 		initMetrics();
 		nodeId = JTorrentUtils.genNodeId();
@@ -79,7 +81,7 @@ public class DHT {
 		workProcThread.start();
 		nodefindThread = new Thread(this::nodeFindProc);
 		nodefindThread.start();
-		LOGGER.info("DHT start, nodeId:{}", nodeId.asHexString());
+		LOGGER.info("DHT start, nodeId:{}, port:{}", nodeId.asHexString(), port);
 	}
 
 	private void initMetrics() {
@@ -171,7 +173,7 @@ public class DHT {
 					sendFindNodeReq(node, buildDummyNodeId(node.id), neighborId);
 					findNodeMeter.mark();
 				}
-				idx = ++idx % 100;
+				idx = ++idx % this.nodeidChangeThreshold;
 			} catch (Throwable e) {
 				LOGGER.error("nodeFindProc error", e);
 			}

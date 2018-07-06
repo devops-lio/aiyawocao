@@ -17,21 +17,9 @@ public class BittorrentConfig {
 	private long requestLimit = 1500;
 	private int blackThreshold = 30;
 	private boolean enableBlack = true;
+	private int nodeidChangeThreshold = 1000;
 
 	public BittorrentConfig() {
-	}
-
-	public BittorrentConfig(int port, int maxPacketSize, List<String> primeNodes, long transactionExpireTime,
-													int maxNeighbor, long outBandwidthLimit, long requestLimit, int blackThreshold, boolean enableBlack) {
-		this.port = port;
-		this.maxPacketSize = maxPacketSize;
-		this.primeNodes = primeNodes;
-		this.transactionExpireTime = transactionExpireTime;
-		this.maxNeighbor = maxNeighbor;
-		this.outBandwidthLimit = outBandwidthLimit;
-		this.requestLimit = requestLimit;
-		this.blackThreshold = blackThreshold;
-		this.enableBlack = enableBlack;
 	}
 
 	public int getPort() {
@@ -106,18 +94,27 @@ public class BittorrentConfig {
 		this.enableBlack = enableBlack;
 	}
 
+	public int getNodeidChangeThreshold() {
+		return nodeidChangeThreshold;
+	}
+
+	public void setNodeidChangeThreshold(int nodeidChangeThreshold) {
+		this.nodeidChangeThreshold = nodeidChangeThreshold;
+	}
+
 	@Override
 	public String toString() {
 		return "BittorrentConfig{" +
-						"port=" + port +
-						", maxPacketSize=" + maxPacketSize +
-						", primeNodes=" + primeNodes +
-						", transactionExpireTime=" + transactionExpireTime +
-						", maxNeighbor=" + maxNeighbor +
-						", outBandwidthLimit=" + outBandwidthLimit +
-						", requestLimit=" + requestLimit +
-						", blackThreshold=" + blackThreshold +
-						", enableBlack=" + enableBlack +
-						'}';
+				"port=" + port +
+				", maxPacketSize=" + maxPacketSize +
+				", primeNodes=" + primeNodes +
+				", transactionExpireTime=" + transactionExpireTime +
+				", maxNeighbor=" + maxNeighbor +
+				", outBandwidthLimit=" + outBandwidthLimit +
+				", requestLimit=" + requestLimit +
+				", blackThreshold=" + blackThreshold +
+				", enableBlack=" + enableBlack +
+				", nodeidChangeThreshold=" + nodeidChangeThreshold +
+				'}';
 	}
 }

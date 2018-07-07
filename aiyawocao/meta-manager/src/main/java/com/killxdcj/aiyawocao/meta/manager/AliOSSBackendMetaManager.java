@@ -1,9 +1,7 @@
 package com.killxdcj.aiyawocao.meta.manager;
 
 import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.model.OSSObject;
-import com.aliyun.oss.model.ObjectMetadata;
-import com.aliyun.oss.model.PutObjectResult;
+import com.aliyun.oss.model.*;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
@@ -12,17 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class AliOSSBackendMetaManager extends MetaManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AliOSSBackendMetaManager.class);
 
 	private MetaManagerConfig config;
 	private OSSClient ossClient;
-	private Set<String> infohashMeta;
+	private Set<String> allIndex;
+	private Set<String> splitedIndex;
 	private Thread infohashMetaSaver;
-	private volatile long lastInfohashSize = 0;
+	private volatile int lastSplitedIndexSize = 0;
+	private volatile int archivedSize = 0;
 
 	public AliOSSBackendMetaManager(MetaManagerConfig config) {
 		super(null);
@@ -38,7 +41,8 @@ public class AliOSSBackendMetaManager extends MetaManager {
 		ossClient = new OSSClient(config.getEndpoint(), config.getAccessKeyId(), config.getAccessKeySecret());
 		loadInfohashMeta();
 		startInfohashMetaSaver();
-		metricRegistry.register(MetricRegistry.name(MetaManager.class, "TotalMetaNumber"), (Gauge<Integer>)() -> infohashMeta.size());
+		metricRegistry.register(MetricRegistry.name(MetaManager.class, "TotalMetaNumber"),
+			(Gauge<Integer>) () -> archivedSize + splitedIndex.size());
 	}
 
 	@Override
@@ -57,7 +61,7 @@ public class AliOSSBackendMetaManager extends MetaManager {
 	@Override
 	public boolean doesMetaExist(String infohash, boolean forceCheckOSS) {
 		infohash = infohash.toUpperCase();
-		if (infohashMeta.contains(infohash)) {
+		if (allIndex.contains(infohash)) {
 			return true;
 		}
 		if (forceCheckOSS) {
@@ -71,7 +75,8 @@ public class AliOSSBackendMetaManager extends MetaManager {
 	public void put(String infohash, byte[] meta) {
 		infohash = infohash.toUpperCase();
 		PutObjectResult result = ossClient.putObject(config.getBucketName(), buildBucketKey(infohash), new ByteArrayInputStream(meta));
-		infohashMeta.add(infohash);
+		allIndex.add(infohash);
+		splitedIndex.add(infohash);
 	}
 
 	@Override
@@ -105,35 +110,72 @@ public class AliOSSBackendMetaManager extends MetaManager {
 	}
 
 	private void loadInfohashMeta() {
-		infohashMeta = new ConcurrentSkipListSet<>();
-		if (ossClient.doesObjectExist(config.getBucketName(), config.getInfohashMetaKey())) {
-			OSSObject ossObject = ossClient.getObject(config.getBucketName(), config.getInfohashMetaKey());
+		allIndex = new ConcurrentSkipListSet<>();
+		splitedIndex = new ConcurrentSkipListSet<>();
+
+		ListObjectsRequest request = new ListObjectsRequest(config.getBucketName()).withPrefix(config.getIndexRoot())
+			.withMaxKeys(1000);
+		ObjectListing objs = ossClient.listObjects(request);
+		LOGGER.info("loading bittorrent-meta index, size:{}", objs.getObjectSummaries().size());
+		for (OSSObjectSummary summary : ossClient.listObjects(request).getObjectSummaries()) {
+			String indexFile = summary.getKey();
+			boolean isLatest = indexFile.equals(config.getIndexRoot() + "/" + config.getIndexPrefix());
+			OSSObject ossObject = ossClient.getObject(config.getBucketName(), indexFile);
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(ossObject.getObjectContent()))) {
 				String line = reader.readLine();
 				while (line != null) {
-					infohashMeta.add(line);
+					allIndex.add(line);
+					if (isLatest) {
+						splitedIndex.add(line);
+					}
 					line = reader.readLine();
 				}
+				LOGGER.info("loaded bittorrent-meta splited index file, {}", indexFile);
 			} catch (Exception e) {
 				throw new RuntimeException("load infohash meta error", e);
 			}
 		}
-		lastInfohashSize = infohashMeta.size();
-		LOGGER.info("infohash meta loaded, {}, size:{}", config.getInfohashMetaKey(), infohashMeta.size());
+		lastSplitedIndexSize = splitedIndex.size();
+		LOGGER.info("infohash meta loaded, {}, allSize:{}, splitedSize:{}", config.getIndexRoot(), allIndex.size(),
+			splitedIndex.size());
 	}
 
 	private synchronized void saveInfohashMeta() {
-		if (infohashMeta == null) {
+		if (splitedIndex == null) {
 			return;
 		}
 
-		long newSize = infohashMeta.size();
-		if (newSize != lastInfohashSize) {
-			LOGGER.info("start save infohash meta, {} -> {}", lastInfohashSize, newSize);
-			String meta = String.join("\n", infohashMeta);
-			ossClient.putObject(config.getBucketName(), config.getInfohashMetaKey(), new ByteArrayInputStream(meta.getBytes()));
-			lastInfohashSize = newSize;
-			LOGGER.info("infohash meta saved, {}, size:{}", config.getInfohashMetaKey(), lastInfohashSize);
+		int newSize = splitedIndex.size();
+		if (newSize == lastSplitedIndexSize) {
+			return;
+		}
+
+		LOGGER.info("start save infohash meta, {} -> {}", lastSplitedIndexSize, newSize);
+
+		Set<String> old = splitedIndex;
+		try {
+			String indexFile = config.getIndexRoot() + "/" + config.getIndexPrefix();
+			if (newSize > config.getMaxIndexSize()) {
+				SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss");
+				indexFile = indexFile + fmt.format(new Date());
+				splitedIndex = new ConcurrentSkipListSet<>();
+			}
+
+			String index = String.join("\n", old);
+			ossClient.putObject(config.getBucketName(), indexFile, new ByteArrayInputStream(index.getBytes()));
+			LOGGER.info("infohash meta saved, {}, size:{}", indexFile, lastSplitedIndexSize);
+
+			if (newSize > config.getMaxIndexSize()) {
+				String nexIndex = String.join("\n", splitedIndex);
+				ossClient.putObject(config.getBucketName(), config.getIndexRoot() + "/" + config.getIndexPrefix(),
+								new ByteArrayInputStream(nexIndex.getBytes()));
+				LOGGER.info("infohash splited");
+			}
+		} catch (Throwable t) {
+			LOGGER.error("sava index error", t);
+			splitedIndex.addAll(old);
+		} finally {
+			lastSplitedIndexSize = splitedIndex.size();
 		}
 	}
 

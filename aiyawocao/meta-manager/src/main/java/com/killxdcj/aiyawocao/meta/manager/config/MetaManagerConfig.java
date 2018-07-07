@@ -4,11 +4,14 @@ import org.yaml.snakeyaml.Yaml;
 
 public class MetaManagerConfig {
 	private String bucketName = "bittorrent-meta";
+	private String indexRoot = "index";
+	private String indexPrefix = "index";
 	private String infohashMetaKey = "infohash-meta";
 	private String endpoint = "http://oss-cn-shenzhen.aliyuncs.com";
 	private String accessKeyId = "example-accesskey-id";
 	private String accessKeySecret = "example-accesskey-secret";
 	private String metaCentreAddr = "127.0.0.1:10241";
+	private int maxIndexSize = 150000;
 
 	public MetaManagerConfig() {
 	}
@@ -19,6 +22,22 @@ public class MetaManagerConfig {
 
 	public void setBucketName(String bucketName) {
 		this.bucketName = bucketName;
+	}
+
+	public String getIndexRoot() {
+		return indexRoot;
+	}
+
+	public void setIndexRoot(String indexRoot) {
+		this.indexRoot = indexRoot;
+	}
+
+	public String getIndexPrefix() {
+		return indexPrefix;
+	}
+
+	public void setIndexPrefix(String indexPrefix) {
+		this.indexPrefix = indexPrefix;
 	}
 
 	public String getInfohashMetaKey() {
@@ -61,16 +80,26 @@ public class MetaManagerConfig {
 		this.metaCentreAddr = metaCentreAddr;
 	}
 
+	public int getMaxIndexSize() {
+		return maxIndexSize;
+	}
+
+	public void setMaxIndexSize(int maxIndexSize) {
+		this.maxIndexSize = maxIndexSize;
+	}
+
 	@Override
 	public String toString() {
 		return "MetaManagerConfig{" +
-				"bucketName='" + bucketName + '\'' +
-				", infohashMetaKey='" + infohashMetaKey + '\'' +
-				", endpoint='" + endpoint + '\'' +
-				", accessKeyId='" + accessKeyId + '\'' +
-				", accessKeySecret='" + accessKeySecret + '\'' +
-				", metaCentreAddr='" + metaCentreAddr + '\'' +
-				'}';
+						"bucketName='" + bucketName + '\'' +
+						", indexRoot='" + indexRoot + '\'' +
+						", indexPrefix='" + indexPrefix + '\'' +
+						", infohashMetaKey='" + infohashMetaKey + '\'' +
+						", endpoint='" + endpoint + '\'' +
+						", accessKeyId='" + accessKeyId + '\'' +
+						", accessKeySecret='" + accessKeySecret + '\'' +
+						", metaCentreAddr='" + metaCentreAddr + '\'' +
+						'}';
 	}
 
 	public static MetaManagerConfig fromYamlConf(String yamlConf) {

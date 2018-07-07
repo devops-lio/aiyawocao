@@ -105,6 +105,7 @@ public class MetaProxyConfig {
 
 	public static void main(String[] args) {
 		MetaProxyConfig config = new MetaProxyConfig();
+		config.setMetaManagerConfig(new MetaManagerConfig());
 		System.out.println(config.toYamlString());
 	}
 }

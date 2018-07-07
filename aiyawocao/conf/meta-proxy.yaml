@@ -1,13 +1,17 @@
-maxContentLength: 10485760
-port: 10241
+cluster: default
 influxdbAddr: example-influxdb:port
 influxdbName: example-influxdb-name
 influxdbPassword: example-influxdb-user
 influxdbUser: example-influxdb-user
+maxContentLength: 10485760
+port: 10241
 metaManagerConfig:
   accessKeyId: example-accesskey-id
   accessKeySecret: example-accesskey-secret
   bucketName: bittorrent-meta
   endpoint: http://oss-cn-shenzhen.aliyuncs.com
+  indexPrefix: index
+  indexRoot: index
   infohashMetaKey: infohash-meta
-  metaCentreAddr: ''
+  maxIndexSize: 150000
+  metaCentreAddr: 127.0.0.1:10241

@@ -259,7 +259,8 @@ public class KRPC {
 		PING("ping"),
 		FIND_NODE("find_node"),
 		GET_PEERS("get_peers"),
-		ANNOUNCE_PEER("announce_peer");
+		ANNOUNCE_PEER("announce_peer"),
+		UNKNOW("unknow");
 
 		private String value;
 
@@ -277,7 +278,7 @@ public class KRPC {
 			} else if (action.equals(ANNOUNCE_PEER.getValue())) {
 				return ANNOUNCE_PEER;
 			} else {
-				return null;
+				return UNKNOW;
 			}
 		}
 

@@ -136,8 +136,10 @@ public class AliOSSBackendMetaManager extends MetaManager {
 			}
 		}
 		lastSplitedIndexSize = splitedIndex.size();
-		LOGGER.info("infohash meta loaded, {}, allSize:{}, splitedSize:{}", config.getIndexRoot(), allIndex.size(),
-			splitedIndex.size());
+		int all = allIndex.size();
+		archivedSize = all - lastSplitedIndexSize;
+		LOGGER.info("infohash meta loaded, {}, allSize:{}, splitedSize:{}", config.getIndexRoot(), all,
+			lastSplitedIndexSize);
 	}
 
 	private synchronized void saveInfohashMeta() {
@@ -159,11 +161,12 @@ public class AliOSSBackendMetaManager extends MetaManager {
 				SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss");
 				indexFile = indexFile + fmt.format(new Date());
 				splitedIndex = new ConcurrentSkipListSet<>();
+				archivedSize += newSize;
 			}
 
 			String index = String.join("\n", old);
 			ossClient.putObject(config.getBucketName(), indexFile, new ByteArrayInputStream(index.getBytes()));
-			LOGGER.info("infohash meta saved, {}, size:{}", indexFile, lastSplitedIndexSize);
+			LOGGER.info("infohash meta saved, {}, size:{}", indexFile, newSize);
 
 			if (newSize > config.getMaxIndexSize()) {
 				String nexIndex = String.join("\n", splitedIndex);

@@ -1,0 +1,9 @@
+aliOSSBackendConfig:
+  accessKeyId: example-accesskey-id
+  accessKeySecret: example-accesskey-secret
+  bucketName: bittorrent-meta
+  endpoint: http://oss-cn-shenzhen.aliyuncs.com
+  indexPrefix: index
+  indexRoot: index
+  maxIndexSize: 150000
+  metaCentreAddr: 127.0.0.1:10241

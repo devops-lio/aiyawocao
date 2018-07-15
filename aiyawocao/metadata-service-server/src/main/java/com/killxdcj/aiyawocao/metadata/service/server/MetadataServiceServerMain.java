@@ -1,5 +1,7 @@
 package com.killxdcj.aiyawocao.metadata.service.server;
 
+import com.codahale.metrics.MetricRegistry;
+import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetrics;
 import com.killxdcj.aiyawocao.metadata.service.server.config.MetadataServiceServerConfig;
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
@@ -25,7 +27,8 @@ public class MetadataServiceServerMain {
     MetadataServiceServerConfig config = MetadataServiceServerConfig.fromYamlConfFile(commandLine.getOptionValue("c"));
     LOGGER.info("config: {}", config.toString());
 
-    metadataService = new MetadataServiceImpl(config);
+    MetricRegistry metricRegistry = InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
+    metadataService = new MetadataServiceImpl(config, metricRegistry);
 
     executor = Executors.newFixedThreadPool(config.getExecutorThreadNum(), r -> {
       Thread t = new Thread(r);
@@ -47,6 +50,8 @@ public class MetadataServiceServerMain {
 
   public void shutdown() {
     LOGGER.info("shutdown server");
+    InfluxdbBackendMetrics.shutdown();
+
     if (server != null) {
       server.shutdown();
     }

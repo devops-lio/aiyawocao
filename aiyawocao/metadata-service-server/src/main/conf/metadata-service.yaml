@@ -7,5 +7,12 @@ aliOSSBackendConfig:
   indexRoot: index
   indexSaveInterval: 600000
   maxIndexSize: 150000
-port: 10241
+influxdbBackendMetricsConfig:
+  cluster: default
+  influxdbAddr: example-influxdb:port
+  influxdbName: example-influxdb-name
+  influxdbPassword: example-influxdb-user
+  influxdbUser: example-influxdb-user
+  reportPeriod: 60
 executorThreadNum: 50
+port: 9613

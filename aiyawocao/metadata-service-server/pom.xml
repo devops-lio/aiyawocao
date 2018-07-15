@@ -31,6 +31,11 @@
       <artifactId>bittorrent</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.killxdcj.aiyawocao</groupId>
+      <artifactId>aiyawocao-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

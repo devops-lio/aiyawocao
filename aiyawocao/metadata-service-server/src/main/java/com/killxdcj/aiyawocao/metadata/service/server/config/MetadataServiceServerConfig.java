@@ -1,5 +1,6 @@
 package com.killxdcj.aiyawocao.metadata.service.server.config;
 
+import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -9,7 +10,8 @@ import java.io.FileNotFoundException;
 public class MetadataServiceServerConfig {
   private int port = 9613;
   private int executorThreadNum = 50;
-  AliOSSBackendConfig aliOSSBackendConfig;
+  private AliOSSBackendConfig aliOSSBackendConfig;
+  private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
 
   public int getPort() {
     return port;
@@ -33,6 +35,14 @@ public class MetadataServiceServerConfig {
 
   public void setExecutorThreadNum(int executorThreadNum) {
     this.executorThreadNum = executorThreadNum;
+  }
+
+  public InfluxdbBackendMetricsConfig getInfluxdbBackendMetricsConfig() {
+    return influxdbBackendMetricsConfig;
+  }
+
+  public void setInfluxdbBackendMetricsConfig(InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig) {
+    this.influxdbBackendMetricsConfig = influxdbBackendMetricsConfig;
   }
 
   @Override
@@ -62,6 +72,7 @@ public class MetadataServiceServerConfig {
   public static void main(String[] args) {
     MetadataServiceServerConfig config = new MetadataServiceServerConfig();
     config.setAliOSSBackendConfig(new AliOSSBackendConfig());
+    config.setInfluxdbBackendMetricsConfig(new InfluxdbBackendMetricsConfig());
     String yamlString = config.toYamlString();
     System.out.println(yamlString);
     System.out.println(MetadataServiceServerConfig.fromYamlString(yamlString).toString());

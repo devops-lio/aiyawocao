@@ -6,6 +6,8 @@ import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.google.protobuf.ByteString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
@@ -36,6 +38,13 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
   private volatile int indexSplitedLastSize = 0;
 
   private Thread indexSaver;
+
+  public MetadataServiceImpl(MetadataServiceServerConfig config, MetricRegistry metricRegistry) {
+    this(config);
+
+    metricRegistry.register(MetricRegistry.name(MetadataServiceImpl.class, "MetadataNum"),
+      (Gauge<Integer>) () -> indexAll.size());
+  }
 
   public MetadataServiceImpl(MetadataServiceServerConfig config) {
     this.config = config;

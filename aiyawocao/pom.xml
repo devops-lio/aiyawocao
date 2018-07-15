@@ -14,6 +14,9 @@
     <module>bittorrent</module>
     <module>meta-centre</module>
     <module>meta-proxy</module>
+    <module>metadata-service-common</module>
+    <module>metadata-service-server</module>
+    <module>metadata-service-client</module>
   </modules>
 
   <name>aiyawocao-parent</name>
@@ -49,21 +52,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.25</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <version>2.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>2.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>2.7</version>
     </dependency>
 
     <dependency>

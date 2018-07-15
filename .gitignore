@@ -13,6 +13,7 @@ buildNumber.properties
 App.java
 crawler_deploy/
 proxy_deploy/
+metadata_service_deploy/
 test/
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)

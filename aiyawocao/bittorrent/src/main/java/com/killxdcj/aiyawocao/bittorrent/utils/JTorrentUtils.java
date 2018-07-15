@@ -3,6 +3,8 @@ package com.killxdcj.aiyawocao.bittorrent.utils;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.Node;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,5 +149,13 @@ public class JTorrentUtils {
 		System.arraycopy(targetId.asBytes(), 0, dummyId, 0, 15);
 		System.arraycopy(realId.asBytes(), 15, dummyId, 15, 5);
 		return new BencodedString(dummyId);
+	}
+
+	public static byte[] toInfohashBytes(String infohashStr) throws DecoderException {
+		return Hex.decodeHex(infohashStr.toCharArray());
+	}
+
+	public static String toInfohashString(byte[] infohashBytes) {
+		return Hex.encodeHexString(infohashBytes);
 	}
 }

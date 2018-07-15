@@ -129,6 +129,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
       for (BencodedString infohash : indexSplitedOld.keySet()) {
         if (!first) {
           sb.append("\n");
+        } else {
+          first = false;
         }
         sb.append(infohash.asHexString().toUpperCase());
       }

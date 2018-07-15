@@ -9,9 +9,9 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>meta-crawler</artifactId>
+  <artifactId>metadata-service-server</artifactId>
 
-  <name>meta-crawler</name>
+  <name>metadata-service-server</name>
   <url>http://www.example.com</url>
 
   <properties>
@@ -23,12 +23,12 @@
   <dependencies>
     <dependency>
       <groupId>com.killxdcj.aiyawocao</groupId>
-      <artifactId>bittorrent</artifactId>
+      <artifactId>metadata-service-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.killxdcj.aiyawocao</groupId>
-      <artifactId>meta-manager</artifactId>
+      <artifactId>bittorrent</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -47,38 +47,42 @@
       <artifactId>log4j-slf4j-impl</artifactId>
       <version>2.11.0</version>
     </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.aliyun.oss</groupId>
+      <artifactId>aliyun-sdk-oss</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2</version>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>com.killxdcj.aiyawocao.meta.crawler.MetaCrawlerMain</mainClass>
-            </manifest>
-          </archive>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <mainClass>com.killxdcj.aiyawocao.metadata.service.server.MetadataServiceServerMain</mainClass>
+            </transformer>
+          </transformers>
         </configuration>
         <executions>
           <execution>
-            <id>make-assembly</id>
             <phase>package</phase>
             <goals>
-              <goal>assembly</goal>
+              <goal>shade</goal>
             </goals>
           </execution>
         </executions>

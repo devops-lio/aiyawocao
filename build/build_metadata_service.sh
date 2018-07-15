@@ -18,5 +18,5 @@ cat ./aiyawocao/metadata-service-server/src/main/bin/start_metadata_service.sh |
 
 start_metadata_service_bash=$(cd "$(dirname "$0")";pwd)/metadata_service_deploy/bin/start_metadata_service.sh
 stop_metadata_service_bash=$(cd "$(dirname "$0")";pwd)/metadata_service_deploy/bin/stop_metadata_service.sh
-cat ./aiyawocao/metadata-service-server/src/main/service/metadata_service.service | sed s:start_bash_path:$start_metadata_service_bash:g | sed s:stop_bash_path:$stop_metadata_service_bash:g > ./metadata_service_deploy/service/metadata_service.service
+cat ./aiyawocao/metadata-service-server/src/main/service/metadata-service.service | sed s:start_bash_path:$start_metadata_service_bash:g | sed s:stop_bash_path:$stop_metadata_service_bash:g > ./metadata_service_deploy/service/metadata-service.service
 

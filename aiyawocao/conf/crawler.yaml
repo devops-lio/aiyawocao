@@ -1,18 +1,19 @@
+cluster: default
 influxdbAddr: example-influxdb:port
 influxdbName: example-influxdb-name
 influxdbPassword: example-influxdb-user
 influxdbUser: example-influxdb-user
 infohashMaxConcurrentFetch: 5
-metaFetchTimeout: 300000
 nodeMaxConcurrentFetch: 5
 useNIOMetaFetcher: true
-cluster: va-bwg
 useProxyMetaManager: false
+metaFetchTimeout: 300000
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
   maxNeighbor: 3000
   maxPacketSize: 65536
+  nodeidChangeThreshold: 1000
   outBandwidthLimit: 1048576
   port: 10240
   primeNodes:
@@ -21,17 +22,22 @@ bittorrentConfig:
   - dht.transmissionbt.com:6881
   requestLimit: 1500
   transactionExpireTime: 300000
-  nodeidChangeThreshold: 1000
 metaFetchConfig:
   blackThreshold: 3
   blackTimeMs: 3600000
   fetcherNum: 20
-  metafetchTimeoutMs: 600000
   infohashMaxPending: 3
+  metafetchTimeoutMs: 600000
 metaManagerConfig:
   accessKeyId: example-accesskey-id
   accessKeySecret: example-accesskey-secret
   bucketName: bittorrent-meta
   endpoint: http://oss-cn-shenzhen.aliyuncs.com
+  indexPrefix: index
+  indexRoot: index
   infohashMetaKey: infohash-meta
+  maxIndexSize: 150000
   metaCentreAddr: 127.0.0.1:10241
+metadataServiceClientConfig:
+  poolsize: 10
+  server: example

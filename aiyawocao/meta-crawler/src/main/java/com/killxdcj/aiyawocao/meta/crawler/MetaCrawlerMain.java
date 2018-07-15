@@ -17,6 +17,7 @@ import com.killxdcj.aiyawocao.meta.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.meta.manager.AliOSSBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.MetaCentreBackendMetaManager;
 import com.killxdcj.aiyawocao.meta.manager.MetaManager;
+import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
 import metrics_influxdb.HttpInfluxdbProtocol;
 import metrics_influxdb.InfluxdbReporter;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class MetaCrawlerMain {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetaCrawlerMain.class);
 
 	MetaCrawlerConfig config;
-	private MetaManager metaManager;
+	private MetadataServiceClient client;
 	private DHT dht;
 	private volatile boolean exit = false;
 	private ConcurrentMap<MetaFetcherKey, Future> fetcherMap = new ConcurrentHashMap<>();
@@ -112,11 +113,12 @@ public class MetaCrawlerMain {
 		metaFetchIgnoreByInfohash = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByInfohash"));
 		metaFetchIgnoreByNode = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchIgnoreByNode"));
 
-		if (config.getUseProxyMetaManager()) {
-			metaManager = new MetaCentreBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
-		} else {
-			metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
-		}
+//		if (config.getUseProxyMetaManager()) {
+//			metaManager = new MetaCentreBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+//		} else {
+//			metaManager = new AliOSSBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
+//		}
+		client = new MetadataServiceClient(config.getMetadataServiceClientConfig());
 
 		if (!config.getUseNIOMetaFetcher()) {
 			startTimeoutFetcherCleaner();
@@ -175,9 +177,8 @@ public class MetaCrawlerMain {
 			reporter.stop();
 		}
 
-		if (metaManager != null) {
-			LOGGER.info("Shutdown metamanager");
-			metaManager.shutdown();
+		if (client != null) {
+			client.shutdown();
 		}
 
 		LOGGER.info("MetaCrawler stoped");
@@ -185,7 +186,7 @@ public class MetaCrawlerMain {
 
 	private void submitMetaFetcher(BencodedString infohash, Peer peer) {
 		String infohashStr = infohash.asHexString();
-		if (metaManager.doesMetaExist(infohashStr)) {
+		if (client.doesMetadataExist(infohash.asBytes())) {
 			LOGGER.info("infohash has been fetched, {}", infohashStr);
 			return;
 		}
@@ -222,13 +223,17 @@ public class MetaCrawlerMain {
 
 										metaFetchSuccessed.mark();
 										metaFetchSuccessedTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
-										if (metaManager.doesMetaExist(infohashStr)) {
+										if (client.doesMetadataExist(infohash.asBytes())) {
 											LOGGER.info("{} has been fetched by others", infohashStr);
 											return;
 										}
 
-										metaManager.put(infohashStr, metadata);
-										LOGGER.info("{} meta uploaded", infohashStr);
+										try {
+											client.putMetadata(infohash.asBytes(), metadata);
+											LOGGER.info("{} meta uploaded", infohashStr);
+										} catch (Throwable t) {
+											LOGGER.error("upload metadata error, " + infohashStr, t);
+										}
 									}
 
 									@Override
@@ -250,7 +255,7 @@ public class MetaCrawlerMain {
 
 	private void submitNIOMetafetcher(BencodedString infohash, Peer peer) {
 		String infohashStr = infohash.asHexString();
-		if (metaManager.doesMetaExist(infohashStr)) {
+		if (client.doesMetadataExist(infohash.asBytes())) {
 			LOGGER.info("infohash has been fetched, {}", infohashStr);
 			return;
 		}
@@ -262,12 +267,16 @@ public class MetaCrawlerMain {
 					LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
 					metaFetchSuccessed.mark();
 					metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
-					if (metaManager.doesMetaExist(infohashStr)) {
+					if (client.doesMetadataExist(infohash.asBytes())) {
 						LOGGER.info("{} has been fetched by others", infohashStr);
 						return;
 					}
-					metaManager.put(infohashStr, metadata);
-					LOGGER.info("{} meta uploaded", infohashStr);
+					try {
+						client.putMetadata(infohash.asBytes(), metadata);
+						LOGGER.info("{} meta uploaded", infohashStr);
+					} catch (Throwable t) {
+						LOGGER.error("upload metadata error, " + infohashStr, t);
+					}
 				}
 
 				@Override

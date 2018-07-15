@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImplBase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
@@ -36,6 +37,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
   private ConcurrentMap<BencodedString, Object> indexAll;
   private ConcurrentMap<BencodedString, Object> indexSplited;
   private volatile int indexSplitedLastSize = 0;
+  private AtomicInteger totalSize = new AtomicInteger(0);
 
   private Thread indexSaver;
 
@@ -43,7 +45,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     this(config);
 
     metricRegistry.register(MetricRegistry.name(MetadataServiceImpl.class, "MetadataNum"),
-      (Gauge<Integer>) () -> indexAll.size());
+      (Gauge<Integer>) () -> totalSize.get());
   }
 
   public MetadataServiceImpl(MetadataServiceServerConfig config) {
@@ -75,6 +77,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     ObjectListing objs = ossClient.listObjects(request);
     LOGGER.info("loading metadata index, size:{}", objs.getObjectSummaries().size());
     for (OSSObjectSummary summary : ossClient.listObjects(request).getObjectSummaries()) {
+      int size = 0;
       String indexFile = summary.getKey();
       boolean isLatest = indexFile.equals(ossBackendConfig.getIndexRoot() + "/" + ossBackendConfig.getIndexPrefix());
       OSSObject ossObject = ossClient.getObject(ossBackendConfig.getBucketName(), indexFile);
@@ -87,8 +90,10 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
             indexSplited.put(infohash, objDummy);
           }
           line = reader.readLine();
+          size++;
+          totalSize.incrementAndGet();
         }
-        LOGGER.info("loaded metadata splited index file, {}", indexFile);
+        LOGGER.info("loaded metadata splited index file, {} -> {}", indexFile, size);
       } catch (Exception e) {
         throw new RuntimeException("load metadata index error", e);
       }
@@ -186,7 +191,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     PutMetadataResponse response = PutMetadataResponse.newBuilder().setResult(true).build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
-
+    totalSize.incrementAndGet();
   }
 
   @Override

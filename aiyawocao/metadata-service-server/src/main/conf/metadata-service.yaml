@@ -8,3 +8,4 @@ aliOSSBackendConfig:
   indexSaveInterval: 600000
   maxIndexSize: 150000
 port: 10241
+executorThreadNum: 50

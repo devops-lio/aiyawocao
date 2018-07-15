@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 
 public class MetadataServiceServerConfig {
   private int port = 9613;
+  private int executorThreadNum = 50;
   AliOSSBackendConfig aliOSSBackendConfig;
 
   public int getPort() {
@@ -26,12 +27,21 @@ public class MetadataServiceServerConfig {
     this.aliOSSBackendConfig = aliOSSBackendConfig;
   }
 
+  public int getExecutorThreadNum() {
+    return executorThreadNum;
+  }
+
+  public void setExecutorThreadNum(int executorThreadNum) {
+    this.executorThreadNum = executorThreadNum;
+  }
+
   @Override
   public String toString() {
     return "MetadataServiceServerConfig{" +
-      "port=" + port +
-      ", aliOSSBackendConfig=" + aliOSSBackendConfig +
-      '}';
+            "port=" + port +
+            ", executorThreadNum=" + executorThreadNum +
+            ", aliOSSBackendConfig=" + aliOSSBackendConfig +
+            '}';
   }
 
   private String toYamlString() {

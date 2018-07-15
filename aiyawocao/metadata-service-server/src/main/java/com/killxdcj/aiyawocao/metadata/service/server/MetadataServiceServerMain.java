@@ -27,7 +27,7 @@ public class MetadataServiceServerMain {
 
     metadataService = new MetadataServiceImpl(config);
 
-    executor = Executors.newCachedThreadPool(r -> {
+    executor = Executors.newFixedThreadPool(config.getExecutorThreadNum(), r -> {
       Thread t = new Thread(r);
       t.setDaemon(true);
       t.setName("MetadataService GRPC Thread");

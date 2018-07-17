@@ -2,17 +2,24 @@ package com.killxdcj.aiyawocao.metadata.service.client;
 
 import com.google.protobuf.ByteString;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
-import com.killxdcj.aiyawocao.metadata.service.*;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.MetadataServiceGrpc;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import org.apache.commons.codec.DecoderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.codec.DecoderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataServiceClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceClient.class);
@@ -48,8 +55,8 @@ public class MetadataServiceClient {
   public boolean doesMetadataExist(byte[] infohash) {
     try {
       DoesMetadataExistRequest request = DoesMetadataExistRequest.newBuilder()
-        .setInfohash(ByteString.copyFrom(infohash))
-        .build();
+          .setInfohash(ByteString.copyFrom(infohash))
+          .build();
 
       DoesMetadataExistResponse response = getNextStub().doesMetadataExist(request);
       return response.getExist();
@@ -66,9 +73,9 @@ public class MetadataServiceClient {
   public void putMetadata(byte[] infohash, byte[] metadata) throws Throwable {
     try {
       PutMetadataRequest request = PutMetadataRequest.newBuilder()
-        .setInfohash(ByteString.copyFrom(infohash))
-        .setMetadata(ByteString.copyFrom(metadata))
-        .build();
+          .setInfohash(ByteString.copyFrom(infohash))
+          .setMetadata(ByteString.copyFrom(metadata))
+          .build();
       PutMetadataResponse response = getNextStub().putMetadata(request);
     } catch (StatusRuntimeException sre) {
       throw sre.getCause();
@@ -95,21 +102,12 @@ public class MetadataServiceClient {
 
   public String parseMetadata(byte[] infohash) throws Throwable {
     try {
-      ParseMetadataRequest request = ParseMetadataRequest.newBuilder().setInfohash(ByteString.copyFrom(infohash)).build();
+      ParseMetadataRequest request = ParseMetadataRequest.newBuilder().setInfohash(ByteString.copyFrom(infohash))
+          .build();
       ParseMetadataResponse response = getNextStub().parseMetadata(request);
       return response.getMetadataJson();
     } catch (StatusRuntimeException sre) {
       throw sre.getCause();
-    }
-  }
-
-  private class GrpcClient {
-    private ManagedChannel managedChannel;
-    private MetadataServiceGrpc.MetadataServiceBlockingStub stub;
-
-    public GrpcClient(ManagedChannel managedChannel, MetadataServiceGrpc.MetadataServiceBlockingStub stub) {
-      this.managedChannel = managedChannel;
-      this.stub = stub;
     }
   }
 
@@ -120,5 +118,15 @@ public class MetadataServiceClient {
       idx.compareAndSet(curIdx + 1, tarIdx + 1);
     }
     return grpcClients.get(tarIdx).stub;
+  }
+
+  private class GrpcClient {
+    private ManagedChannel managedChannel;
+    private MetadataServiceGrpc.MetadataServiceBlockingStub stub;
+
+    public GrpcClient(ManagedChannel managedChannel, MetadataServiceGrpc.MetadataServiceBlockingStub stub) {
+      this.managedChannel = managedChannel;
+      this.stub = stub;
+    }
   }
 }

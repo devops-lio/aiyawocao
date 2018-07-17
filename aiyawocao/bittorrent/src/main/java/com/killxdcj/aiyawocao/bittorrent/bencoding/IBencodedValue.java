@@ -4,17 +4,17 @@ import java.util.List;
 import java.util.Map;
 
 public interface IBencodedValue {
-	String asString();
+  String asString();
 
-	byte[] asBytes();
+  byte[] asBytes();
 
-	Long asLong();
+  Long asLong();
 
-	List<IBencodedValue> asList();
+  List<IBencodedValue> asList();
 
-	Map<String, IBencodedValue> asMap();
+  Map<String, IBencodedValue> asMap();
 
-	byte[] serialize();
+  byte[] serialize();
 
-	Object toHuman();
+  Object toHuman();
 }

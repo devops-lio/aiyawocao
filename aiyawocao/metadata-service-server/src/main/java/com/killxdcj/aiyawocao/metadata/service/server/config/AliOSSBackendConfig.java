@@ -77,14 +77,14 @@ public class AliOSSBackendConfig {
   @Override
   public String toString() {
     return "AliOSSBackendConfig{" +
-      "bucketName='" + bucketName + '\'' +
-      ", indexRoot='" + indexRoot + '\'' +
-      ", indexPrefix='" + indexPrefix + '\'' +
-      ", endpoint='" + endpoint + '\'' +
-      ", accessKeyId='" + accessKeyId + '\'' +
-      ", accessKeySecret='" + accessKeySecret + '\'' +
-      ", maxIndexSize=" + maxIndexSize +
-      ", indexSaveInterval=" + indexSaveInterval +
-      '}';
+        "bucketName='" + bucketName + '\'' +
+        ", indexRoot='" + indexRoot + '\'' +
+        ", indexPrefix='" + indexPrefix + '\'' +
+        ", endpoint='" + endpoint + '\'' +
+        ", accessKeyId='" + accessKeyId + '\'' +
+        ", accessKeySecret='" + accessKeySecret + '\'' +
+        ", maxIndexSize=" + maxIndexSize +
+        ", indexSaveInterval=" + indexSaveInterval +
+        '}';
   }
 }

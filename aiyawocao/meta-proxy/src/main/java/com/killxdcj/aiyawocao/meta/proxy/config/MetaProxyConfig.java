@@ -1,111 +1,110 @@
 package com.killxdcj.aiyawocao.meta.proxy.config;
 
 import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import org.yaml.snakeyaml.Yaml;
 
 public class MetaProxyConfig {
-	private int port = 10241;
-	private int maxContentLength = 10 * 1024 * 1024;
-	private String influxdbAddr = "example-influxdb:port";
-	private String influxdbUser = "example-influxdb-user";
-	private String influxdbPassword = "example-influxdb-user";
-	private String influxdbName = "example-influxdb-name";
-	private String cluster = "default";
-	private MetaManagerConfig metaManagerConfig;
+  private int port = 10241;
+  private int maxContentLength = 10 * 1024 * 1024;
+  private String influxdbAddr = "example-influxdb:port";
+  private String influxdbUser = "example-influxdb-user";
+  private String influxdbPassword = "example-influxdb-user";
+  private String influxdbName = "example-influxdb-name";
+  private String cluster = "default";
+  private MetaManagerConfig metaManagerConfig;
 
-	public int getPort() {
-		return port;
-	}
+  public static MetaProxyConfig fromYamlConf(String yamlConf) throws FileNotFoundException {
+    Yaml yaml = new Yaml();
+    return yaml.loadAs(new FileInputStream(yamlConf), MetaProxyConfig.class);
+  }
 
-	public void setPort(int port) {
-		this.port = port;
-	}
+  public static void main(String[] args) {
+    MetaProxyConfig config = new MetaProxyConfig();
+    config.setMetaManagerConfig(new MetaManagerConfig());
+    System.out.println(config.toYamlString());
+  }
 
-	public MetaManagerConfig getMetaManagerConfig() {
-		return metaManagerConfig;
-	}
+  public int getPort() {
+    return port;
+  }
 
-	public void setMetaManagerConfig(MetaManagerConfig metaManagerConfig) {
-		this.metaManagerConfig = metaManagerConfig;
-	}
+  public void setPort(int port) {
+    this.port = port;
+  }
 
-	public int getMaxContentLength() {
-		return maxContentLength;
-	}
+  public MetaManagerConfig getMetaManagerConfig() {
+    return metaManagerConfig;
+  }
 
-	public void setMaxContentLength(int maxContentLength) {
-		this.maxContentLength = maxContentLength;
-	}
+  public void setMetaManagerConfig(MetaManagerConfig metaManagerConfig) {
+    this.metaManagerConfig = metaManagerConfig;
+  }
 
-	public String getInfluxdbAddr() {
-		return influxdbAddr;
-	}
+  public int getMaxContentLength() {
+    return maxContentLength;
+  }
 
-	public void setInfluxdbAddr(String influxdbAddr) {
-		this.influxdbAddr = influxdbAddr;
-	}
+  public void setMaxContentLength(int maxContentLength) {
+    this.maxContentLength = maxContentLength;
+  }
 
-	public String getInfluxdbUser() {
-		return influxdbUser;
-	}
+  public String getInfluxdbAddr() {
+    return influxdbAddr;
+  }
 
-	public void setInfluxdbUser(String influxdbUser) {
-		this.influxdbUser = influxdbUser;
-	}
+  public void setInfluxdbAddr(String influxdbAddr) {
+    this.influxdbAddr = influxdbAddr;
+  }
 
-	public String getInfluxdbPassword() {
-		return influxdbPassword;
-	}
+  public String getInfluxdbUser() {
+    return influxdbUser;
+  }
 
-	public void setInfluxdbPassword(String influxdbPassword) {
-		this.influxdbPassword = influxdbPassword;
-	}
+  public void setInfluxdbUser(String influxdbUser) {
+    this.influxdbUser = influxdbUser;
+  }
 
-	public String getInfluxdbName() {
-		return influxdbName;
-	}
+  public String getInfluxdbPassword() {
+    return influxdbPassword;
+  }
 
-	public void setInfluxdbName(String influxdbName) {
-		this.influxdbName = influxdbName;
-	}
+  public void setInfluxdbPassword(String influxdbPassword) {
+    this.influxdbPassword = influxdbPassword;
+  }
 
-	public String getCluster() {
-		return cluster;
-	}
+  public String getInfluxdbName() {
+    return influxdbName;
+  }
 
-	public void setCluster(String cluster) {
-		this.cluster = cluster;
-	}
+  public void setInfluxdbName(String influxdbName) {
+    this.influxdbName = influxdbName;
+  }
 
-	@Override
-	public String toString() {
-		return "MetaProxyConfig{" +
-				"port=" + port +
-				", maxContentLength=" + maxContentLength +
-				", influxdbAddr='" + influxdbAddr + '\'' +
-				", influxdbUser='" + influxdbUser + '\'' +
-				", influxdbPassword='" + influxdbPassword + '\'' +
-				", influxdbName='" + influxdbName + '\'' +
-				", metaManagerConfig=" + metaManagerConfig +
-				'}';
-	}
+  public String getCluster() {
+    return cluster;
+  }
 
-	public static MetaProxyConfig fromYamlConf(String yamlConf) throws FileNotFoundException {
-		Yaml yaml = new Yaml();
-		return yaml.loadAs(new FileInputStream(yamlConf), MetaProxyConfig.class);
-	}
+  public void setCluster(String cluster) {
+    this.cluster = cluster;
+  }
 
-	private String toYamlString() {
-		Yaml yaml = new Yaml();
-		return yaml.dumpAsMap(this);
-	}
+  @Override
+  public String toString() {
+    return "MetaProxyConfig{" +
+        "port=" + port +
+        ", maxContentLength=" + maxContentLength +
+        ", influxdbAddr='" + influxdbAddr + '\'' +
+        ", influxdbUser='" + influxdbUser + '\'' +
+        ", influxdbPassword='" + influxdbPassword + '\'' +
+        ", influxdbName='" + influxdbName + '\'' +
+        ", metaManagerConfig=" + metaManagerConfig +
+        '}';
+  }
 
-	public static void main(String[] args) {
-		MetaProxyConfig config = new MetaProxyConfig();
-		config.setMetaManagerConfig(new MetaManagerConfig());
-		System.out.println(config.toYamlString());
-	}
+  private String toYamlString() {
+    Yaml yaml = new Yaml();
+    return yaml.dumpAsMap(this);
+  }
 }

@@ -12,19 +12,29 @@ import com.google.protobuf.ByteString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
-import com.killxdcj.aiyawocao.metadata.service.*;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.MetadataServiceGrpc;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.server.config.AliOSSBackendConfig;
 import com.killxdcj.aiyawocao.metadata.service.server.config.MetadataServiceServerConfig;
 import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImplBase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
@@ -45,7 +55,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     this(config);
 
     metricRegistry.register(MetricRegistry.name(MetadataServiceImpl.class, "MetadataNum"),
-      (Gauge<Integer>) () -> totalSize.get());
+        (Gauge<Integer>) () -> totalSize.get());
   }
 
   public MetadataServiceImpl(MetadataServiceServerConfig config) {
@@ -54,7 +64,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
 
     AliOSSBackendConfig ossBackendConfig = config.getAliOSSBackendConfig();
     ossClient = new OSSClient(ossBackendConfig.getEndpoint(), ossBackendConfig.getAccessKeyId(),
-      ossBackendConfig.getAccessKeySecret());
+        ossBackendConfig.getAccessKeySecret());
     loadIndex();
     startIndexSaver();
   }
@@ -72,8 +82,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
 
     AliOSSBackendConfig ossBackendConfig = config.getAliOSSBackendConfig();
     ListObjectsRequest request = new ListObjectsRequest(ossBackendConfig.getBucketName())
-      .withPrefix(ossBackendConfig.getIndexRoot())
-      .withMaxKeys(1000);
+        .withPrefix(ossBackendConfig.getIndexRoot())
+        .withMaxKeys(1000);
     ObjectListing objs = ossClient.listObjects(request);
     LOGGER.info("loading metadata index, size:{}", objs.getObjectSummaries().size());
     for (OSSObjectSummary summary : ossClient.listObjects(request).getObjectSummaries()) {
@@ -99,8 +109,9 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
       }
     }
     indexSplitedLastSize = indexSplited.size();
-    LOGGER.info("metadata index loaded, {}, allSize:{}, splitedSize:{}", ossBackendConfig.getIndexRoot(), indexAll.size(),
-      indexSplitedLastSize);
+    LOGGER.info("metadata index loaded, {}, allSize:{}, splitedSize:{}", ossBackendConfig.getIndexRoot(), indexAll
+            .size(),
+        indexSplitedLastSize);
   }
 
   private void saveIndex() {
@@ -135,12 +146,14 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
         sb.append(infohash.asHexString().toUpperCase());
       }
 
-      ossClient.putObject(ossBackendConfig.getBucketName(), indexFile, new ByteArrayInputStream(sb.toString().getBytes()));
+      ossClient.putObject(ossBackendConfig.getBucketName(), indexFile, new ByteArrayInputStream(sb.toString()
+          .getBytes()));
       LOGGER.info("metadata index saved, {}, size:{}", indexFile, newSize);
 
       if (newSize > ossBackendConfig.getMaxIndexSize()) {
-        ossClient.putObject(ossBackendConfig.getBucketName(), ossBackendConfig.getIndexRoot() + "/" + ossBackendConfig.getIndexPrefix(),
-          new ByteArrayInputStream(new byte[0]));
+        ossClient.putObject(ossBackendConfig.getBucketName(), ossBackendConfig.getIndexRoot() + "/" +
+                ossBackendConfig.getIndexPrefix(),
+            new ByteArrayInputStream(new byte[0]));
         indexSplitedLastSize = 0;
         LOGGER.info("metadata index splited");
       } else {
@@ -170,10 +183,11 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
   }
 
   @Override
-  public void doesMetadataExist(DoesMetadataExistRequest request, StreamObserver<DoesMetadataExistResponse> responseObserver) {
+  public void doesMetadataExist(DoesMetadataExistRequest request, StreamObserver<DoesMetadataExistResponse>
+      responseObserver) {
     DoesMetadataExistResponse response = DoesMetadataExistResponse.newBuilder()
-      .setExist(indexAll.containsKey(new BencodedString(request.getInfohash().toByteArray())))
-      .build();
+        .setExist(indexAll.containsKey(new BencodedString(request.getInfohash().toByteArray())))
+        .build();
 
     responseObserver.onNext(response);
     responseObserver.onCompleted();
@@ -184,7 +198,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     BencodedString infohash = new BencodedString(request.getInfohash().toByteArray());
     byte[] metadata = request.getMetadata().toByteArray();
     String infohashStr = infohash.asHexString();
-    ossClient.putObject(ossBackendConfig.getBucketName(), buildBucketKey(infohashStr), new ByteArrayInputStream(metadata));
+    ossClient.putObject(ossBackendConfig.getBucketName(), buildBucketKey(infohashStr), new ByteArrayInputStream
+        (metadata));
     LOGGER.info("metadata saved, {} -> {}bytes", infohashStr, metadata.length);
 
     indexAll.put(infohash, objDummy);
@@ -202,8 +217,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
     try {
       byte[] metadata = getMetadataInternal(infohash);
       GetMetadataResponse response = GetMetadataResponse.newBuilder()
-        .setMetadata(ByteString.copyFrom(metadata))
-        .build();
+          .setMetadata(ByteString.copyFrom(metadata))
+          .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (Exception e) {
@@ -222,8 +237,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
       Bencoding bencoding = new Bencoding(metadata);
       String metadataJson = JSON.toJSONString(bencoding.decode().toHuman());
       ParseMetadataResponse response = ParseMetadataResponse.newBuilder()
-        .setMetadataJson(metadataJson)
-        .build();
+          .setMetadataJson(metadataJson)
+          .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (Exception e) {
@@ -261,8 +276,8 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
   private String buildBucketKey(String infohash) {
     infohash = infohash.toUpperCase();
     return "" + infohash.charAt(0) + infohash.charAt(1) + "/" +
-      infohash.charAt(2) + infohash.charAt(3) + "/" +
-      infohash.charAt(4) + infohash.charAt(5) + "/" +
-      infohash;
+        infohash.charAt(2) + infohash.charAt(3) + "/" +
+        infohash.charAt(4) + infohash.charAt(5) + "/" +
+        infohash;
   }
 }

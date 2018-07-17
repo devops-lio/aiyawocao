@@ -5,89 +5,89 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BencodedMap extends AbstractBencodedValue {
-	private Map<String, IBencodedValue> data;
+  private Map<String, IBencodedValue> data;
 
-	public BencodedMap() {
-		data = new HashMap();
-	}
+  public BencodedMap() {
+    data = new HashMap();
+  }
 
-	public BencodedMap(Map<String, IBencodedValue> data) {
-		this.data = data;
-	}
+  public BencodedMap(Map<String, IBencodedValue> data) {
+    this.data = data;
+  }
 
-	public void put(String key, IBencodedValue value) {
-		data.put(key, value);
-	}
+  public void put(String key, IBencodedValue value) {
+    data.put(key, value);
+  }
 
-	public IBencodedValue get(String key) {
-		return data.get(key);
-	}
+  public IBencodedValue get(String key) {
+    return data.get(key);
+  }
 
-	public void remove(String key) {
-		data.remove(key);
-	}
+  public void remove(String key) {
+    data.remove(key);
+  }
 
-	public boolean containsKey(String key) {
-		return data.containsKey(key);
-	}
+  public boolean containsKey(String key) {
+    return data.containsKey(key);
+  }
 
-	@Override
-	public Map<String, IBencodedValue> asMap() {
-		return data;
-	}
+  @Override
+  public Map<String, IBencodedValue> asMap() {
+    return data;
+  }
 
-	@Override
-	public Object toHuman() {
-		Map<String, Object> ret = new HashMap<>();
-		for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
-			String key = entry.getKey();
-			if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")) {
-				// ignore
-			} else {
-				ret.put(entry.getKey(), entry.getValue().toHuman());
-			}
-		}
-		return ret;
-	}
+  @Override
+  public Object toHuman() {
+    Map<String, Object> ret = new HashMap<>();
+    for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
+      String key = entry.getKey();
+      if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")) {
+        // ignore
+      } else {
+        ret.put(entry.getKey(), entry.getValue().toHuman());
+      }
+    }
+    return ret;
+  }
 
-	public byte[] serialize() {
-		int totalLength = 2;
-		Map<byte[], byte[]> dataBytes = new HashMap();
-		for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
-			byte[] keyBytes = new BencodedString(entry.getKey()).serialize();
-			byte[] valueBytes = entry.getValue().serialize();
-			dataBytes.put(keyBytes, valueBytes);
-			totalLength += keyBytes.length;
-			totalLength += valueBytes.length;
-		}
+  public byte[] serialize() {
+    int totalLength = 2;
+    Map<byte[], byte[]> dataBytes = new HashMap();
+    for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
+      byte[] keyBytes = new BencodedString(entry.getKey()).serialize();
+      byte[] valueBytes = entry.getValue().serialize();
+      dataBytes.put(keyBytes, valueBytes);
+      totalLength += keyBytes.length;
+      totalLength += valueBytes.length;
+    }
 
-		ByteBuffer byteBuffer = ByteBuffer.allocate(totalLength);
-		byteBuffer.put(MAP_ENTRY);
-		for (Map.Entry<byte[], byte[]> entry : dataBytes.entrySet()) {
-			byteBuffer.put(entry.getKey());
-			byteBuffer.put(entry.getValue());
-		}
-		byteBuffer.put(END_BYTE);
-		return byteBuffer.array();
-	}
+    ByteBuffer byteBuffer = ByteBuffer.allocate(totalLength);
+    byteBuffer.put(MAP_ENTRY);
+    for (Map.Entry<byte[], byte[]> entry : dataBytes.entrySet()) {
+      byteBuffer.put(entry.getKey());
+      byteBuffer.put(entry.getValue());
+    }
+    byteBuffer.put(END_BYTE);
+    return byteBuffer.array();
+  }
 
-	@Override
-	public int hashCode() {
-		return data != null ? data.hashCode() : 0;
-	}
+  @Override
+  public int hashCode() {
+    return data != null ? data.hashCode() : 0;
+  }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-		BencodedMap that = (BencodedMap) o;
+    BencodedMap that = (BencodedMap) o;
 
-		return data != null ? data.equals(that.data) : that.data == null;
-	}
+    return data != null ? data.equals(that.data) : that.data == null;
+  }
 
-	@Override
-	public String toString() {
-		return "{" + data + "}";
-	}
+  @Override
+  public String toString() {
+    return "{" + data + "}";
+  }
 }

@@ -10,355 +10,356 @@ import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PeerFetcher {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PeerFetcher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PeerFetcher.class);
+  // utils
+  private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
+  private static final byte EXTENDED = (byte) 20;
+  private static final byte HANDSHAKE = (byte) 0;
+  private static final byte UT_METADATA = (byte) 1;
+  private static final byte[] extHandshake = buildExtHandshake();
+  private static final int BLOCK_SIZE = 16 * 1024;
+  private static final int REQUEST = 0;
+  private static final int DATA = 1;
+  private static final int REJECT = 2;
+  private Peer peer;
+  private PeerTaskManager peerTaskManager;
+  private EventLoopGroup eventLoopGroup;
+  private ExecutorService executorService;
+  public PeerFetcher(Peer peer, PeerTaskManager peerTaskManager, EventLoopGroup eventLoopGroup, ExecutorService
+      executorService) {
+    this.peer = peer;
+    this.peerTaskManager = peerTaskManager;
+    this.eventLoopGroup = eventLoopGroup;
+    this.executorService = executorService;
 
-	private Peer peer;
-	private PeerTaskManager peerTaskManager;
-	private EventLoopGroup eventLoopGroup;
-	private ExecutorService executorService;
+    startNextTask();
+  }
 
-	public PeerFetcher(Peer peer, PeerTaskManager peerTaskManager, EventLoopGroup eventLoopGroup, ExecutorService executorService) {
-		this.peer = peer;
-		this.peerTaskManager = peerTaskManager;
-		this.eventLoopGroup = eventLoopGroup;
-		this.executorService = executorService;
+  private static byte[] buildHandshakePacketPrefix() {
+    ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
+    packet.put((byte) 19);
+    packet.put("BitTorrent protocol".getBytes());
+    packet.put(new byte[]{(byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1});
+    return packet.array();
+  }
 
-		startNextTask();
-	}
+  private static byte[] buildExtHandshake() {
+    BencodedMap extHandshake = new BencodedMap();
+    BencodedMap data = new BencodedMap();
+    data.put("ut_metadata", new BencodedInteger(UT_METADATA));
+    extHandshake.put("m", data);
+    return bytebuf2array(buildPacket(HANDSHAKE, extHandshake.serialize()));
+  }
 
-	private void startNextTask() {
-		Task nextTask = peerTaskManager.getNextTask(peer);
-		if (nextTask == null) {
-			return;
-		}
+  private static ByteBuf buildPacket(byte extendedId, byte[] payload) {
+    int length = 4 + 2 + payload.length;
+    ByteBuf ret = Unpooled.buffer(length);
+    ret.writeInt(2 + payload.length);
+    ret.writeByte(EXTENDED);
+    ret.writeByte(extendedId);
+    ret.writeBytes(payload);
+    return ret;
+  }
 
-		Fetcher fetcher = new Fetcher(nextTask);
-		Bootstrap bootstrap = new Bootstrap();
-		bootstrap.group(eventLoopGroup)
-						.channel(NioSocketChannel.class)
-						.option(ChannelOption.TCP_NODELAY, true)
-						.handler(new ChannelInitializer<SocketChannel>() {
-							@Override
-							protected void initChannel(SocketChannel ch) throws Exception {
-								ChannelPipeline p = ch.pipeline();
-								p.addLast(new ReadTimeoutHandler(300));
-								p.addLast(fetcher);
-							}
-						})
-						.connect(peer.getAddr(), peer.getPort())
-						.addListener(fetcher);
-		LOGGER.info("fetcher started, {}", nextTask);
-	}
+  private static ByteBuf buildHandShakePacket(BencodedString peerId, BencodedString infohash) {
+    ByteBuf ret = Unpooled.buffer(28 + 20 + 20);
+    ret.writeBytes(handshakePrefix);
+    ret.writeBytes(infohash.asBytes());
+    ret.writeBytes(peerId.asBytes());
+    return ret;
+  }
 
-	private class Fetcher extends SimpleChannelInboundHandler implements GenericFutureListener {
-		private Task task;
-		private volatile boolean successed = false;
-		private AtomicBoolean notifyed = new AtomicBoolean(false);
-		private volatile boolean handshaked = false;
-		private volatile Throwable t = null;
+  private static byte[] bytebuf2array(ByteBuf buf) {
+    int length = buf.readableBytes();
+    byte[] ret = new byte[length];
+    buf.readBytes(ret);
+    buf.release();
+    return ret;
+  }
 
-		private byte remoteUtMetadataId;
-		private int meatadataSize;
-		private int pieceTotal;
-		private Map<Integer, byte[]> metadata = new HashMap<>();
-		private ByteBuf buffer = Unpooled.buffer();
-		private long startTime = TimeUtils.getCurTime();
+  private void startNextTask() {
+    Task nextTask = peerTaskManager.getNextTask(peer);
+    if (nextTask == null) {
+      return;
+    }
 
-		public Fetcher(Task task) {
-			this.task = task;
-		}
+    Fetcher fetcher = new Fetcher(nextTask);
+    Bootstrap bootstrap = new Bootstrap();
+    bootstrap.group(eventLoopGroup)
+        .channel(NioSocketChannel.class)
+        .option(ChannelOption.TCP_NODELAY, true)
+        .handler(new ChannelInitializer<SocketChannel>() {
+          @Override
+          protected void initChannel(SocketChannel ch) throws Exception {
+            ChannelPipeline p = ch.pipeline();
+            p.addLast(new ReadTimeoutHandler(300));
+            p.addLast(fetcher);
+          }
+        })
+        .connect(peer.getAddr(), peer.getPort())
+        .addListener(fetcher);
+    LOGGER.info("fetcher started, {}", nextTask);
+  }
 
-		@Override
-		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			BencodedString peerId = JTorrentUtils.buildDummyNodeId(task.getInfohash(), JTorrentUtils.genNodeId());
-			ctx.writeAndFlush(buildHandShakePacket(peerId, task.getInfohash()));
-			LOGGER.debug("handshake sended");
-		}
+  private class Fetcher extends SimpleChannelInboundHandler implements GenericFutureListener {
+    private Task task;
+    private volatile boolean successed = false;
+    private AtomicBoolean notifyed = new AtomicBoolean(false);
+    private volatile boolean handshaked = false;
+    private volatile Throwable t = null;
 
-		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			LOGGER.debug("connection closed, {}", peer);
-			ctx.close();
-			t = new Exception("connection closed by remote, " + peer);
-			finish();
-		}
+    private byte remoteUtMetadataId;
+    private int meatadataSize;
+    private int pieceTotal;
+    private Map<Integer, byte[]> metadata = new HashMap<>();
+    private ByteBuf buffer = Unpooled.buffer();
+    private long startTime = TimeUtils.getCurTime();
 
-		@Override
-		protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-			LOGGER.debug("recive data, {}, {} bytes", peer, ((ByteBuf)msg).readableBytes());
-			buffer.writeBytes((ByteBuf)msg);
-			try {
-				handlePacket(ctx);
-			} catch (Throwable t) {
-				this.t = t;
-			}
+    public Fetcher(Task task) {
+      this.task = task;
+    }
 
-			if (t != null || successed) {
-				ctx.close();
-				finish();
-			}
-		}
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+      BencodedString peerId = JTorrentUtils.buildDummyNodeId(task.getInfohash(), JTorrentUtils.genNodeId());
+      ctx.writeAndFlush(buildHandShakePacket(peerId, task.getInfohash()));
+      LOGGER.debug("handshake sended");
+    }
 
-		@Override
-		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-			LOGGER.debug("connection exception, " + peer, cause);
-			ctx.close();
-			t = cause;
-			finish();
-		}
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+      LOGGER.debug("connection closed, {}", peer);
+      ctx.close();
+      t = new Exception("connection closed by remote, " + peer);
+      finish();
+    }
 
-		@Override
-		public void operationComplete(Future future) throws Exception {
-			if (!future.isSuccess()) {
-				if (future.cause() != null) {
-					t = future.cause();
-				} else {
-					t = new Exception("connect to peer failed, " + peer);
-				}
-				finish();
-			} else {
-				LOGGER.debug("connect to peer successed, {}", peer);
-			}
-		}
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      LOGGER.debug("connection exception, " + peer, cause);
+      ctx.close();
+      t = cause;
+      finish();
+    }
 
-		private void handlePacket(ChannelHandlerContext ctx) throws Exception {
-			if (!handshaked) {
-				if (buffer.readableBytes() < 68) {
-					return;
-				}
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+      LOGGER.debug("recive data, {}, {} bytes", peer, ((ByteBuf) msg).readableBytes());
+      buffer.writeBytes((ByteBuf) msg);
+      try {
+        handlePacket(ctx);
+      } catch (Throwable t) {
+        this.t = t;
+      }
 
-				byte[] resp = bytebuf2array(buffer.readBytes(68));
-				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48))) ||
-						(resp[25] & 0x10) == 0) {
-					t = new Exception("handshakepredix verify error");
-					return;
-				}
+      if (t != null || successed) {
+        ctx.close();
+        finish();
+      }
+    }
 
-				if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48)))) {
-					t = new Exception("handshake error, infohash is diferent");
-					return;
-				}
+    @Override
+    public void operationComplete(Future future) throws Exception {
+      if (!future.isSuccess()) {
+        if (future.cause() != null) {
+          t = future.cause();
+        } else {
+          t = new Exception("connect to peer failed, " + peer);
+        }
+        finish();
+      } else {
+        LOGGER.debug("connect to peer successed, {}", peer);
+      }
+    }
 
-				LOGGER.debug("handshake successed");
-				handshaked = true;
-				ctx.writeAndFlush(Unpooled.copiedBuffer(extHandshake));
-				LOGGER.debug("exthandshake sended");
-			} else {
-				for (ByteBuf packet = readPacket(); packet != null; packet = readPacket()) {
-					if (packet.readableBytes() == 0) {
-						// keepalive ignore
-						continue;
-					}
+    private void handlePacket(ChannelHandlerContext ctx) throws Exception {
+      if (!handshaked) {
+        if (buffer.readableBytes() < 68) {
+          return;
+        }
 
-					byte extended = packet.readByte();
-					if (extended != EXTENDED) {
-						LOGGER.warn("unknow extended: {}", extended);
-						continue;
-					}
+        byte[] resp = bytebuf2array(buffer.readBytes(68));
+        if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48))) ||
+            (resp[25] & 0x10) == 0) {
+          t = new Exception("handshakepredix verify error");
+          return;
+        }
 
-					byte msgType = packet.readByte();
-					switch (msgType) {
-						case HANDSHAKE:
-							onHandShake(packet, ctx);
-							break;
-						case UT_METADATA:
-							onUtMetadata(packet);
-							break;
-						default:
-							LOGGER.warn("unknow megtype: {}", msgType);
-					}
-				}
-			}
-		}
+        if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48)))) {
+          t = new Exception("handshake error, infohash is diferent");
+          return;
+        }
 
-		private void onHandShake(ByteBuf packet, ChannelHandlerContext ctx) throws Exception {
-			Bencoding bencoding = new Bencoding(bytebuf2array(packet));
-			BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
-			if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
-				throw new Exception("invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
-			}
-			LOGGER.debug("exthandshake successed");
+        LOGGER.debug("handshake successed");
+        handshaked = true;
+        ctx.writeAndFlush(Unpooled.copiedBuffer(extHandshake));
+        LOGGER.debug("exthandshake sended");
+      } else {
+        for (ByteBuf packet = readPacket(); packet != null; packet = readPacket()) {
+          if (packet.readableBytes() == 0) {
+            // keepalive ignore
+            continue;
+          }
 
-			remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
-			meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
-			if (meatadataSize % BLOCK_SIZE > 0) {
-				pieceTotal = meatadataSize / BLOCK_SIZE + 1;
-			}
+          byte extended = packet.readByte();
+          if (extended != EXTENDED) {
+            LOGGER.warn("unknow extended: {}", extended);
+            continue;
+          }
 
-			for (int i = 0; i < pieceTotal; i++) {
-				BencodedMap req = new BencodedMap();
-				req.put("msg_type", new BencodedInteger(REQUEST));
-				req.put("piece", new BencodedInteger(i));
-				ctx.writeAndFlush(buildPacket(remoteUtMetadataId, req.serialize()));
-				LOGGER.debug("request piece {}", i);
-			}
-		}
+          byte msgType = packet.readByte();
+          switch (msgType) {
+            case HANDSHAKE:
+              onHandShake(packet, ctx);
+              break;
+            case UT_METADATA:
+              onUtMetadata(packet);
+              break;
+            default:
+              LOGGER.warn("unknow megtype: {}", msgType);
+          }
+        }
+      }
+    }
 
-		private void onUtMetadata(ByteBuf packet) throws Exception {
-			byte[] packetBytes = bytebuf2array(packet);
-			Bencoding bencoding = new Bencoding(packetBytes);
-			BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
+    private void onHandShake(ByteBuf packet, ChannelHandlerContext ctx) throws Exception {
+      Bencoding bencoding = new Bencoding(bytebuf2array(packet));
+      BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
+      if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
+        throw new Exception("invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
+      }
+      LOGGER.debug("exthandshake successed");
 
-			int msgType = bencodedMap.get("msg_type").asLong().intValue();
-			switch (msgType) {
-				case DATA:
-					int piece = bencodedMap.get("piece").asLong().intValue();
-					byte[] data = Arrays.copyOfRange(packetBytes, bencoding.getCurIndex(), packetBytes.length);
-					if (piece > pieceTotal - 1) {
-						throw new Exception("piece outof range");
-					}
+      remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
+      meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
+      if (meatadataSize % BLOCK_SIZE > 0) {
+        pieceTotal = meatadataSize / BLOCK_SIZE + 1;
+      }
 
-					if (pieceTotal == 1) {
-						if (meatadataSize != data.length) {
-							throw new Exception("piece size not match, expect:" + meatadataSize + ", real:" + data.length);
-						}
-					} else {
-						if (piece != pieceTotal - 1) {
-							if (data.length != BLOCK_SIZE) {
-								throw new Exception("piece is not the last and size need to be 16KB");
-							}
-						} else {
-							if (data.length != meatadataSize % BLOCK_SIZE) {
-								throw new Exception("piece is the last one and size is error");
-							}
-						}
-					}
+      for (int i = 0; i < pieceTotal; i++) {
+        BencodedMap req = new BencodedMap();
+        req.put("msg_type", new BencodedInteger(REQUEST));
+        req.put("piece", new BencodedInteger(i));
+        ctx.writeAndFlush(buildPacket(remoteUtMetadataId, req.serialize()));
+        LOGGER.debug("request piece {}", i);
+      }
+    }
 
-					metadata.put(piece, data);
-					LOGGER.info("fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
-									task.getInfohash().asHexString(), pieceTotal, piece, data.length);
+    private void onUtMetadata(ByteBuf packet) throws Exception {
+      byte[] packetBytes = bytebuf2array(packet);
+      Bencoding bencoding = new Bencoding(packetBytes);
+      BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
 
-					if (metadata.size() == pieceTotal) {
-						successed = true;
-					}
-					break;
-				case REJECT:
-					throw new Exception("peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
-				default:
-					LOGGER.warn("unhandled utmetadata packet type, {}", msgType);
-			}
-		}
+      int msgType = bencodedMap.get("msg_type").asLong().intValue();
+      switch (msgType) {
+        case DATA:
+          int piece = bencodedMap.get("piece").asLong().intValue();
+          byte[] data = Arrays.copyOfRange(packetBytes, bencoding.getCurIndex(), packetBytes.length);
+          if (piece > pieceTotal - 1) {
+            throw new Exception("piece outof range");
+          }
 
-		private ByteBuf readPacket() {
-			if (buffer.readableBytes() < 4) {
-				return null;
-			}
+          if (pieceTotal == 1) {
+            if (meatadataSize != data.length) {
+              throw new Exception("piece size not match, expect:" + meatadataSize + ", real:" + data.length);
+            }
+          } else {
+            if (piece != pieceTotal - 1) {
+              if (data.length != BLOCK_SIZE) {
+                throw new Exception("piece is not the last and size need to be 16KB");
+              }
+            } else {
+              if (data.length != meatadataSize % BLOCK_SIZE) {
+                throw new Exception("piece is the last one and size is error");
+              }
+            }
+          }
 
-			buffer.markReaderIndex();
-			int length = buffer.readInt();
-			if (length == 0) {
-				return Unpooled.buffer();
-			}
+          metadata.put(piece, data);
+          LOGGER.info("fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
+              task.getInfohash().asHexString(), pieceTotal, piece, data.length);
 
-			if (buffer.readableBytes() < length) {
-				buffer.resetReaderIndex();
-				return null;
-			}
+          if (metadata.size() == pieceTotal) {
+            successed = true;
+          }
+          break;
+        case REJECT:
+          throw new Exception("peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
+        default:
+          LOGGER.warn("unhandled utmetadata packet type, {}", msgType);
+      }
+    }
 
-			return buffer.readBytes(length);
-		}
+    private ByteBuf readPacket() {
+      if (buffer.readableBytes() < 4) {
+        return null;
+      }
 
-		private void finish() {
-			if (!notifyed.compareAndSet(false, true)) {
-				return;
-			}
+      buffer.markReaderIndex();
+      int length = buffer.readInt();
+      if (length == 0) {
+        return Unpooled.buffer();
+      }
 
-			buffer.release();
-			startNextTask();
-			long costtime = TimeUtils.getElapseTime(startTime);
+      if (buffer.readableBytes() < length) {
+        buffer.resetReaderIndex();
+        return null;
+      }
 
-			if (successed) {
-				String infohashHex = task.getInfohash().asHexString();
-				if (metadata.size() == pieceTotal) {
-					ByteBuf buf = Unpooled.buffer(meatadataSize);
-					for (int i = 0; i < pieceTotal; i++) {
-						buf.writeBytes(metadata.get(i));
-					}
+      return buffer.readBytes(length);
+    }
 
-					byte[] data = bytebuf2array(buf);
-					if (!infohashHex.equals(DigestUtils.sha1Hex(data))) {
-						executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(),
-										new Exception("fetched metadata, but sha1 is error"), costtime));
-					} else {
-						executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data, costtime));
-					}
-				}
-			} else {
-				executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t, costtime));
-			}
-		}
-	}
+    private void finish() {
+      if (!notifyed.compareAndSet(false, true)) {
+        return;
+      }
 
+      buffer.release();
+      startNextTask();
+      long costtime = TimeUtils.getElapseTime(startTime);
 
-	// utils
-	private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
-	private static final byte[] extHandshake = buildExtHandshake();
+      if (successed) {
+        String infohashHex = task.getInfohash().asHexString();
+        if (metadata.size() == pieceTotal) {
+          ByteBuf buf = Unpooled.buffer(meatadataSize);
+          for (int i = 0; i < pieceTotal; i++) {
+            buf.writeBytes(metadata.get(i));
+          }
 
-	private static final byte EXTENDED = (byte) 20;
-	private static final byte HANDSHAKE = (byte) 0;
-	private static final byte UT_METADATA = (byte) 1;
-	private static final int BLOCK_SIZE = 16 * 1024;
-	private static final int REQUEST = 0;
-	private static final int DATA = 1;
-	private static final int REJECT = 2;
-
-	private static byte[] buildHandshakePacketPrefix() {
-		ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
-		packet.put((byte) 19);
-		packet.put("BitTorrent protocol".getBytes());
-		packet.put(new byte[]{(byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1});
-		return packet.array();
-	}
-
-	private static byte[] buildExtHandshake() {
-		BencodedMap extHandshake = new BencodedMap();
-		BencodedMap data = new BencodedMap();
-		data.put("ut_metadata", new BencodedInteger(UT_METADATA));
-		extHandshake.put("m", data);
-		return bytebuf2array(buildPacket(HANDSHAKE, extHandshake.serialize()));
-	}
-
-	private static ByteBuf buildPacket(byte extendedId, byte[] payload) {
-		int length = 4 + 2 + payload.length;
-		ByteBuf ret = Unpooled.buffer(length);
-		ret.writeInt(2 + payload.length);
-		ret.writeByte(EXTENDED);
-		ret.writeByte(extendedId);
-		ret.writeBytes(payload);
-		return ret;
-	}
-
-	private static ByteBuf buildHandShakePacket(BencodedString peerId, BencodedString infohash) {
-		ByteBuf ret = Unpooled.buffer(28 + 20 + 20);
-		ret.writeBytes(handshakePrefix);
-		ret.writeBytes(infohash.asBytes());
-		ret.writeBytes(peerId.asBytes());
-		return ret;
-	}
-
-	private static byte[] bytebuf2array(ByteBuf buf) {
-		int length = buf.readableBytes();
-		byte[] ret = new byte[length];
-		buf.readBytes(ret);
-		buf.release();
-		return ret;
-	}
+          byte[] data = bytebuf2array(buf);
+          if (!infohashHex.equals(DigestUtils.sha1Hex(data))) {
+            executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(),
+                new Exception("fetched metadata, but sha1 is error"), costtime));
+          } else {
+            executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data,
+                costtime));
+          }
+        }
+      } else {
+        executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t, costtime));
+      }
+    }
+  }
 }

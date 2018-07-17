@@ -47,6 +47,7 @@ public class PeerFetcher {
   private PeerTaskManager peerTaskManager;
   private EventLoopGroup eventLoopGroup;
   private ExecutorService executorService;
+
   public PeerFetcher(Peer peer, PeerTaskManager peerTaskManager, EventLoopGroup eventLoopGroup, ExecutorService
       executorService) {
     this.peer = peer;

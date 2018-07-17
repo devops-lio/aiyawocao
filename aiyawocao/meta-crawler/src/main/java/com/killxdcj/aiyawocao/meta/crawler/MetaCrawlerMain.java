@@ -133,9 +133,9 @@ public class MetaCrawlerMain {
     metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchRunning"),
         (Gauge<Integer>) () -> fetcherMap.size());
     metaFetchIgnoreByInfohash = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class,
-				"DHTMetaFetchIgnoreByInfohash"));
+        "DHTMetaFetchIgnoreByInfohash"));
     metaFetchIgnoreByNode = metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class,
-				"DHTMetaFetchIgnoreByNode"));
+        "DHTMetaFetchIgnoreByNode"));
 
 //		if (config.getUseProxyMetaManager()) {
 //			metaManager = new MetaCentreBackendMetaManager(metricRegistry, config.getMetaManagerConfig());
@@ -232,7 +232,7 @@ public class MetaCrawlerMain {
     nodeFetchCnt.incrementAndGet();
 
     fetcherMap.computeIfAbsent(new MetaFetcherKey(infohashStr, peer, config.getMetaFetchTimeout()), new
-				Function<MetaFetcherKey, Future>() {
+        Function<MetaFetcherKey, Future>() {
       @Override
       public Future apply(MetaFetcherKey metaFetcherKey) {
         LOGGER.info("{} {}:{} meta fetch start", infohashStr, peer.getAddr(), peer.getPort());
@@ -241,8 +241,8 @@ public class MetaCrawlerMain {
             new MetadataFetcher.IFetcherCallback() {
               @Override
               public void onFinshed(BencodedString infohash1, byte[] metadata) {
-                LOGGER.info("{} {}:{} meta fetched, costtime:{}", infohashStr, peer.getAddr().getHostAddress(), peer
-										.getPort(), TimeUtils.getElapseTime(start));
+                LOGGER.info("{} {}:{} meta fetched, costtime:{}", infohashStr, peer.getAddr().getHostAddress(),
+                    peer.getPort(), TimeUtils.getElapseTime(start));
                 fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
                 infohashFetchCnt.decrementAndGet();
                 nodeFetchCnt.decrementAndGet();
@@ -265,7 +265,7 @@ public class MetaCrawlerMain {
               @Override
               public void onException(Exception e) {
                 LOGGER.info("{} {}:{} meta fetch error, costtime:{}", infohashStr, peer.getAddr().getHostAddress(),
-										peer.getPort(), TimeUtils.getElapseTime(start));
+                    peer.getPort(), TimeUtils.getElapseTime(start));
                 fetcherMap.remove(new MetaFetcherKey(infohashStr, peer, 0)).cancel(true);
                 infohashFetchCnt.decrementAndGet();
                 nodeFetchCnt.decrementAndGet();
@@ -273,7 +273,7 @@ public class MetaCrawlerMain {
                 metaFetchErrorTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
 //										if (LOGGER.isDebugEnabled()) {
                 LOGGER.error(infohashStr + " " + peer.getAddr().getHostAddress() + ":" + peer.getPort() + " meta " +
-										"fetch error", e);
+                    "fetch error", e);
 //										}
               }
             }));
@@ -375,7 +375,7 @@ public class MetaCrawlerMain {
           }
           metaFetchTimeout.mark(timeOutFetcher.size());
           LOGGER.info("timeouted meta fetcher cleaned, timeout:{}, running:{}", timeOutFetcher.size(), fetcherMap
-							.size());
+              .size());
         } catch (InterruptedException e) {
         } catch (Throwable t) {
           LOGGER.error("timeoutFetcherCleaner error", t);

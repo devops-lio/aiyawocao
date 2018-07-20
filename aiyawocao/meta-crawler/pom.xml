@@ -28,11 +28,6 @@
     </dependency>
     <dependency>
       <groupId>com.killxdcj.aiyawocao</groupId>
-      <artifactId>meta-manager</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.killxdcj.aiyawocao</groupId>
       <artifactId>metadata-service-client</artifactId>
       <version>${project.version}</version>
     </dependency>

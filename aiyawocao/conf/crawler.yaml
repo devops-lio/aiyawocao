@@ -28,16 +28,6 @@ metaFetchConfig:
   fetcherNum: 20
   infohashMaxPending: 3
   metafetchTimeoutMs: 600000
-metaManagerConfig:
-  accessKeyId: example-accesskey-id
-  accessKeySecret: example-accesskey-secret
-  bucketName: bittorrent-meta
-  endpoint: http://oss-cn-shenzhen.aliyuncs.com
-  indexPrefix: index
-  indexRoot: index
-  infohashMetaKey: infohash-meta
-  maxIndexSize: 150000
-  metaCentreAddr: 127.0.0.1:10241
 metadataServiceClientConfig:
   poolsize: 10
   server: example

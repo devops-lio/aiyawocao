@@ -9,11 +9,8 @@
   <packaging>pom</packaging>
   <version>1.1-SNAPSHOT</version>
   <modules>
-    <module>meta-manager</module>
     <module>meta-crawler</module>
     <module>bittorrent</module>
-    <module>meta-centre</module>
-    <module>meta-proxy</module>
     <module>metadata-service-common</module>
     <module>metadata-service-server</module>
     <module>metadata-service-client</module>

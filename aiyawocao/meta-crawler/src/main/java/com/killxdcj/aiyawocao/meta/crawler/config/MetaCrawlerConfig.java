@@ -2,7 +2,6 @@ package com.killxdcj.aiyawocao.meta.crawler.config;
 
 import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
 import com.killxdcj.aiyawocao.bittorrent.config.MetaFetchConfig;
-import com.killxdcj.aiyawocao.meta.manager.config.MetaManagerConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClientConfig;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,7 +19,6 @@ public class MetaCrawlerConfig {
   private String cluster = "default";
   private boolean useProxyMetaManager = false;
   private BittorrentConfig bittorrentConfig;
-  private MetaManagerConfig metaManagerConfig;
   private MetaFetchConfig metaFetchConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
 
@@ -40,7 +38,6 @@ public class MetaCrawlerConfig {
   public static void main(String[] args) {
     MetaCrawlerConfig metaCrawlerConfig = new MetaCrawlerConfig();
     metaCrawlerConfig.setBittorrentConfig(new BittorrentConfig());
-    metaCrawlerConfig.setMetaManagerConfig(new MetaManagerConfig());
     metaCrawlerConfig.setMetaFetchConfig(new MetaFetchConfig());
     metaCrawlerConfig.setMetadataServiceClientConfig(new MetadataServiceClientConfig());
     String yamlConf = metaCrawlerConfig.toYamlConf();
@@ -78,14 +75,6 @@ public class MetaCrawlerConfig {
 
   public void setNodeMaxConcurrentFetch(int nodeMaxConcurrentFetch) {
     this.nodeMaxConcurrentFetch = nodeMaxConcurrentFetch;
-  }
-
-  public MetaManagerConfig getMetaManagerConfig() {
-    return metaManagerConfig;
-  }
-
-  public void setMetaManagerConfig(MetaManagerConfig metaManagerConfig) {
-    this.metaManagerConfig = metaManagerConfig;
   }
 
   public String getInfluxdbAddr() {
@@ -174,7 +163,6 @@ public class MetaCrawlerConfig {
         ", cluster='" + cluster + '\'' +
         ", useProxyMetaManager=" + useProxyMetaManager +
         ", bittorrentConfig=" + bittorrentConfig +
-        ", metaManagerConfig=" + metaManagerConfig +
         ", metaFetchConfig=" + metaFetchConfig +
         ", metadataServiceClientConfig=" + metadataServiceClientConfig +
         '}';

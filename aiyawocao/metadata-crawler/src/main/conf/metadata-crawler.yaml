@@ -1,13 +1,3 @@
-cluster: default
-influxdbAddr: example-influxdb:port
-influxdbName: example-influxdb-name
-influxdbPassword: example-influxdb-user
-influxdbUser: example-influxdb-user
-infohashMaxConcurrentFetch: 5
-nodeMaxConcurrentFetch: 5
-useNIOMetaFetcher: true
-useProxyMetaManager: false
-metaFetchTimeout: 300000
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
@@ -22,6 +12,13 @@ bittorrentConfig:
   - dht.transmissionbt.com:6881
   requestLimit: 1500
   transactionExpireTime: 300000
+influxdbBackendMetricsConfig:
+  cluster: default
+  influxdbAddr: example-influxdb:port
+  influxdbName: example-influxdb-name
+  influxdbPassword: example-influxdb-user
+  influxdbUser: example-influxdb-user
+  reportPeriod: 60
 metadataServiceClientConfig:
   poolsize: 10
   server: example

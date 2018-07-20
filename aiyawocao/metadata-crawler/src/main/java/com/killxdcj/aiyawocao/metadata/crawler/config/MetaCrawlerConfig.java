@@ -28,6 +28,7 @@ public class MetaCrawlerConfig {
   public static void main(String[] args) {
     MetaCrawlerConfig metaCrawlerConfig = new MetaCrawlerConfig();
     metaCrawlerConfig.setBittorrentConfig(new BittorrentConfig());
+    metaCrawlerConfig.setInfluxdbBackendMetricsConfig(new InfluxdbBackendMetricsConfig());
     metaCrawlerConfig.setMetadataServiceClientConfig(new MetadataServiceClientConfig());
     String yamlConf = metaCrawlerConfig.toYamlConf();
     System.out.println(yamlConf);

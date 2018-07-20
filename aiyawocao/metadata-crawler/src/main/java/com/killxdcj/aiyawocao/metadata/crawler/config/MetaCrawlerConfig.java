@@ -3,17 +3,17 @@ package com.killxdcj.aiyawocao.metadata.crawler.config;
 import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClientConfig;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import org.yaml.snakeyaml.Yaml;
 
 public class MetaCrawlerConfig {
   private BittorrentConfig bittorrentConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
 
-  public MetaCrawlerConfig() {
-  }
+  public MetaCrawlerConfig() {}
 
   public static MetaCrawlerConfig fromYamlString(String yamlConf) {
     Yaml yaml = new Yaml();
@@ -46,7 +46,8 @@ public class MetaCrawlerConfig {
     return metadataServiceClientConfig;
   }
 
-  public void setMetadataServiceClientConfig(MetadataServiceClientConfig metadataServiceClientConfig) {
+  public void setMetadataServiceClientConfig(
+      MetadataServiceClientConfig metadataServiceClientConfig) {
     this.metadataServiceClientConfig = metadataServiceClientConfig;
   }
 
@@ -54,17 +55,21 @@ public class MetaCrawlerConfig {
     return influxdbBackendMetricsConfig;
   }
 
-  public void setInfluxdbBackendMetricsConfig(InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig) {
+  public void setInfluxdbBackendMetricsConfig(
+      InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig) {
     this.influxdbBackendMetricsConfig = influxdbBackendMetricsConfig;
   }
 
   @Override
   public String toString() {
-    return "MetaCrawlerConfig{" +
-            "bittorrentConfig=" + bittorrentConfig +
-            ", metadataServiceClientConfig=" + metadataServiceClientConfig +
-            ", influxdbBackendMetricsConfig=" + influxdbBackendMetricsConfig +
-            '}';
+    return "MetaCrawlerConfig{"
+        + "bittorrentConfig="
+        + bittorrentConfig
+        + ", metadataServiceClientConfig="
+        + metadataServiceClientConfig
+        + ", influxdbBackendMetricsConfig="
+        + influxdbBackendMetricsConfig
+        + '}';
   }
 
   public String toYamlConf() {

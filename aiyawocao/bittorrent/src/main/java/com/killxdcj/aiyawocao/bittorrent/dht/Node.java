@@ -2,6 +2,7 @@ package com.killxdcj.aiyawocao.bittorrent.dht;
 
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
+
 import java.net.InetAddress;
 
 public class Node {
@@ -56,11 +57,15 @@ public class Node {
 
   @Override
   public String toString() {
-    return "Node{" +
-        "id=" + id +
-        ", addr=" + addr +
-        ", port=" + port +
-        ", lastActive=" + lastActive +
-        '}';
+    return "Node{"
+        + "id="
+        + id
+        + ", addr="
+        + addr
+        + ", port="
+        + port
+        + ", lastActive="
+        + lastActive
+        + '}';
   }
 }

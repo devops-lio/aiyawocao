@@ -10,7 +10,7 @@ public class NodeFetchersManager {
   private HashMap<MetaFetcher, Object> fetcherMap = new HashMap<>();
   private int failed = 0;
 
-  synchronized public boolean add(MetaFetcher fetcher) {
+  public synchronized boolean add(MetaFetcher fetcher) {
     if (!fetcherMap.containsKey(fetcher)) {
       fetchers.add(fetcher);
     }
@@ -23,7 +23,7 @@ public class NodeFetchersManager {
     }
   }
 
-  synchronized public MetaFetcher get() {
+  public synchronized MetaFetcher get() {
     if (fetchers.size() == 0) {
       waiting = true;
       return null;
@@ -36,7 +36,7 @@ public class NodeFetchersManager {
     return fetcher;
   }
 
-  synchronized public int updateResult(boolean successed) {
+  public synchronized int updateResult(boolean successed) {
     if (successed) {
       failed = 0;
     } else {
@@ -45,7 +45,7 @@ public class NodeFetchersManager {
     return failed;
   }
 
-  synchronized public void clean() {
+  public synchronized void clean() {
     waiting = true;
     fetchers.clear();
     fetcherMap.clear();

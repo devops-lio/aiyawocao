@@ -3,34 +3,32 @@ package com.killxdcj.aiyawocao.bittorrent.utils;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.Node;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.util.*;
+
 public class JTorrentUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(JTorrentUtils.class);
   private static final Random RANDOM = new Random();
-  private static final Map<Integer, Byte> bitMap = new HashMap() {{
-    put(7, (byte) 1);
-    put(6, (byte) 2);
-    put(5, (byte) 4);
-    put(4, (byte) 8);
-    put(3, (byte) 16);
-    put(2, (byte) 32);
-    put(1, (byte) 64);
-    put(0, (byte) 128);
-  }};
+  private static final Map<Integer, Byte> bitMap =
+      new HashMap() {
+        {
+          put(7, (byte) 1);
+          put(6, (byte) 2);
+          put(5, (byte) 4);
+          put(4, (byte) 8);
+          put(3, (byte) 16);
+          put(2, (byte) 32);
+          put(1, (byte) 64);
+          put(0, (byte) 128);
+        }
+      };
 
   public static BencodedString genNodeId() {
     StringBuilder sb = new StringBuilder();
@@ -80,20 +78,25 @@ public class JTorrentUtils {
 
   public static List<Node> deCompactNodeInfos(byte[] compactData) {
     if (compactData.length % 26 != 0) {
-      throw new UnsupportedOperationException("deCompactNodeInfos, data's length must be 26 * n bytes");
+      throw new UnsupportedOperationException(
+          "deCompactNodeInfos, data's length must be 26 * n bytes");
     }
 
     List<Node> nodes = new ArrayList<>();
     for (int i = 0; i < compactData.length / 26; i++) {
       try {
         int startIdx = 26 * i;
-        BencodedString noddId = new BencodedString(Arrays.copyOfRange(compactData, startIdx, startIdx + 20));
-        InetAddress addr = InetAddress.getByAddress(Arrays.copyOfRange(compactData, startIdx + 20, startIdx + 24));
+        BencodedString noddId =
+            new BencodedString(Arrays.copyOfRange(compactData, startIdx, startIdx + 20));
+        InetAddress addr =
+            InetAddress.getByAddress(Arrays.copyOfRange(compactData, startIdx + 20, startIdx + 24));
         int port = compactData[startIdx + 25] & 0xff | (0xff & compactData[startIdx + 24]) << 8;
         nodes.add(new Node(noddId, addr, port));
       } catch (Exception e) {
-        LOGGER.error("DeCompactNodeInfo error, data:{}",
-            Arrays.toString(Arrays.copyOfRange(compactData, 26 * i, 26)), e);
+        LOGGER.error(
+            "DeCompactNodeInfo error, data:{}",
+            Arrays.toString(Arrays.copyOfRange(compactData, 26 * i, 26)),
+            e);
       }
     }
 
@@ -110,7 +113,8 @@ public class JTorrentUtils {
 
   public static Peer deCompactPeerInfo(byte[] data) {
     if (data.length != 6) {
-      throw new UnsupportedOperationException("deCompactPeerInfo error, data's length must be 6 bytes");
+      throw new UnsupportedOperationException(
+          "deCompactPeerInfo error, data's length must be 6 bytes");
     }
 
     try {

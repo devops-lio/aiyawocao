@@ -6,36 +6,43 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MetadataFetcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataFetcher.class);
 
-  private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(20, r -> {
-    Thread t = new Thread(r);
-    t.setName("MetadataFetcher NIOThread");
-    t.setDaemon(true);
-    return t;
-  });
-  private ExecutorService executorService = Executors.newCachedThreadPool(r -> {
-    Thread t = new Thread(r);
-    t.setName("MetadataFetcher Executor");
-    t.setDaemon(true);
-    return t;
-  });
+  private EventLoopGroup eventLoopGroup =
+      new NioEventLoopGroup(
+          20,
+          r -> {
+            Thread t = new Thread(r);
+            t.setName("MetadataFetcher NIOThread");
+            t.setDaemon(true);
+            return t;
+          });
+  private ExecutorService executorService =
+      Executors.newCachedThreadPool(
+          r -> {
+            Thread t = new Thread(r);
+            t.setName("MetadataFetcher Executor");
+            t.setDaemon(true);
+            return t;
+          });
 
   private PeerTaskManager peerTaskManager = new PeerTaskManager();
 
-  public MetadataFetcher() {
-  }
+  public MetadataFetcher() {}
 
   public MetadataFetcher(MetricRegistry metricRegistry) {
-    metricRegistry.register(MetricRegistry.name(MetadataFetcher.class, "runing"),
+    metricRegistry.register(
+        MetricRegistry.name(MetadataFetcher.class, "runing"),
         (Gauge<Integer>) () -> peerTaskManager.getRunning());
-    metricRegistry.register(MetricRegistry.name(MetadataFetcher.class, "pending"),
+    metricRegistry.register(
+        MetricRegistry.name(MetadataFetcher.class, "pending"),
         (Gauge<Integer>) () -> peerTaskManager.getPending());
   }
 

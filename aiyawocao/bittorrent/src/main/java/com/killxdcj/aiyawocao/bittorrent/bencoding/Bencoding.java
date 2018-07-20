@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
+
 import java.util.Arrays;
 
 public class Bencoding {
@@ -68,7 +69,8 @@ public class Bencoding {
     } else if (AbstractBencodedValue.STRING_ENTRYS.contains(data[curIndex])) {
       return readString();
     } else {
-      throw new InvalidBittorrentPacketException("unknow data type, index:" + curIndex + ",type:" + data[curIndex]);
+      throw new InvalidBittorrentPacketException(
+          "unknow data type, index:" + curIndex + ",type:" + data[curIndex]);
     }
   }
 

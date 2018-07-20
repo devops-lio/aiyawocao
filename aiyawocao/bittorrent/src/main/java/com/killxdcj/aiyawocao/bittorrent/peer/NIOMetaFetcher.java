@@ -10,30 +10,29 @@ import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.config.MetaFetchConfig;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NIOMetaFetcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(NIOMetaFetcher.class);
 
   private volatile boolean exit = false;
-  private ExecutorService executor = Executors.newCachedThreadPool(r -> {
-    Thread t = new Thread(r, "NIOMetaFetcher ThreadPool");
-    t.setDaemon(true);
-    return t;
-  });
+  private ExecutorService executor =
+      Executors.newCachedThreadPool(
+          r -> {
+            Thread t = new Thread(r, "NIOMetaFetcher ThreadPool");
+            t.setDaemon(true);
+            return t;
+          });
   private long metafetchTimeout;
   private int blackThreshold;
   private int infohashMaxPending;
@@ -51,46 +50,58 @@ public class NIOMetaFetcher {
     this.blackThreshold = config.getBlackThreshold();
     this.infohashMaxPending = config.getInfohashMaxPending();
 
-    nodeFetchersMgr = CacheBuilder.newBuilder()
-        .expireAfterAccess(config.getMetafetchTimeoutMs() * 2, TimeUnit.MILLISECONDS)
-        .build(new CacheLoader<String, NodeFetchersManager>() {
-          @Override
-          public NodeFetchersManager load(String s) throws Exception {
-            return new NodeFetchersManager();
-          }
-        });
-    blackNodeMgr = CacheBuilder.newBuilder()
-        .expireAfterWrite(config.getBlackTimeMs(), TimeUnit.MILLISECONDS)
-        .build();
-    infohashPending = CacheBuilder.newBuilder()
-        .expireAfterWrite(config.getMetafetchTimeoutMs(), TimeUnit.MILLISECONDS)
-        .build(new CacheLoader<String, AtomicInteger>() {
-          @Override
-          public AtomicInteger load(String s) throws Exception {
-            return new AtomicInteger(0);
-          }
-        });
+    nodeFetchersMgr =
+        CacheBuilder.newBuilder()
+            .expireAfterAccess(config.getMetafetchTimeoutMs() * 2, TimeUnit.MILLISECONDS)
+            .build(
+                new CacheLoader<String, NodeFetchersManager>() {
+                  @Override
+                  public NodeFetchersManager load(String s) throws Exception {
+                    return new NodeFetchersManager();
+                  }
+                });
+    blackNodeMgr =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(config.getBlackTimeMs(), TimeUnit.MILLISECONDS)
+            .build();
+    infohashPending =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(config.getMetafetchTimeoutMs(), TimeUnit.MILLISECONDS)
+            .build(
+                new CacheLoader<String, AtomicInteger>() {
+                  @Override
+                  public AtomicInteger load(String s) throws Exception {
+                    return new AtomicInteger(0);
+                  }
+                });
 
     for (int i = 0; i < config.getFetcherNum(); i++) {
       executor.submit(this::selectProc);
     }
     executor.submit(this::timeoutFetcherCleanProc);
-    metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "runing"),
+    metricRegistry.register(
+        MetricRegistry.name(NIOMetaFetcher.class, "runing"),
         (Gauge<Integer>) () -> runningFetchers.size());
-    metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "pending"),
+    metricRegistry.register(
+        MetricRegistry.name(NIOMetaFetcher.class, "pending"),
         (Gauge<Integer>) () -> pendingNode.size());
-    metricRegistry.register(MetricRegistry.name(NIOMetaFetcher.class, "blacknode"),
+    metricRegistry.register(
+        MetricRegistry.name(NIOMetaFetcher.class, "blacknode"),
         (Gauge<Long>) () -> blackNodeMgr.size());
-    ignoreByNodeMeter = metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByNode"));
-    ignoreByInfohashMeter = metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByInfohash"));
+    ignoreByNodeMeter =
+        metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByNode"));
+    ignoreByInfohashMeter =
+        metricRegistry.meter(MetricRegistry.name(NIOMetaFetcher.class, "ignoreByInfohash"));
   }
 
   public void shutdown() {
     executor.shutdown();
   }
 
-  public boolean submit(BencodedString infohash, Peer peer, MetaFetchWatcher watcher) throws Exception {
-    if (infohashPending.getUnchecked(infohash.asHexString()).incrementAndGet() > infohashMaxPending) {
+  public boolean submit(BencodedString infohash, Peer peer, MetaFetchWatcher watcher)
+      throws Exception {
+    if (infohashPending.getUnchecked(infohash.asHexString()).incrementAndGet()
+        > infohashMaxPending) {
       ignoreByInfohashMeter.mark();
       return false;
     }
@@ -220,7 +231,9 @@ public class NIOMetaFetcher {
             fetcher.notifyWatcher();
           }
         }
-        LOGGER.info("NIOMetaFetcher metafetcher cleaned, running:{}, timeout:{}", runningFetchers.size(),
+        LOGGER.info(
+            "NIOMetaFetcher metafetcher cleaned, running:{}, timeout:{}",
+            runningFetchers.size(),
             fetchersTimeout.size());
       } catch (InterruptedException e) {
       } catch (Throwable t) {

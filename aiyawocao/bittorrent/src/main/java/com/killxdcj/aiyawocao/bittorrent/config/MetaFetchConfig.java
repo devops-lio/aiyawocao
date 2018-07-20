@@ -7,8 +7,7 @@ public class MetaFetchConfig {
   private int fetcherNum = 20;
   private int infohashMaxPending = 3;
 
-  public MetaFetchConfig() {
-  }
+  public MetaFetchConfig() {}
 
   public int getBlackThreshold() {
     return blackThreshold;
@@ -52,12 +51,17 @@ public class MetaFetchConfig {
 
   @Override
   public String toString() {
-    return "MetaFetchConfig{" +
-        "blackThreshold=" + blackThreshold +
-        ", blackTimeMs=" + blackTimeMs +
-        ", metafetchTimeoutMs=" + metafetchTimeoutMs +
-        ", fetcherNum=" + fetcherNum +
-        ", infohashMaxPending=" + infohashMaxPending +
-        '}';
+    return "MetaFetchConfig{"
+        + "blackThreshold="
+        + blackThreshold
+        + ", blackTimeMs="
+        + blackTimeMs
+        + ", metafetchTimeoutMs="
+        + metafetchTimeoutMs
+        + ", fetcherNum="
+        + fetcherNum
+        + ", infohashMaxPending="
+        + infohashMaxPending
+        + '}';
   }
 }

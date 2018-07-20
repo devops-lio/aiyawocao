@@ -22,9 +22,12 @@ public class MetadataServiceClientConfig {
 
   @Override
   public String toString() {
-    return "MetadataServiceClientConfig{" +
-        "poolsize=" + poolsize +
-        ", server='" + server + '\'' +
-        '}';
+    return "MetadataServiceClientConfig{"
+        + "poolsize="
+        + poolsize
+        + ", server='"
+        + server
+        + '\''
+        + '}';
   }
 }

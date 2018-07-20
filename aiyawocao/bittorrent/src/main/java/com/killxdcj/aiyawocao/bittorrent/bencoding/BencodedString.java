@@ -1,8 +1,9 @@
 package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
+import org.apache.commons.codec.binary.Hex;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import org.apache.commons.codec.binary.Hex;
 
 public class BencodedString extends AbstractBencodedValue implements Comparable {
   private byte[] data;
@@ -60,7 +61,7 @@ public class BencodedString extends AbstractBencodedValue implements Comparable 
 
   @Override
   public String toString() {
-//        return new String(data, DEFAULT_CHARSET);
+    //        return new String(data, DEFAULT_CHARSET);
     try {
       return Hex.encodeHexString(data);
     } catch (Exception e) {

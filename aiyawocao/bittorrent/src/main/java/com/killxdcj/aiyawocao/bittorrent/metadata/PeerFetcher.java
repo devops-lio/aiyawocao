@@ -10,26 +10,22 @@ import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PeerFetcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(PeerFetcher.class);
@@ -48,8 +44,11 @@ public class PeerFetcher {
   private EventLoopGroup eventLoopGroup;
   private ExecutorService executorService;
 
-  public PeerFetcher(Peer peer, PeerTaskManager peerTaskManager, EventLoopGroup eventLoopGroup, ExecutorService
-      executorService) {
+  public PeerFetcher(
+      Peer peer,
+      PeerTaskManager peerTaskManager,
+      EventLoopGroup eventLoopGroup,
+      ExecutorService executorService) {
     this.peer = peer;
     this.peerTaskManager = peerTaskManager;
     this.eventLoopGroup = eventLoopGroup;
@@ -59,10 +58,13 @@ public class PeerFetcher {
   }
 
   private static byte[] buildHandshakePacketPrefix() {
-    ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
+    ByteBuffer packet = ByteBuffer.allocate(28); // 48 = 1 + 19 + 8 + 20
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
-    packet.put(new byte[]{(byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1});
+    packet.put(
+        new byte[] {
+          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        });
     return packet.array();
   }
 
@@ -108,17 +110,19 @@ public class PeerFetcher {
 
     Fetcher fetcher = new Fetcher(nextTask);
     Bootstrap bootstrap = new Bootstrap();
-    bootstrap.group(eventLoopGroup)
+    bootstrap
+        .group(eventLoopGroup)
         .channel(NioSocketChannel.class)
         .option(ChannelOption.TCP_NODELAY, true)
-        .handler(new ChannelInitializer<SocketChannel>() {
-          @Override
-          protected void initChannel(SocketChannel ch) throws Exception {
-            ChannelPipeline p = ch.pipeline();
-            p.addLast(new ReadTimeoutHandler(300));
-            p.addLast(fetcher);
-          }
-        })
+        .handler(
+            new ChannelInitializer<SocketChannel>() {
+              @Override
+              protected void initChannel(SocketChannel ch) throws Exception {
+                ChannelPipeline p = ch.pipeline();
+                p.addLast(new ReadTimeoutHandler(300));
+                p.addLast(fetcher);
+              }
+            })
         .connect(peer.getAddr(), peer.getPort())
         .addListener(fetcher);
     LOGGER.info("fetcher started, {}", nextTask);
@@ -144,7 +148,8 @@ public class PeerFetcher {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-      BencodedString peerId = JTorrentUtils.buildDummyNodeId(task.getInfohash(), JTorrentUtils.genNodeId());
+      BencodedString peerId =
+          JTorrentUtils.buildDummyNodeId(task.getInfohash(), JTorrentUtils.genNodeId());
       ctx.writeAndFlush(buildHandShakePacket(peerId, task.getInfohash()));
       LOGGER.debug("handshake sended");
     }
@@ -202,8 +207,8 @@ public class PeerFetcher {
         }
 
         byte[] resp = bytebuf2array(buffer.readBytes(68));
-        if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48))) ||
-            (resp[25] & 0x10) == 0) {
+        if (!task.getInfohash().equals(new BencodedString(Arrays.copyOfRange(resp, 28, 48)))
+            || (resp[25] & 0x10) == 0) {
           t = new Exception("handshakepredix verify error");
           return;
         }
@@ -249,11 +254,13 @@ public class PeerFetcher {
       Bencoding bencoding = new Bencoding(bytebuf2array(packet));
       BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
       if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
-        throw new Exception("invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
+        throw new Exception(
+            "invalid exthandshake, m and metadata_size is needed, " + bencodedMap.toString());
       }
       LOGGER.debug("exthandshake successed");
 
-      remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
+      remoteUtMetadataId =
+          ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
       meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
       if (meatadataSize % BLOCK_SIZE > 0) {
         pieceTotal = meatadataSize / BLOCK_SIZE + 1;
@@ -277,14 +284,16 @@ public class PeerFetcher {
       switch (msgType) {
         case DATA:
           int piece = bencodedMap.get("piece").asLong().intValue();
-          byte[] data = Arrays.copyOfRange(packetBytes, bencoding.getCurIndex(), packetBytes.length);
+          byte[] data =
+              Arrays.copyOfRange(packetBytes, bencoding.getCurIndex(), packetBytes.length);
           if (piece > pieceTotal - 1) {
             throw new Exception("piece outof range");
           }
 
           if (pieceTotal == 1) {
             if (meatadataSize != data.length) {
-              throw new Exception("piece size not match, expect:" + meatadataSize + ", real:" + data.length);
+              throw new Exception(
+                  "piece size not match, expect:" + meatadataSize + ", real:" + data.length);
             }
           } else {
             if (piece != pieceTotal - 1) {
@@ -299,15 +308,20 @@ public class PeerFetcher {
           }
 
           metadata.put(piece, data);
-          LOGGER.info("fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
-              task.getInfohash().asHexString(), pieceTotal, piece, data.length);
+          LOGGER.info(
+              "fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
+              task.getInfohash().asHexString(),
+              pieceTotal,
+              piece,
+              data.length);
 
           if (metadata.size() == pieceTotal) {
             successed = true;
           }
           break;
         case REJECT:
-          throw new Exception("peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
+          throw new Exception(
+              "peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
         default:
           LOGGER.warn("unhandled utmetadata packet type, {}", msgType);
       }
@@ -351,15 +365,24 @@ public class PeerFetcher {
 
           byte[] data = bytebuf2array(buf);
           if (!infohashHex.equals(DigestUtils.sha1Hex(data))) {
-            executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(),
-                new Exception("fetched metadata, but sha1 is error"), costtime));
+            executorService.submit(
+                () ->
+                    task.getListener()
+                        .onFailed(
+                            task.getPeer(),
+                            task.getInfohash(),
+                            new Exception("fetched metadata, but sha1 is error"),
+                            costtime));
           } else {
-            executorService.submit(() -> task.getListener().onSuccedded(task.getPeer(), task.getInfohash(), data,
-                costtime));
+            executorService.submit(
+                () ->
+                    task.getListener()
+                        .onSuccedded(task.getPeer(), task.getInfohash(), data, costtime));
           }
         }
       } else {
-        executorService.submit(() -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t, costtime));
+        executorService.submit(
+            () -> task.getListener().onFailed(task.getPeer(), task.getInfohash(), t, costtime));
       }
     }
   }

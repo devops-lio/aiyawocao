@@ -7,6 +7,7 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -53,7 +54,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildFindNodeReqPacket(BencodedString localNodeId, BencodedString targetNodeId) {
+  public static KRPC buildFindNodeReqPacket(
+      BencodedString localNodeId, BencodedString targetNodeId) {
     BencodedString transId = TransactionManager.genTransactionId();
     BencodedMap packet = new BencodedMap();
     packet.put(TRANS_ID, transId);
@@ -66,7 +68,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildFindNodeRespPacket(BencodedString transId, BencodedString localNodeId, List<Node> nodes) {
+  public static KRPC buildFindNodeRespPacket(
+      BencodedString transId, BencodedString localNodeId, List<Node> nodes) {
     BencodedMap packet = new BencodedMap();
     packet.put(TRANS_ID, transId);
     packet.put(TRANS_TYPE, new BencodedString(TransType.RESPONSE.getValue()));
@@ -94,8 +97,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildGetPeersRespPacketWithPeers(BencodedString transId, BencodedString localNodeId, String
-      token, List<Peer> peers) {
+  public static KRPC buildGetPeersRespPacketWithPeers(
+      BencodedString transId, BencodedString localNodeId, String token, List<Peer> peers) {
     BencodedMap packet = new BencodedMap();
     packet.put(TRANS_ID, transId);
     packet.put(TRANS_TYPE, new BencodedString(TransType.RESPONSE.getValue()));
@@ -111,8 +114,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildGetPeersRespPacketWithNodes(BencodedString transId, BencodedString localNodeId, String
-      token, List<Node> nodes) {
+  public static KRPC buildGetPeersRespPacketWithNodes(
+      BencodedString transId, BencodedString localNodeId, String token, List<Node> nodes) {
     BencodedMap packet = new BencodedMap();
     packet.put(TRANS_ID, transId);
     packet.put(TRANS_TYPE, new BencodedString(TransType.RESPONSE.getValue()));
@@ -128,8 +131,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildAnnouncePeerReqPacket(BencodedString localNodeId, BencodedString infoHash, String token,
-                                                int port) {
+  public static KRPC buildAnnouncePeerReqPacket(
+      BencodedString localNodeId, BencodedString infoHash, String token, int port) {
     BencodedString transId = TransactionManager.genTransactionId();
     BencodedMap packet = new BencodedMap();
     packet.put(TRANS_ID, transId);
@@ -145,7 +148,8 @@ public class KRPC {
     return new KRPC(packet);
   }
 
-  public static KRPC buildAnnouncePeerRespPacket(BencodedString transId, BencodedString localNodeId) {
+  public static KRPC buildAnnouncePeerRespPacket(
+      BencodedString transId, BencodedString localNodeId) {
     return buildPingRespPacket(transId, localNodeId);
   }
 
@@ -209,24 +213,26 @@ public class KRPC {
 
     if (mapData.get(TRANS_TYPE).asString().equals(TransType.QUERY.getValue())) {
       if (!mapData.containsKey(QUERY_ARGS) || !mapData.containsKey(QUERY_ACTION)) {
-        throw new InvalidBittorrentPacketException("invalid krpc packet, in query packet, a and q key is needed");
+        throw new InvalidBittorrentPacketException(
+            "invalid krpc packet, in query packet, a and q key is needed");
       }
     } else {
       if (!mapData.containsKey(RESPONSE_DATA)) {
-        throw new InvalidBittorrentPacketException("invalid krpc packet, in resp packet, r key is needed");
+        throw new InvalidBittorrentPacketException(
+            "invalid krpc packet, in resp packet, r key is needed");
       }
     }
 
-    if (transType() != TransType.QUERY && transType() != TransType.RESPONSE && transType() != TransType.ERR) {
+    if (transType() != TransType.QUERY
+        && transType() != TransType.RESPONSE
+        && transType() != TransType.ERR) {
       throw new InvalidBittorrentPacketException("unsupport packet type : " + transType());
     }
   }
 
   @Override
   public String toString() {
-    return "KRPC{" +
-        "data=" + data +
-        '}';
+    return "KRPC{" + "data=" + data + '}';
   }
 
   public enum TransType {

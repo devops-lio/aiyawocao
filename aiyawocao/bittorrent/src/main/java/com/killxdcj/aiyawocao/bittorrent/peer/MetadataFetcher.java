@@ -5,6 +5,10 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedMap;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -13,9 +17,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MetadataFetcher extends Peer implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataFetcher.class);
@@ -48,7 +49,8 @@ public class MetadataFetcher extends Peer implements Runnable {
     peerId = JTorrentUtils.genNodeId();
   }
 
-  public MetadataFetcher(InetAddress addr, int port, BencodedString infohash, IFetcherCallback iFetcherCallback) {
+  public MetadataFetcher(
+      InetAddress addr, int port, BencodedString infohash, IFetcherCallback iFetcherCallback) {
     super(addr, port);
     this.infohash = infohash;
     this.iFetcherCallback = iFetcherCallback;
@@ -56,16 +58,21 @@ public class MetadataFetcher extends Peer implements Runnable {
   }
 
   private static byte[] buildHandshakePacketPrefix() {
-    ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
+    ByteBuffer packet = ByteBuffer.allocate(28); // 48 = 1 + 19 + 8 + 20
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
-    packet.put(new byte[]{(byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1});
+    packet.put(
+        new byte[] {
+          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        });
     return packet.array();
   }
 
   @Override
   public void run() {
-    Thread.currentThread().setName("MetaFetcher " + infohash.asHexString() + ", " + addr.getHostAddress() + ":" + port);
+    Thread.currentThread()
+        .setName(
+            "MetaFetcher " + infohash.asHexString() + ", " + addr.getHostAddress() + ":" + port);
     try {
       cliChannel = SocketChannel.open();
       cliChannel.configureBlocking(false);
@@ -79,15 +86,17 @@ public class MetadataFetcher extends Peer implements Runnable {
 
       ByteBuffer handshakeResp = readPacket(68);
       byte[] respBytes = handshakeResp.array();
-      if (!Arrays.equals(Arrays.copyOf(handshakePrefix, 20), Arrays.copyOf(respBytes, 20)) ||
-          (handshakeResp.array()[25] & 0x10) == 0) {
+      if (!Arrays.equals(Arrays.copyOf(handshakePrefix, 20), Arrays.copyOf(respBytes, 20))
+          || (handshakeResp.array()[25] & 0x10) == 0) {
         throw new Exception("handshake error, prefix data error");
       }
 
       if (!infohash.equals(new BencodedString(Arrays.copyOfRange(respBytes, 28, 48)))) {
         throw new Exception("handshake error, infohash is diferent");
       }
-      LOGGER.info("connected to peer:{}", new BencodedString(Arrays.copyOfRange(respBytes, 48, 68)).asHexString());
+      LOGGER.info(
+          "connected to peer:{}",
+          new BencodedString(Arrays.copyOfRange(respBytes, 48, 68)).asHexString());
 
       sendExtHandshake();
 
@@ -134,14 +143,17 @@ public class MetadataFetcher extends Peer implements Runnable {
   }
 
   private void onHandShake(ByteBuffer packet) throws Exception {
-    Bencoding bencoding = new Bencoding(Arrays.copyOfRange(packet.array(), 2, packet.array().length));
+    Bencoding bencoding =
+        new Bencoding(Arrays.copyOfRange(packet.array(), 2, packet.array().length));
     BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
     if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
-      throw new Exception("invalid ExtHandshake packet, m or metadata_size is missed, packet:" + bencodedMap.toString
-          ());
+      throw new Exception(
+          "invalid ExtHandshake packet, m or metadata_size is missed, packet:"
+              + bencodedMap.toString());
     }
 
-    remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
+    remoteUtMetadataId =
+        ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
     meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
     if (meatadataSize % BLOCK_SIZE > 0) {
       pieceTotal = meatadataSize / BLOCK_SIZE + 1;
@@ -171,7 +183,8 @@ public class MetadataFetcher extends Peer implements Runnable {
         break;
       case DATA:
         int piece = bencodedMap.get("piece").asLong().intValue();
-        byte[] data = Arrays.copyOfRange(packetBytes, 2 + bencoding.getCurIndex(), packetBytes.length);
+        byte[] data =
+            Arrays.copyOfRange(packetBytes, 2 + bencoding.getCurIndex(), packetBytes.length);
         if (piece > pieceTotal - 1) {
           throw new Exception("piece outof range");
         }
@@ -193,8 +206,12 @@ public class MetadataFetcher extends Peer implements Runnable {
         }
 
         metadata.put(piece, data);
-        LOGGER.info("fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
-            infohash.asHexString(), pieceTotal, piece, data.length);
+        LOGGER.info(
+            "fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
+            infohash.asHexString(),
+            pieceTotal,
+            piece,
+            data.length);
 
         if (metadata.size() == pieceTotal) {
           ByteBuffer buf = ByteBuffer.allocate(meatadataSize);
@@ -205,16 +222,19 @@ public class MetadataFetcher extends Peer implements Runnable {
           if (!infohash.asHexString().equals(DigestUtils.sha1Hex(buf.array()))) {
             throw new Exception("fetched metadata, but sha1 is error");
           } else {
-            LOGGER.info("fethched metadata, infohash:{}, ip:{}, port:{}",
-                infohash.asHexString(), addr.getHostAddress(), port);
+            LOGGER.info(
+                "fethched metadata, infohash:{}, ip:{}, port:{}",
+                infohash.asHexString(),
+                addr.getHostAddress(),
+                port);
             iFetcherCallback.onFinshed(infohash, buf.array());
             finshed = true;
           }
         }
         break;
       case REJECT:
-        throw new Exception("peer reject, it doesn't have piece:"
-            + bencodedMap.get("piece").asLong().intValue());
+        throw new Exception(
+            "peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
     }
   }
 
@@ -272,7 +292,7 @@ public class MetadataFetcher extends Peer implements Runnable {
       try {
         cliChannel.close();
       } catch (IOException e) {
-//                LOGGER.error("close clichannel error", e);
+        //                LOGGER.error("close clichannel error", e);
       }
     }
   }

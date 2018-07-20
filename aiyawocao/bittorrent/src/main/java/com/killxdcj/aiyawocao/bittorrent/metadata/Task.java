@@ -40,15 +40,13 @@ public class Task {
 
     Task metadata = (Task) o;
 
-    if (infohash != null ? !infohash.equals(metadata.infohash) : metadata.infohash != null) return false;
+    if (infohash != null ? !infohash.equals(metadata.infohash) : metadata.infohash != null)
+      return false;
     return peer != null ? peer.equals(metadata.peer) : metadata.peer == null;
   }
 
   @Override
   public String toString() {
-    return "Task{" +
-        "infohash=" + infohash.asHexString() +
-        ", peer=" + peer +
-        '}';
+    return "Task{" + "infohash=" + infohash.asHexString() + ", peer=" + peer + '}';
   }
 }

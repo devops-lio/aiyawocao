@@ -1,9 +1,14 @@
 package com.killxdcj.aiyawocao.metadata.crawler;
 
-import com.codahale.metrics.*;
+import com.alibaba.fastjson.JSON;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
+import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
+import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher;
 import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataListener;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
@@ -21,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 public class MetaCrawlerMain {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaCrawlerMain.class);
+  private static final Logger METADATA = LoggerFactory.getLogger("metadata");
 
   MetaCrawlerConfig config;
   private MetadataServiceClient client;
@@ -61,7 +67,8 @@ public class MetaCrawlerMain {
     }
     config = MetaCrawlerConfig.fromYamlConfFile(confPath);
 
-    metricRegistry = InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
+    metricRegistry =
+        InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
 
     metaFetchSuccessed =
         metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessed"));
@@ -149,6 +156,16 @@ public class MetaCrawlerMain {
                 LOGGER.info("{} meta uploaded", infohashStr);
               } catch (Throwable t) {
                 LOGGER.error("upload metadata error, " + infohashStr, t);
+              }
+
+              try {
+                Bencoding bencoding = new Bencoding(metadata);
+                METADATA.info(
+                    "{},{}",
+                    infohash.asHexString(),
+                    JSON.toJSONString(bencoding.decode().toHuman()));
+              } catch (InvalidBittorrentPacketException e) {
+                LOGGER.error("decode metadata error", e);
               }
             }
 

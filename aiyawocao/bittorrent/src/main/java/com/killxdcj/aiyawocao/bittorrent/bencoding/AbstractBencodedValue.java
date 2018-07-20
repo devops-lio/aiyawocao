@@ -12,17 +12,20 @@ public abstract class AbstractBencodedValue implements IBencodedValue {
   public static final byte MAP_ENTRY = (byte) 'd';
   public static final byte LIST_ENTRY = (byte) 'l';
   public static final byte END_BYTE = (byte) 'e';
-  public static final Set<Byte> STRING_ENTRYS = new HashSet<Byte>() {{
-    add((byte) '1');
-    add((byte) '2');
-    add((byte) '3');
-    add((byte) '4');
-    add((byte) '5');
-    add((byte) '6');
-    add((byte) '7');
-    add((byte) '8');
-    add((byte) '9');
-  }};
+  public static final Set<Byte> STRING_ENTRYS =
+      new HashSet<Byte>() {
+        {
+          add((byte) '1');
+          add((byte) '2');
+          add((byte) '3');
+          add((byte) '4');
+          add((byte) '5');
+          add((byte) '6');
+          add((byte) '7');
+          add((byte) '8');
+          add((byte) '9');
+        }
+      };
   protected static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
   public String asString() {

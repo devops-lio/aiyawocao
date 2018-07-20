@@ -12,6 +12,9 @@ import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketExcept
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.revinate.guava.util.concurrent.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -21,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DHT {
   public static final Logger LOGGER = LoggerFactory.getLogger(DHT.class);
@@ -54,7 +55,8 @@ public class DHT {
   private Meter announcePeerMeter;
   private Counter neighborEmpty;
 
-  public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry) throws SocketException {
+  public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry)
+      throws SocketException {
     this.config = config;
     this.metaWatcher = metaWatcher;
     this.metricRegistry = metricRegistry;
@@ -92,7 +94,8 @@ public class DHT {
     findNodeMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTRequestFindNode"));
     discardNodeMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTDiscardNode"));
     getpeersMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryGetPeers"));
-    announcePeerMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryAnnouncePeer"));
+    announcePeerMeter =
+        metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryAnnouncePeer"));
     neighborEmpty = metricRegistry.counter(MetricRegistry.name(DHT.class, "DHTNeighborEmpty"));
   }
 
@@ -179,10 +182,12 @@ public class DHT {
     }
   }
 
-  private int sendFindNodeReq(Node node, BencodedString dummyLocalNodeId, BencodedString targetNodeId) {
+  private int sendFindNodeReq(
+      Node node, BencodedString dummyLocalNodeId, BencodedString targetNodeId) {
     try {
       KRPC krpc = KRPC.buildFindNodeReqPacket(dummyLocalNodeId, targetNodeId);
-      transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
+      transactionManager.putTransaction(
+          new Transaction(node, krpc, config.getTransactionExpireTime()));
       return sendKrpcPacket(node, krpc);
     } catch (Exception e) {
       LOGGER.error("sendFindNodeReq error, node:{}", node, e);
@@ -195,12 +200,14 @@ public class DHT {
   }
 
   private int sendKrpcPacket(Node node, KRPC krpc) throws IOException {
-//		transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
+    //		transactionManager.putTransaction(new Transaction(node, krpc,
+    // config.getTransactionExpireTime()));
     if (requestLimiter != null) {
       requestLimiter.acquire();
     }
     byte[] packetBytes = krpc.encode();
-    DatagramPacket udpPacket = new DatagramPacket(packetBytes, 0, packetBytes.length, node.getAddr(), node.getPort());
+    DatagramPacket udpPacket =
+        new DatagramPacket(packetBytes, 0, packetBytes.length, node.getAddr(), node.getPort());
     datagramSocket.send(udpPacket);
     outBoundwidthMeter.mark(packetBytes.length);
     if (outBandwidthLimit != null) {
@@ -210,8 +217,12 @@ public class DHT {
   }
 
   private void handleQuery(DatagramPacket packet, KRPC krpc) throws IOException {
-    LOGGER.debug("recv request packet, id:{}, action:{}, ip:{}, port:{}",
-        krpc.getId(), krpc.action(), packet.getAddress().getHostAddress(), packet.getPort());
+    LOGGER.debug(
+        "recv request packet, id:{}, action:{}, ip:{}, port:{}",
+        krpc.getId(),
+        krpc.action(),
+        packet.getAddress().getHostAddress(),
+        packet.getPort());
     switch (krpc.action()) {
       case PING:
         // ignore
@@ -252,7 +263,9 @@ public class DHT {
       LOGGER.warn("Peers is empty, maybe neighbors is empty");
     }
 
-    KRPC resp = KRPC.buildGetPeersRespPacketWithPeers(krpc.getTransId(), buildDummyNodeId(infohash), "caojian", peers);
+    KRPC resp =
+        KRPC.buildGetPeersRespPacketWithPeers(
+            krpc.getTransId(), buildDummyNodeId(infohash), "caojian", peers);
     sendKrpcPacket(node, resp);
   }
 
@@ -277,7 +290,11 @@ public class DHT {
   private void handleResponse(DatagramPacket packet, KRPC krpc) {
     Transaction transaction = transactionManager.getTransaction(krpc.getTransId());
     if (transaction == null) {
-      LOGGER.debug("transaction not exist, node:{}:{}, krpc:{}", packet.getAddress(), packet.getPort(), krpc);
+      LOGGER.debug(
+          "transaction not exist, node:{}:{}, krpc:{}",
+          packet.getAddress(),
+          packet.getPort(),
+          krpc);
       return;
     }
 
@@ -293,7 +310,10 @@ public class DHT {
       case ANNOUNCE_PEER:
         break;
       default:
-        LOGGER.warn("unsupport krpc packet action, action:{}, packet:{}", transaction.getKrpc().action(), krpc);
+        LOGGER.warn(
+            "unsupport krpc packet action, action:{}, packet:{}",
+            transaction.getKrpc().action(),
+            krpc);
     }
   }
 
@@ -314,7 +334,8 @@ public class DHT {
   }
 
   private void handleResponseError(DatagramPacket packet, KRPC krpc) {
-    LOGGER.debug("recive error resp, from: {}:{}, packet:{}", packet.getAddress(), packet.getPort(), krpc);
+    LOGGER.debug(
+        "recive error resp, from: {}:{}, packet:{}", packet.getAddress(), packet.getPort(), krpc);
   }
 
   private BencodedString buildDummyNodeId(BencodedString targetId) {

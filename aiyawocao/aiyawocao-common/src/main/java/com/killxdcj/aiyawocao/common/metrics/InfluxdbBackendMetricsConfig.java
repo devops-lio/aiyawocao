@@ -58,13 +58,24 @@ public class InfluxdbBackendMetricsConfig {
 
   @Override
   public String toString() {
-    return "InfluxdbBackendMetricsConfig{" +
-        "influxdbAddr='" + influxdbAddr + '\'' +
-        ", influxdbUser='" + influxdbUser + '\'' +
-        ", influxdbPassword='" + influxdbPassword + '\'' +
-        ", influxdbName='" + influxdbName + '\'' +
-        ", cluster='" + cluster + '\'' +
-        ", reportPeriod=" + reportPeriod +
-        '}';
+    return "InfluxdbBackendMetricsConfig{"
+        + "influxdbAddr='"
+        + influxdbAddr
+        + '\''
+        + ", influxdbUser='"
+        + influxdbUser
+        + '\''
+        + ", influxdbPassword='"
+        + influxdbPassword
+        + '\''
+        + ", influxdbName='"
+        + influxdbName
+        + '\''
+        + ", cluster='"
+        + cluster
+        + '\''
+        + ", reportPeriod="
+        + reportPeriod
+        + '}';
   }
 }

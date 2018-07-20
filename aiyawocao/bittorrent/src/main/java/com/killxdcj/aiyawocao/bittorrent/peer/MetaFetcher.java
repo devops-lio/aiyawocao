@@ -6,22 +6,19 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MetaFetcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaFetcher.class);
@@ -65,10 +62,13 @@ public class MetaFetcher {
   }
 
   private static byte[] buildHandshakePacketPrefix() {
-    ByteBuffer packet = ByteBuffer.allocate(28);// 48 = 1 + 19 + 8 + 20
+    ByteBuffer packet = ByteBuffer.allocate(28); // 48 = 1 + 19 + 8 + 20
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
-    packet.put(new byte[]{(byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1});
+    packet.put(
+        new byte[] {
+          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        });
     return packet.array();
   }
 
@@ -155,7 +155,11 @@ public class MetaFetcher {
               switch (msgType) {
                 case HANDSHAKE:
                   handleExtHandshake(packet);
-                  LOGGER.debug("exthandshake successed, {}, metasize:{}, pieces:{}", this, meatadataSize, pieceTotal);
+                  LOGGER.debug(
+                      "exthandshake successed, {}, metasize:{}, pieces:{}",
+                      this,
+                      meatadataSize,
+                      pieceTotal);
                   break;
                 case UT_METADATA:
                   LOGGER.debug("recive utmetadata, {}, {}", Arrays.toString(packet.array()), this);
@@ -228,13 +232,15 @@ public class MetaFetcher {
   }
 
   private void handleExtHandshake(ByteBuffer packet) throws Exception {
-    Bencoding bencoding = new Bencoding(Arrays.copyOfRange(packet.array(), 2, packet.array().length));
+    Bencoding bencoding =
+        new Bencoding(Arrays.copyOfRange(packet.array(), 2, packet.array().length));
     BencodedMap bencodedMap = (BencodedMap) bencoding.decode();
     if (!bencodedMap.containsKey("m") || !bencodedMap.containsKey("metadata_size")) {
       throw new Exception("ExtHandshake packet miss m or metadata_size, " + bencodedMap.toString());
     }
 
-    remoteUtMetadataId = ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
+    remoteUtMetadataId =
+        ((BencodedMap) bencodedMap.get("m")).get("ut_metadata").asLong().byteValue();
     meatadataSize = bencodedMap.get("metadata_size").asLong().intValue();
     if (meatadataSize % BLOCK_SIZE > 0) {
       pieceTotal = meatadataSize / BLOCK_SIZE + 1;
@@ -278,7 +284,8 @@ public class MetaFetcher {
         break;
       case DATA:
         int piece = bencodedMap.get("piece").asLong().intValue();
-        byte[] data = Arrays.copyOfRange(packetBytes, 2 + bencoding.getCurIndex(), packetBytes.length);
+        byte[] data =
+            Arrays.copyOfRange(packetBytes, 2 + bencoding.getCurIndex(), packetBytes.length);
         if (piece > pieceTotal - 1) {
           throw new Exception("piece outof range");
         }
@@ -300,8 +307,12 @@ public class MetaFetcher {
         }
 
         metadataTable.put(piece, data);
-        LOGGER.info("fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
-            infohash.asHexString(), pieceTotal, piece, data.length);
+        LOGGER.info(
+            "fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
+            infohash.asHexString(),
+            pieceTotal,
+            piece,
+            data.length);
 
         if (metadataTable.size() == pieceTotal) {
           ByteBuffer buf = ByteBuffer.allocate(meatadataSize);
@@ -318,8 +329,8 @@ public class MetaFetcher {
         }
         break;
       case REJECT:
-        throw new Exception("peer reject, it doesn't have piece:"
-            + bencodedMap.get("piece").asLong().intValue());
+        throw new Exception(
+            "peer reject, it doesn't have piece:" + bencodedMap.get("piece").asLong().intValue());
     }
   }
 
@@ -343,8 +354,11 @@ public class MetaFetcher {
     } else if (t != null) {
       watcher.onException(infohash, peer, t, TimeUtils.getElapseTime(startTime));
     } else {
-      watcher.onException(infohash, peer, new TimeoutException("meta fetch timeout"), TimeUtils.getElapseTime
-          (startTime));
+      watcher.onException(
+          infohash,
+          peer,
+          new TimeoutException("meta fetch timeout"),
+          TimeUtils.getElapseTime(startTime));
     }
   }
 
@@ -366,7 +380,8 @@ public class MetaFetcher {
 
     MetaFetcher fetcher = (MetaFetcher) o;
 
-    if (infohash != null ? !infohash.equals(fetcher.infohash) : fetcher.infohash != null) return false;
+    if (infohash != null ? !infohash.equals(fetcher.infohash) : fetcher.infohash != null)
+      return false;
     return peer != null ? peer.equals(fetcher.peer) : fetcher.peer == null;
   }
 

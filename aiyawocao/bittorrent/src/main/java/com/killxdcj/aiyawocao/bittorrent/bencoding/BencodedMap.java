@@ -2,6 +2,7 @@ package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BencodedMap extends AbstractBencodedValue {
@@ -39,14 +40,25 @@ public class BencodedMap extends AbstractBencodedValue {
   @Override
   public Object toHuman() {
     Map<String, Object> ret = new HashMap<>();
+    Map<String, Object> utf8KV = new HashMap<>();
     for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
       String key = entry.getKey();
-      if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")) {
+      if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")
+          || key.equals("piece length")) {
         // ignore
       } else {
-        ret.put(entry.getKey(), entry.getValue().toHuman());
+        Object value = entry.getValue().toHuman();
+        if ((key.equals("path") || key.equals("path.utf-8")) && value instanceof List) {
+          value = String.join("/", (List)value);
+        }
+        if (key.endsWith(".utf-8")) {
+          utf8KV.put(key.replace(".utf8", ""), entry.getValue().toHuman());
+        } else {
+          ret.put(key, entry.getValue().toHuman());
+        }
       }
     }
+    ret.putAll(utf8KV);
     return ret;
   }
 

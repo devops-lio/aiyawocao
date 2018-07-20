@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -160,10 +161,10 @@ public class MetaCrawlerMain {
 
               try {
                 Bencoding bencoding = new Bencoding(metadata);
-                METADATA.info(
-                    "{},{}",
-                    infohash.asHexString(),
-                    JSON.toJSONString(bencoding.decode().toHuman()));
+                Map<String, Object> metaHuman = (Map<String, Object>)bencoding.decode().toHuman();
+                metaHuman.put("infohash", infohash.asHexString().toUpperCase());
+                metaHuman.put("collection-ts", System.currentTimeMillis());
+                METADATA.info(JSON.toJSONString(metaHuman));
               } catch (InvalidBittorrentPacketException e) {
                 LOGGER.error("decode metadata error", e);
               }

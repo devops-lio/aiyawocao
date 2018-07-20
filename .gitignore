@@ -11,8 +11,7 @@ buildNumber.properties
 .idea/
 .DS_Store
 App.java
-crawler_deploy/
-proxy_deploy/
+metadata_crawler_deploy/
 metadata_service_deploy/
 test/
 

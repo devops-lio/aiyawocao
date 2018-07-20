@@ -1,9 +1,0 @@
-[Unit]
-Description=meta-centre
-[Service]
-ExecStart=start_bash_path
-ExecStop=stop_bash_path
-Restart=always
-RestartSec=5
-[Install]
-WantedBy=default.target

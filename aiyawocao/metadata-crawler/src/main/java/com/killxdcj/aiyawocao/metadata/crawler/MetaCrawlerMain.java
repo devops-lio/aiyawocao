@@ -1,15 +1,15 @@
-package com.killxdcj.aiyawocao.meta.crawler;
+package com.killxdcj.aiyawocao.metadata.crawler;
 
 import com.codahale.metrics.*;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
+import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher;
 import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataListener;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
-import com.killxdcj.aiyawocao.meta.crawler.config.MetaCrawlerConfig;
+import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetrics;
+import com.killxdcj.aiyawocao.metadata.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
-import metrics_influxdb.HttpInfluxdbProtocol;
-import metrics_influxdb.InfluxdbReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +26,8 @@ public class MetaCrawlerMain {
   private MetadataServiceClient client;
   private DHT dht;
   private volatile boolean exit = false;
-  private ScheduledReporter reporter;
   private MetricRegistry metricRegistry;
-  private com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher fetcher = null;
+  private MetadataFetcher fetcher = null;
 
   private Meter metaFetchSuccessed;
   private Meter metaFetchError;
@@ -56,30 +55,13 @@ public class MetaCrawlerMain {
 
   public void start(String[] args) throws FileNotFoundException, SocketException {
     LOGGER.info("args = {}", Arrays.toString(args));
-    String confPath = "./conf/crawler.yaml";
+    String confPath = "./conf/metadata-crawler.yaml";
     if (args.length > 1) {
       confPath = args[0];
     }
     config = MetaCrawlerConfig.fromYamlConfFile(confPath);
 
-    metricRegistry = new MetricRegistry();
-    String[] addrs = config.getInfluxdbAddr().split(":");
-    reporter =
-        InfluxdbReporter.forRegistry(metricRegistry)
-            .protocol(
-                new HttpInfluxdbProtocol(
-                    "http",
-                    addrs[0],
-                    Integer.parseInt(addrs[1]),
-                    config.getInfluxdbUser(),
-                    config.getInfluxdbPassword(),
-                    config.getInfluxdbName()))
-            .convertRatesTo(TimeUnit.SECONDS)
-            .convertDurationsTo(TimeUnit.MILLISECONDS)
-            .filter(MetricFilter.ALL)
-            .tag("cluster", config.getCluster())
-            .build();
-    reporter.start(60, TimeUnit.SECONDS);
+    metricRegistry = InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
 
     metaFetchSuccessed =
         metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessed"));
@@ -131,13 +113,11 @@ public class MetaCrawlerMain {
       fetcher.shutdown();
     }
 
-    if (reporter != null) {
-      reporter.stop();
-    }
-
     if (client != null) {
       client.shutdown();
     }
+
+    InfluxdbBackendMetrics.shutdown();
 
     LOGGER.info("MetaCrawler stoped");
   }

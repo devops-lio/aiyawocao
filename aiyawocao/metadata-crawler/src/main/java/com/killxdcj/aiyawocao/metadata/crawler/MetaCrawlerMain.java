@@ -83,7 +83,7 @@ public class MetaCrawlerMain {
     metaFetchErrorTimer =
         metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
     client = new MetadataServiceClient(config.getMetadataServiceClientConfig());
-    fetcher = new com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher(metricRegistry);
+    fetcher = new MetadataFetcher(metricRegistry);
 
     dht =
         new DHT(

@@ -16,7 +16,6 @@
     <module>metadata-service-server</module>
     <module>metadata-service-client</module>
     <module>aiyawocao-common</module>
-    <module>aiyawocao-example</module>
   </modules>
 
   <name>aiyawocao-parent</name>

@@ -52,7 +52,7 @@ public class BencodedMap extends AbstractBencodedValue {
           value = String.join("/", (List)value);
         }
         if (key.endsWith(".utf-8")) {
-          utf8KV.put(key.replace(".utf8", ""), value);
+          utf8KV.put(key.replace(".utf-8", ""), value);
         } else {
           ret.put(key, value);
         }

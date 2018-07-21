@@ -52,9 +52,9 @@ public class BencodedMap extends AbstractBencodedValue {
         if ((key.equals("path") || key.equals("path.utf-8")) && value instanceof List) {
           value = String.join("/", (List)value);
         } else if (key.equals("files") && value instanceof List) {
-          Map<Object, Object> files = new HashMap<>();
+          List<String> files = new ArrayList<>();
           for (Map<String, Object> file : (List<Map<String, Object>>) value) {
-            files.put(file.get("path"), file.get("length"));
+            files.add(file.get("path") + ":" + file.get("length"));
           }
           value = files;
         }

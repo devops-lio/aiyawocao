@@ -51,13 +51,14 @@ public class BencodedMap extends AbstractBencodedValue {
         Object value = entry.getValue().toHuman();
         if ((key.equals("path") || key.equals("path.utf-8")) && value instanceof List) {
           value = String.join("/", (List)value);
-        } else if (key.equals("files") && value instanceof List) {
-          List<String> files = new ArrayList<>();
-          for (Map<String, Object> file : (List<Map<String, Object>>) value) {
-            files.add(file.get("path") + ":" + file.get("length"));
-          }
-          value = files;
         }
+//        else if (key.equals("files") && value instanceof List) {
+//          List<String> files = new ArrayList<>();
+//          for (Map<String, Object> file : (List<Map<String, Object>>) value) {
+//            files.add(file.get("path") + ":" + file.get("length"));
+//          }
+//          value = files;
+//        }
 
         if (key.endsWith(".utf-8")) {
           utf8KV.put(key.replace(".utf-8", ""), value);

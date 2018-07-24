@@ -46,7 +46,7 @@ public class BencodedMap extends AbstractBencodedValue {
       String key = entry.getKey();
       if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")
           || key.equals("piece length") || key.equals("sha1") || key.equals("file-media")
-          || key.equals("file-duration") || key.equals("hash")) {
+          || key.equals("file-duration") || key.equals("hash") || key.equals("originator")) {
         // ignore
       } else {
         Object value = entry.getValue().toHuman();

@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <Console name="STDOUT_ROOT" target="SYSTEM_OUT">
-      <PatternLayout pattern="ROOT:%d %-5p %C %L - %m%n"/>
-    </Console>
-    <RollingFile name="aiyawocao" fileName="./logs/log.log"
-                 filePattern="./logs/logs_%d{yyyy-MM-dd}_%i.log">
+    <RollingFile name="aiyawocao" fileName="/var/log/aiyawocao/metadata-service.log"
+                 filePattern="/var/log/aiyawocao/metadata-service.log.%d{yyyy-MM-dd}.%i">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>

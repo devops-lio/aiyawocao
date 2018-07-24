@@ -161,7 +161,7 @@ public class MetaCrawlerMain {
 
               try {
                 Bencoding bencoding = new Bencoding(metadata);
-                Map<String, Object> metaHuman = (Map<String, Object>)bencoding.decode().toHuman();
+                Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
                 metaHuman.put("infohash", infohash.asHexString().toUpperCase());
                 metaHuman.put("collection-ts", System.currentTimeMillis());
                 METADATA.info(JSON.toJSONString(metaHuman));
@@ -172,14 +172,19 @@ public class MetaCrawlerMain {
 
             @Override
             public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
-              LOGGER.info("meta fetch error, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
-              if (t instanceof TimeoutException) {
-                metaFetchTimeout.mark();
+              if (!LOGGER.isDebugEnabled()) {
+                LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
+                    t.getMessage(), costtime);
               } else {
-                metaFetchError.mark();
+                if (t instanceof TimeoutException) {
+                  metaFetchTimeout.mark();
+                } else {
+                  metaFetchError.mark();
+                }
+                metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+                LOGGER.error(infohashStr + ", " + peer + " meta fetch error, costtime: " +
+                    costtime + "ms", t);
               }
-              metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
-              LOGGER.error(infohashStr + ", " + peer + " meta fetch error", t);
             }
           });
     } catch (Exception e) {

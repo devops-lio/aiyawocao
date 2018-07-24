@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <Console name="STDOUT_ROOT" target="SYSTEM_OUT">
-      <PatternLayout pattern="ROOT:%d %-5p %C %L - %m%n"/>
-    </Console>
-    <RollingFile name="aiyawocao" fileName="./logs/log.log"
-                 filePattern="./logs/logs_%d{yyyy-MM-dd}_%i.log">
+    <RollingFile name="aiyawocao" fileName="/var/log/aiyawocao/metadata-crawler.log"
+                 filePattern="/var/log/aiyawocao/metadata-crawler.log.%d{yyyyMMdd}.%i">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>
@@ -14,8 +11,8 @@
       </Policies>
       <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile name="metadata" fileName="./logs/metadata.log"
-                 filePattern="./logs/metadata_%d{yyyy-MM-dd}_%i.log">
+    <RollingFile name="metadata" fileName="/var/log/aiyawocao/metadata"
+                 filePattern="/var/log/aiyawocao/metadata.%d{yyyyMMddHH}.%i.zip">
       <PatternLayout pattern="%m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>

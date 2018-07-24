@@ -41,6 +41,8 @@ public class ArchivedJsonFileIndexer {
       System.exit(-1);
     }
 
+    String type = commandLine.getOptionValue("t");
+
     MetricRegistry registry = new MetricRegistry();
     ConsoleReporter reporter = ConsoleReporter.forRegistry(registry)
         .convertDurationsTo(TimeUnit.MILLISECONDS)
@@ -59,7 +61,7 @@ public class ArchivedJsonFileIndexer {
       while ((line = reader.readLine()) != null) {
         try {
           start = System.currentTimeMillis();
-          client.index(line);
+          client.index(type, line);
           cost.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
           meter.mark();
         } catch (Exception e) {
@@ -101,6 +103,15 @@ public class ArchivedJsonFileIndexer {
         .required(true)
         .build();
     options.addOption(indexOP);
+
+    Option typeOP = Option.builder("t")
+        .longOpt("type")
+        .argName("type")
+        .hasArg(true)
+        .desc("type")
+        .required(true)
+        .build();
+    options.addOption(typeOP);
 
     CommandLineParser parser = new DefaultParser();
     return parser.parse(options, args);

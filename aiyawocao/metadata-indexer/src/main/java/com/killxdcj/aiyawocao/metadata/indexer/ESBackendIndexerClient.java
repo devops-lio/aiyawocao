@@ -1,7 +1,6 @@
 package com.killxdcj.aiyawocao.metadata.indexer;
 
 import com.alibaba.fastjson.JSON;
-import com.codahale.metrics.MetricRegistry;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
@@ -39,23 +38,23 @@ public class ESBackendIndexerClient implements Closeable {
     }
   }
 
-  public void index(String metadataJson) throws IOException {
+  public void index(String type, String metadataJson) throws IOException {
     String infohash = JSON.parseObject(metadataJson).getString("infohash");
-    index(infohash, metadataJson);
+    index(type, infohash, metadataJson);
   }
 
-  public void index(byte[] infohashBytes, byte[] metadataBytes) throws InvalidBittorrentPacketException, IOException {
+  public void index(String type, byte[] infohashBytes, byte[] metadataBytes) throws InvalidBittorrentPacketException, IOException {
     String infohash = new BencodedString(infohashBytes).asHexString().toUpperCase();
     Bencoding bencoding = new Bencoding(metadataBytes);
     Map<String, Object> metaHuman = (Map<String, Object>)bencoding.decode().toHuman();
     metaHuman.put("infohash", infohash);
     metaHuman.put("collection-ts", System.currentTimeMillis());
     String metadataJson = JSON.toJSONString(bencoding.decode().toHuman());
-    index(infohash, metadataJson);
+    index(type, infohash, metadataJson);
   }
 
-  public void index(String infohash, String metadataJson) throws IOException {
-    IndexRequest indexRequest = new IndexRequest(config.getIndex(), "doc", infohash);
+  public void index(String type, String infohash, String metadataJson) throws IOException {
+    IndexRequest indexRequest = new IndexRequest(config.getIndex(), type, infohash);
     indexRequest.source(metadataJson, XContentType.JSON);
     indexRequest.timeout(TimeValue.timeValueSeconds(config.getTimeoutS()));
     IndexResponse response = client.index(indexRequest);

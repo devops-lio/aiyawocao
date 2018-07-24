@@ -45,7 +45,8 @@ public class BencodedMap extends AbstractBencodedValue {
     for (Map.Entry<String, IBencodedValue> entry : data.entrySet()) {
       String key = entry.getKey();
       if (key.equals("pieces") || key.equals("ed2k") || key.equals("filehash") || key.equals("")
-          || key.equals("piece length") || key.equals("sha1") || key.equals("file-media") || key.equals("file-duration")) {
+          || key.equals("piece length") || key.equals("sha1") || key.equals("file-media")
+          || key.equals("file-duration") || key.equals("hash")) {
         // ignore
       } else {
         Object value = entry.getValue().toHuman();
@@ -62,7 +63,9 @@ public class BencodedMap extends AbstractBencodedValue {
 
         if (key.endsWith(".utf-8")) {
           utf8KV.put(key.replace(".utf-8", ""), value);
-        } else {
+        } else if (key.endsWith(".utf8")) {
+          utf8KV.put(key.replace(".utf8", ""), value);
+        }else {
           ret.put(key, value);
         }
       }

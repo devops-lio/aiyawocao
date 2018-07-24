@@ -1,0 +1,141 @@
+curl -X PUT "localhost:9200/metadata" -H 'Content-Type: application/json' -d'
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 6,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "v1": {
+      "properties": {
+        "collection-ts": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "infohash": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "text",
+          "analyzer": "ik_max_word",
+          "fields": {
+            "standard": {
+              "type": "text"
+            }
+          }
+        },
+        "files.path": {
+          "type": "text",
+          "analyzer": "ik_max_word",
+          "fields": {
+            "standard": {
+              "type": "text"
+            }
+          }
+        },
+        "files.length": {
+          "type": "long",
+          "index": false
+        }
+      },
+      "dynamic_templates": [
+        {
+          "string_as_text": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+'
+
+curl -XPOST "http://localhost:9200/metadata/v1/46E40E64D0FC4797970A71BCDD5BB00B91D8D268" -H 'Content-Type: application/json' -d'
+{
+  "collection-ts": 1532269676056,
+  "name": "xxx",
+  "infohash": "46E40E64D0FC4797970A71BCDD5BB00B91D8D268",
+  "files": [
+    {
+      "path": "xxx",
+      "length": "204"
+    },
+    {
+      "path": "xxx",
+      "length": "577158587"
+    }
+  ],
+  "publisher": "shuangyuboy",
+  "publisher-url": "http://www.sis001.com"
+}
+'
+
+curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d'
+{
+  "query": {
+    "multi_match": {
+      "query": "第一",
+      "fields": [
+        "name",
+        "name.standard",
+        "files.path",
+        "files.path.standard"
+      ],
+      "type": "most_fields"
+    }
+  },
+  "highlight": {
+    "pre_tags": [
+      "<tag1>",
+      "<tag2>"
+    ],
+    "post_tags": [
+      "</tag1>",
+      "</tag2>"
+    ],
+    "fields": {
+      "files.path": {}
+    }
+  }
+}
+'
+
+curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d'
+{
+  "query": {
+    "multi_match": {
+      "query": "先生",
+      "fields": [
+        "files.path",
+        "files.path.standard"
+      ],
+      "type": "most_fields"
+    }
+  },
+  "highlight": {
+    "pre_tags": [
+      "<tag1>",
+      "<tag2>"
+    ],
+    "post_tags": [
+      "</tag1>",
+      "</tag2>"
+    ],
+    "fields": {
+      "files.path": {},
+      "files.path.standard": {}
+    }
+  }
+}
+'
+
+curl -XGET "http://localhost:9200/metadata/_analyze?pretty=true" -H 'Content-Type: application/json' -d'
+{
+  "field": "name.standard", 
+  "text":  "EloricSear치의 몇 가지 중요한 분사기"
+}
+'

@@ -2,6 +2,8 @@ package com.killxdcj.aiyawocao.ops;
 
 import com.alibaba.fastjson.JSON;
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.ListObjectsRequest;
+import com.aliyun.oss.model.OSSObjectSummary;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -51,6 +53,10 @@ public class OSSUtils {
           break;
         case "archive":
           archive();
+          break;
+        case "list":
+          list();
+          break;
         default:
           break;
       }
@@ -68,12 +74,7 @@ public class OSSUtils {
     String localFile = namespace.getString("localFile");
     String remoteFile = namespace.getString("remoteFile");
     if (StringUtils.isEmpty(localFile)) {
-      int idx = remoteFile.lastIndexOf("/");
-      if (idx != -1) {
-        localFile = remoteFile.substring(idx + 1);
-      } else {
-        localFile = remoteFile;
-      }
+      localFile = new File(remoteFile).getName();
     }
 
     if (!ossClient.doesObjectExist(bucketName, remoteFile)) {
@@ -159,6 +160,18 @@ public class OSSUtils {
     System.out.println("finished");
   }
 
+  private void list() {
+    String prefix = namespace.getString("prefix");
+    Integer maxFiles = namespace.getInt("maxFiles");
+
+    ListObjectsRequest request = new ListObjectsRequest(namespace.getString("bucketName"))
+        .withPrefix(prefix)
+        .withMaxKeys(maxFiles);
+    for (OSSObjectSummary summary : ossClient.listObjects(request).getObjectSummaries()) {
+      System.out.println(summary.getKey());
+    }
+  }
+
   private String buildBucketKey(String infohash) {
     infohash = infohash.toUpperCase();
     return ""
@@ -205,6 +218,14 @@ public class OSSUtils {
     archive.addArgument("-l", "--localIndex").required(true).help("Local IndexFile");
     archive.addArgument("-m", "--maxLine").required(false).type(Integer.class).setDefault(-1).help("Max Line PerFile");
     archive.addArgument("-f", "--fileFormat").required(false).setDefault(-1).help("Archived File Format");
+
+    Subparser list = subparsers.addParser("list")
+        .setDefault("action", "list")
+        .defaultHelp(true)
+        .help("List dir");
+    addOSSArguments(list);
+    list.addArgument("-m", "--maxFiles").required(false).type(Integer.class).setDefault(100).help("Max Files");
+    list.addArgument("-p", "--prefix").required(true).help("prefix");
 
     return parser;
   }

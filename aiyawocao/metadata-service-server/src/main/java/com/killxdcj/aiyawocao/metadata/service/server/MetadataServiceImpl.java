@@ -84,7 +84,7 @@ public class MetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImpl
             .withMaxKeys(1000);
     ObjectListing objs = ossClient.listObjects(request);
     LOGGER.info("loading metadata index, size:{}", objs.getObjectSummaries().size());
-    for (OSSObjectSummary summary : ossClient.listObjects(request).getObjectSummaries()) {
+    for (OSSObjectSummary summary : objs.getObjectSummaries()) {
       int size = 0;
       String indexFile = summary.getKey();
       boolean isLatest =

@@ -1,10 +1,10 @@
 package com.killxdcj.aiyawocao.common.metrics;
 
 public class InfluxdbBackendMetricsConfig {
-  private String influxdbAddr = "example-influxdb:port";
-  private String influxdbUser = "example-influxdb-user";
-  private String influxdbPassword = "example-influxdb-user";
-  private String influxdbName = "example-influxdb-name";
+  private String influxdbAddr = "influxdb.host:8086";
+  private String influxdbUser = "";
+  private String influxdbPassword = "";
+  private String influxdbName = "AiyawocaoMetrics";
   private String cluster = "default";
   private int reportPeriod = 60;
 

@@ -27,7 +27,6 @@ import java.util.concurrent.TimeoutException;
 
 public class MetaCrawlerMain {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaCrawlerMain.class);
-  private static final Logger METADATA = LoggerFactory.getLogger("metadata");
 
   MetaCrawlerConfig config;
   private MetadataServiceClient client;
@@ -157,16 +156,6 @@ public class MetaCrawlerMain {
                 LOGGER.info("{} meta uploaded", infohashStr);
               } catch (Throwable t) {
                 LOGGER.error("upload metadata error, " + infohashStr, t);
-              }
-
-              try {
-                Bencoding bencoding = new Bencoding(metadata);
-                Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
-                metaHuman.put("infohash", infohash.asHexString().toUpperCase());
-                metaHuman.put("collection-ts", System.currentTimeMillis());
-                METADATA.info(JSON.toJSONString(metaHuman));
-              } catch (InvalidBittorrentPacketException e) {
-                LOGGER.error("decode metadata error", e);
               }
             }
 

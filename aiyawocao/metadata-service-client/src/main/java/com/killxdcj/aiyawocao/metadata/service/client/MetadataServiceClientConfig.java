@@ -2,7 +2,7 @@ package com.killxdcj.aiyawocao.metadata.service.client;
 
 public class MetadataServiceClientConfig {
   private int poolsize = 10;
-  private String server = "example";
+  private String server = "btproxy.host:10241";
 
   public int getPoolsize() {
     return poolsize;

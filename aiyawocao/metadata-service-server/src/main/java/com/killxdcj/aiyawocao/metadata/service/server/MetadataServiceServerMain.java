@@ -6,6 +6,7 @@ import com.killxdcj.aiyawocao.metadata.service.server.config.MetadataServiceServ
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
 import org.apache.commons.cli.*;
+import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,15 +20,18 @@ public class MetadataServiceServerMain {
 
   private Executor executor;
   private Server server;
-  private MetadataServiceImpl metadataService;
+//  private MetadataServiceImpl metadataService;
+  private RocksDBBackendMetadataServiceImpl rocksDBBackendMetadataService;
 
-  public static void main(String[] args) throws ParseException, IOException, InterruptedException {
+  public static void main(String[] args)
+      throws ParseException, IOException, InterruptedException, RocksDBException {
     MetadataServiceServerMain metadataServiceServer = new MetadataServiceServerMain();
     Runtime.getRuntime().addShutdownHook(new Thread(() -> metadataServiceServer.shutdown()));
     metadataServiceServer.start(args);
   }
 
-  public void start(String[] args) throws ParseException, IOException, InterruptedException {
+  public void start(String[] args)
+      throws ParseException, IOException, InterruptedException, RocksDBException {
     LOGGER.info("args: {}", Arrays.toString(args));
     CommandLine commandLine = parseCommandLine(args);
     MetadataServiceServerConfig config =
@@ -36,7 +40,8 @@ public class MetadataServiceServerMain {
 
     MetricRegistry metricRegistry =
         InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
-    metadataService = new MetadataServiceImpl(config, metricRegistry);
+//    metadataService = new MetadataServiceImpl(config, metricRegistry);
+    rocksDBBackendMetadataService = new RocksDBBackendMetadataServiceImpl(config, metricRegistry);
 
     executor =
         Executors.newFixedThreadPool(
@@ -50,7 +55,7 @@ public class MetadataServiceServerMain {
 
     server =
         NettyServerBuilder.forPort(config.getPort())
-            .addService(metadataService)
+            .addService(rocksDBBackendMetadataService)
             .executor(executor)
             .build();
 
@@ -68,8 +73,8 @@ public class MetadataServiceServerMain {
       server.shutdown();
     }
 
-    if (metadataService != null) {
-      metadataService.shutdown();
+    if (rocksDBBackendMetadataService != null) {
+      rocksDBBackendMetadataService.shutdown();
     }
   }
 

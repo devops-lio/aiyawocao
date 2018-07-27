@@ -11,23 +11,10 @@
       </Policies>
       <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile name="metadata" fileName="/var/log/aiyawocao/metadata"
-                 filePattern="/var/log/aiyawocao/metadata.%d{yyyyMMddHH}.%i.zip">
-      <PatternLayout pattern="%m%n"/>
-      <Policies>
-        <OnStartupTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="100 MB"/>
-        <TimeBasedTriggeringPolicy modulate="true"/>
-      </Policies>
-    </RollingFile>
   </Appenders>
   <Loggers>
     <Root level="info">
       <AppenderRef ref="aiyawocao"></AppenderRef>
     </Root>
-    <logger name="metadata" additivity="false">
-      <level value="info"/>
-      <appender-ref ref="metadata"/>
-    </logger>
   </Loggers>
 </Configuration>

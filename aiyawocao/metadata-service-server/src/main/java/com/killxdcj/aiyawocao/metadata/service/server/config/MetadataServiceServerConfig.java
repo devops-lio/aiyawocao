@@ -8,10 +8,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class MetadataServiceServerConfig {
-  private int port = 9613;
-  private int executorThreadNum = 50;
+  private int port = 10241;
+  private int executorThreadNum = 100;
   private AliOSSBackendConfig aliOSSBackendConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
+  private RocksDBBackendConfig rocksDBBackendConfig;
 
   public static MetadataServiceServerConfig fromYamlConfFile(String confFile)
       throws FileNotFoundException {
@@ -66,16 +67,24 @@ public class MetadataServiceServerConfig {
     this.influxdbBackendMetricsConfig = influxdbBackendMetricsConfig;
   }
 
+  public RocksDBBackendConfig getRocksDBBackendConfig() {
+    return rocksDBBackendConfig;
+  }
+
+  public void setRocksDBBackendConfig(
+      RocksDBBackendConfig rocksDBBackendConfig) {
+    this.rocksDBBackendConfig = rocksDBBackendConfig;
+  }
+
   @Override
   public String toString() {
-    return "MetadataServiceServerConfig{"
-        + "port="
-        + port
-        + ", executorThreadNum="
-        + executorThreadNum
-        + ", aliOSSBackendConfig="
-        + aliOSSBackendConfig
-        + '}';
+    return "MetadataServiceServerConfig{" +
+        "port=" + port +
+        ", executorThreadNum=" + executorThreadNum +
+        ", aliOSSBackendConfig=" + aliOSSBackendConfig +
+        ", influxdbBackendMetricsConfig=" + influxdbBackendMetricsConfig +
+        ", rocksDBBackendConfig=" + rocksDBBackendConfig +
+        '}';
   }
 
   private String toYamlString() {

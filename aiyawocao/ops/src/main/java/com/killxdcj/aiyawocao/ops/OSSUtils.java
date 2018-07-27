@@ -29,14 +29,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 
-public class OSSOps {
+public class OSSUtils {
   private Namespace namespace;
   private OSSClient ossClient;
   private String bucketName;
 
   public static void main(String[] args) {
-    OSSOps ossOps = new OSSOps();
-    ossOps.start(args);
+    OSSUtils ossUtils = new OSSUtils();
+    ossUtils.start(args);
   }
 
   public void start(String[] args) {
@@ -102,10 +102,10 @@ public class OSSOps {
     int curArchivedIdx = 0;
     int cnt = 0;
 
-    Meter successed = registry.meter(MetricRegistry.name(OSSOps.class, "archive.successed"));
-    Meter decodeFailed = registry.meter(MetricRegistry.name(OSSOps.class, "archive.failed.decode"));
-    Meter otherFailed = registry.meter(MetricRegistry.name(OSSOps.class, "archive.failed.other"));
-    Timer costtime = registry.timer(MetricRegistry.name(OSSOps.class, "archive.fetch"));
+    Meter successed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.successed"));
+    Meter decodeFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
+    Meter otherFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.other"));
+    Timer costtime = registry.timer(MetricRegistry.name(OSSUtils.class, "archive.fetch"));
 
     long start;
     try (LineIterator lineIterator = FileUtils.lineIterator(new File(localIndex))) {
@@ -185,7 +185,7 @@ public class OSSOps {
     ArgumentParser parser = ArgumentParsers.newFor("OSSUtils")
         .build()
         .defaultHelp(true)
-        .description("Download file from OSS");
+        .description("OSS Utils");
 
     Subparsers subparsers = parser.addSubparsers().title("actions");
 

@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -117,6 +118,8 @@ public class OSSUtils {
     Meter decodeFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
     Meter otherFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.other"));
     Timer costtime = registry.timer(MetricRegistry.name(OSSUtils.class, "archive.fetch"));
+    AtomicInteger suc = new AtomicInteger(0);
+    AtomicInteger fail = new AtomicInteger(0);
 
     BlockingQueue<String> infohashs = new LinkedBlockingQueue<>(2000);
     for (int i = 0; i < parallelism; i++) {
@@ -143,11 +146,14 @@ public class OSSUtils {
               metaHuman.put("date", collectionTime);
               METADATA.info(JSON.toJSONString(metaHuman));
               successed.mark();
+              suc.incrementAndGet();
             } catch (InvalidBittorrentPacketException e) {
               decodeFailed.mark();
+              fail.incrementAndGet();
               LOGGER.error("decode metadata error, " + infohash, e);
             } catch (Exception e) {
               otherFailed.mark();
+              fail.incrementAndGet();
               LOGGER.error("archived metadata error, " + infohash, e);
             }
             costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
@@ -155,6 +161,7 @@ public class OSSUtils {
             LOGGER.info("Interrupted");
             return;
           } catch (Exception e) {
+            fail.incrementAndGet();
             LOGGER.error("unexcept error, " + infohash, e);
           }
         }
@@ -182,7 +189,7 @@ public class OSSUtils {
     InfluxdbBackendMetrics.shutdown();
     executorService.shutdown();
 
-    LOGGER.info("finished");
+    LOGGER.info("archived {}, success:{}, fail:{}", localIndex, suc.get(), fail.get());
   }
 
   private void list() {

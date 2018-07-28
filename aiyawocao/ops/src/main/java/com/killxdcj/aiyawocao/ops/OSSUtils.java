@@ -19,6 +19,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -100,43 +106,82 @@ public class OSSUtils {
     String collectionTime = sdf.format(new Date());
     Logger METADATA = LoggerFactory.getLogger("metadata");
 
+    int parallelism = namespace.getInt("parallelism");
+    ExecutorService executorService = Executors.newFixedThreadPool(parallelism,
+        r -> {
+          Thread t = new Thread(r);
+          t.setDaemon(true);
+          return t;
+        });
     Meter successed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.successed"));
     Meter decodeFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
     Meter otherFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.other"));
     Timer costtime = registry.timer(MetricRegistry.name(OSSUtils.class, "archive.fetch"));
 
-    long start;
+    BlockingQueue<String> infohashs = new LinkedBlockingQueue<>(2000);
+    for (int i = 0; i < parallelism; i++) {
+      executorService.submit(() -> {
+        LOGGER.info("indexer started");
+        String infohash = null;
+        long start;
+        while (true) {
+          try {
+            infohash = infohashs.take();
+            start = System.currentTimeMillis();
+            String bucketKey = buildBucketKey(infohash);
+            if (!ossClient.doesObjectExist(bucketName, bucketKey)) {
+              LOGGER.info("infohash dose not exist, {}", infohash);
+              continue;
+            }
+
+            try (InputStream in = ossClient.getObject(bucketName, bucketKey)
+                .getObjectContent()) {
+              Bencoding bencoding = new Bencoding(IOUtils.toByteArray(in));
+              Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode()
+                  .toHuman();
+              metaHuman.put("infohash", infohash.toUpperCase());
+              metaHuman.put("date", collectionTime);
+              METADATA.info(JSON.toJSONString(metaHuman));
+              successed.mark();
+            } catch (InvalidBittorrentPacketException e) {
+              decodeFailed.mark();
+              LOGGER.error("decode metadata error, " + infohash, e);
+            } catch (Exception e) {
+              otherFailed.mark();
+              LOGGER.error("archived metadata error, " + infohash, e);
+            }
+            costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+          }  catch (InterruptedException e) {
+            LOGGER.info("Interrupted");
+            return;
+          } catch (Exception e) {
+            LOGGER.error("unexcept error, " + infohash, e);
+          }
+        }
+      });
+    }
+
     try (LineIterator lineIterator = FileUtils.lineIterator(new File(localIndex))) {
       while (lineIterator.hasNext()) {
-        start = System.currentTimeMillis();
-        String infohash = lineIterator.nextLine();
-        String bucketKey = buildBucketKey(infohash);
-        if (!ossClient.doesObjectExist(bucketName, bucketKey)) {
-          LOGGER.info("infohash dose not exist, {}", infohash);
-          continue;
-        }
-
-        try (InputStream in = ossClient.getObject(bucketName, bucketKey).getObjectContent()) {
-          Bencoding bencoding = new Bencoding(IOUtils.toByteArray(in));
-          Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
-          metaHuman.put("infohash", infohash.toUpperCase());
-          metaHuman.put("date", collectionTime);
-          METADATA.info(JSON.toJSONString(metaHuman));
-          successed.mark();
-        } catch (InvalidBittorrentPacketException e) {
-          decodeFailed.mark();
-          LOGGER.error("decode metadata error, " + infohash, e);
-        } catch (Exception e) {
-          otherFailed.mark();
-          LOGGER.error("archived metadata error, " + infohash, e);
-        }
-        costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+        infohashs.put(lineIterator.nextLine());
       }
     } catch (IOException e) {
-      e.printStackTrace();
-    } finally{
-      InfluxdbBackendMetrics.shutdown();
+      LOGGER.error("read index error", e);
+    } catch (InterruptedException e) {
+      LOGGER.error("read index Interrupted", e);
     }
+
+    while (infohashs.size() != 0) {
+      LOGGER.info("waiting indecer");
+      try {
+        Thread.sleep(10 * 1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    InfluxdbBackendMetrics.shutdown();
+    executorService.shutdown();
+
     LOGGER.info("finished");
   }
 
@@ -196,6 +241,7 @@ public class OSSUtils {
         .help("Archive Metadata to file");
     addOSSArguments(archive);
     archive.addArgument("-l", "--localIndex").required(true).help("Local IndexFile");
+    archive.addArgument("-p", "--parallelism").required(false).type(Integer.class).setDefault(20).help("parallelism");
 
     Subparser list = subparsers.addParser("list")
         .setDefault("action", "list")

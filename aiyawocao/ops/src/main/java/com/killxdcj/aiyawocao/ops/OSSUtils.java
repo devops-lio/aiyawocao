@@ -196,7 +196,6 @@ public class OSSUtils {
         .help("Archive Metadata to file");
     addOSSArguments(archive);
     archive.addArgument("-l", "--localIndex").required(true).help("Local IndexFile");
-    archive.addArgument("-u", "--useLog4j").required(false).type(Boolean.class).setDefault(false).help("Use Log4j");
 
     Subparser list = subparsers.addParser("list")
         .setDefault("action", "list")

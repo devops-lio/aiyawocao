@@ -5,7 +5,7 @@ bittorrentConfig:
   maxPacketSize: 65536
   nodeidChangeThreshold: 1000
   outBandwidthLimit: 1048576
-  port: 10240
+  port: 10241
   primeNodes:
   - router.bittorrent.com:6881
   - router.utorrent.com:6881
@@ -14,11 +14,11 @@ bittorrentConfig:
   transactionExpireTime: 300000
 influxdbBackendMetricsConfig:
   cluster: default
-  influxdbAddr: example-influxdb:port
-  influxdbName: example-influxdb-name
-  influxdbPassword: example-influxdb-user
-  influxdbUser: example-influxdb-user
+  influxdbAddr: influxdb.host:8086
+  influxdbName: AiyawocaoMetrics
+  influxdbPassword: ''
+  influxdbUser: ''
   reportPeriod: 60
 metadataServiceClientConfig:
-  poolsize: 10
-  server: example
+  poolsize: 20
+  server: btproxy.host:10242

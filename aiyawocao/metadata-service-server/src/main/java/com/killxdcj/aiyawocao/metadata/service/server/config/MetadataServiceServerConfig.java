@@ -8,7 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class MetadataServiceServerConfig {
-  private int port = 10241;
+  private int port = 10242;
   private int executorThreadNum = 100;
   private AliOSSBackendConfig aliOSSBackendConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;

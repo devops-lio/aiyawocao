@@ -130,7 +130,7 @@ public class MetaCrawlerMain {
   }
 
   private void submitNIOMetafetcher(BencodedString infohash, Peer peer) {
-    String infohashStr = infohash.asHexString();
+    String infohashStr = infohash.asHexString().toUpperCase();
     if (client.doesMetadataExist(infohash.asBytes())) {
       LOGGER.info("infohash has been fetched, {}", infohashStr);
       return;

@@ -94,11 +94,16 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   @Override
   public void doesMetadataExist(DoesMetadataExistRequest request,
       StreamObserver<DoesMetadataExistResponse> responseObserver) {
-    DoesMetadataExistResponse response = DoesMetadataExistResponse.newBuilder()
-        .setExist(rocksDB.keyMayExist(request.getInfohash().toByteArray(), new StringBuilder()))
-        .build();
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
+    try {
+      DoesMetadataExistResponse response = DoesMetadataExistResponse.newBuilder()
+          .setExist(rocksDB.get(request.getInfohash().toByteArray()) != null)
+          .build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (RocksDBException e) {
+      LOGGER.error("rocksdb error", e);
+      responseObserver.onError(e);
+    }
   }
 
   @Override

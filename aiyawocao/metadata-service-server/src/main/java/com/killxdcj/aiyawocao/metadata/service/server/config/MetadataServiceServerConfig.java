@@ -29,6 +29,7 @@ public class MetadataServiceServerConfig {
     MetadataServiceServerConfig config = new MetadataServiceServerConfig();
     config.setAliOSSBackendConfig(new AliOSSBackendConfig());
     config.setInfluxdbBackendMetricsConfig(new InfluxdbBackendMetricsConfig());
+    config.setRocksDBBackendConfig(new RocksDBBackendConfig());
     String yamlString = config.toYamlString();
     System.out.println(yamlString);
     System.out.println(MetadataServiceServerConfig.fromYamlString(yamlString).toString());

@@ -58,6 +58,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
         totalSize.incrementAndGet();
       }
     }
+    LOGGER.info("index loaded, {}", totalSize.get());
     registry.register(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "MetadataNum"), (Gauge<Integer>) () -> totalSize.get());
   }
 
@@ -120,6 +121,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
         LOGGER.error("save metadta error, " + infohash + ", " + metadataFile, e);
       }
 
+      LOGGER.info("metadata saved, {} -> {}bytes", infohash, request.getMetadata().toByteArray().length);
       PutMetadataResponse response = PutMetadataResponse.newBuilder().setResult(true).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();

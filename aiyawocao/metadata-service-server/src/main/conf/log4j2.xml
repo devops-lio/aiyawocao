@@ -15,7 +15,6 @@
       filePattern="/var/log/aiyawocao/metadata/human/metadata.%d{yyyyMMddHH}.%i.zip">
       <PatternLayout pattern="%m%n"/>
       <Policies>
-        <OnStartupTriggeringPolicy/>
         <SizeBasedTriggeringPolicy size="100 MB"/>
         <TimeBasedTriggeringPolicy modulate="true"/>
       </Policies>

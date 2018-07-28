@@ -152,6 +152,6 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   }
 
   private String buildOriginalMetadataPath(String infohash) {
-    return config.getOriginalMetadataPath() + METADATA_SDF.format(new Date()) + "/" + infohash;
+    return config.getOriginalMetadataPath() + "/" + METADATA_SDF.format(new Date()) + "/" + infohash;
   }
 }

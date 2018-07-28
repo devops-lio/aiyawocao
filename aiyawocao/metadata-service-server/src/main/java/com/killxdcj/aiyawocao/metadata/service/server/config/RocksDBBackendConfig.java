@@ -1,8 +1,8 @@
 package com.killxdcj.aiyawocao.metadata.service.server.config;
 
 public class RocksDBBackendConfig {
-  private String rocksDBPath = "/var/log/metadata-service/index";
-  private String originalMetadataPath = "/var/log/metadata-service/originalMetadataPath";
+  private String rocksDBPath = "/var/log/aiyawocao/index";
+  private String originalMetadataPath = "/var/log/aiyawocao/metadata/original";
 
   public String getRocksDBPath() {
     return rocksDBPath;

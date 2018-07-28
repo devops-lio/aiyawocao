@@ -1,4 +1,4 @@
-executorThreadNum: 100
+executorThreadNum: 50
 port: 10242
 aliOSSBackendConfig:
   accessKeyId: example-accesskey-id

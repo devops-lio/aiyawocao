@@ -30,8 +30,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OSSUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(OSSUtils.class);
+
   private Namespace namespace;
   private OSSClient ossClient;
   private String bucketName;
@@ -78,30 +82,23 @@ public class OSSUtils {
     }
 
     if (!ossClient.doesObjectExist(bucketName, remoteFile)) {
-      System.out.println("RemoteFile does not exist, " + remoteFile);
+      LOGGER.info("RemoteFile does not exist, {}", remoteFile);
       return;
     }
 
     try (InputStream in = ossClient.getObject(bucketName, remoteFile).getObjectContent()) {
       FileUtils.copyInputStreamToFile(in, new File(localFile));
     } catch (IOException e) {
-      System.out.println("Download file error, " + remoteFile);
-      e.printStackTrace();
+      LOGGER.error("Download file error, " + remoteFile, e);
     }
   }
 
   private void archive() {
     MetricRegistry registry = InfluxdbBackendMetrics.startMetricReport(new InfluxdbBackendMetricsConfig());
     String localIndex = namespace.getString("localIndex");
-    int maxLine = namespace.getInt("maxLine");
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    String fileFormat = namespace.getString("fileFormat");
     String collectionTime = sdf.format(new Date());
-
-    int batchSize = (maxLine > 0 && maxLine < 100) ? maxLine : 100;
-    List<String> metadataBatch = new ArrayList<>(batchSize);
-    int curArchivedIdx = 0;
-    int cnt = 0;
+    Logger METADATA = LoggerFactory.getLogger("metadata");
 
     Meter successed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.successed"));
     Meter decodeFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
@@ -115,7 +112,7 @@ public class OSSUtils {
         String infohash = lineIterator.nextLine();
         String bucketKey = buildBucketKey(infohash);
         if (!ossClient.doesObjectExist(bucketName, bucketKey)) {
-          System.out.println("infohash dose not exist, " + infohash);
+          LOGGER.info("infohash dose not exist, {}", infohash);
           continue;
         }
 
@@ -124,40 +121,23 @@ public class OSSUtils {
           Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
           metaHuman.put("infohash", infohash.toUpperCase());
           metaHuman.put("date", collectionTime);
-          metadataBatch.add(JSON.toJSONString(metaHuman));
+          METADATA.info(JSON.toJSONString(metaHuman));
           successed.mark();
         } catch (InvalidBittorrentPacketException e) {
           decodeFailed.mark();
-          System.out.println("decode metadata error, " + infohash);
-          e.printStackTrace();
+          LOGGER.error("decode metadata error, " + infohash, e);
         } catch (Exception e) {
           otherFailed.mark();
-          System.out.println("archived metadata error, " + infohash);
-          e.printStackTrace();
-        }
-
-        if (metadataBatch.size() >=  batchSize) {
-          String archivedFile = String.format(fileFormat, curArchivedIdx);
-          FileUtils.writeLines(new File(archivedFile), metadataBatch, true);
-          cnt += metadataBatch.size();
-          metadataBatch.clear();
-          collectionTime = sdf.format(new Date());
-          if (maxLine != -1 && cnt >= maxLine) {
-            curArchivedIdx++;
-            cnt = 0;
-          }
+          LOGGER.error("archived metadata error, " + infohash, e);
         }
         costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
       }
-
-      String archivedFile = String.format(fileFormat, curArchivedIdx);
-      FileUtils.writeLines(new File(archivedFile), metadataBatch, true);
     } catch (IOException e) {
       e.printStackTrace();
     } finally{
       InfluxdbBackendMetrics.shutdown();
     }
-    System.out.println("finished");
+    LOGGER.info("finished");
   }
 
   private void list() {
@@ -216,8 +196,7 @@ public class OSSUtils {
         .help("Archive Metadata to file");
     addOSSArguments(archive);
     archive.addArgument("-l", "--localIndex").required(true).help("Local IndexFile");
-    archive.addArgument("-m", "--maxLine").required(false).type(Integer.class).setDefault(-1).help("Max Line PerFile");
-    archive.addArgument("-f", "--fileFormat").required(false).setDefault(-1).help("Archived File Format");
+    archive.addArgument("-u", "--useLog4j").required(false).type(Boolean.class).setDefault(false).help("Use Log4j");
 
     Subparser list = subparsers.addParser("list")
         .setDefault("action", "list")

@@ -5,7 +5,6 @@
       filePattern="./logs/ops.log.%d{yyyyMMdd}.%i">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
-        <OnStartupTriggeringPolicy/>
         <SizeBasedTriggeringPolicy size="100 MB"/>
         <TimeBasedTriggeringPolicy modulate="true"/>
       </Policies>

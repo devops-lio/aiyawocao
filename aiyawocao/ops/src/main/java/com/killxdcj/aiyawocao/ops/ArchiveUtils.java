@@ -54,34 +54,9 @@ public class ArchiveUtils {
     if (root.isFile()) {
       transFile(root);
     } else {
-      transDir(new File(path));
-    }
-  }
-
-  private void transDir(File file) {
-    if (file.isDirectory()) {
-      LOGGER.info("dir trans start {}", file.getAbsolutePath());
-      IOFileFilter fileFilter = new IOFileFilter() {
-        @Override
-        public boolean accept(File file) {
-          return true;
-        }
-
-        @Override
-        public boolean accept(File dir, String name) {
-          return true;
-        }
-      };
-      for (File tmp : FileUtils.listFilesAndDirs(file, fileFilter, null)) {
-        if (tmp.isFile()) {
-          transFile(tmp);
-        } else {
-          transDir(tmp);
-        }
+      for (File file : FileUtils.listFiles(root, null, true)) {
+        transFile(file);
       }
-      LOGGER.info("dir trans finished {}", file.getAbsolutePath());
-    } else {
-      transFile(file);
     }
   }
 

@@ -1,17 +1,18 @@
-curl -X PUT "localhost:9200/metadata" -H 'Content-Type: application/json' -d'
+curl -X PUT "localhost:9200/metadata" -H 'Content-Type: application/json' -d '
 {
   "settings": {
     "index": {
-      "number_of_shards": 6,
+      "number_of_shards": 1,
       "number_of_replicas": 0
     }
   },
   "mappings": {
     "v1": {
+      "dynamic": false,
       "properties": {
-        "collection-ts": {
+        "date": {
           "type": "date",
-          "format": "epoch_millis"
+          "format": "yyyy-MM-dd HH:mm:ss"
         },
         "infohash": {
           "type": "keyword"
@@ -33,28 +34,14 @@ curl -X PUT "localhost:9200/metadata" -H 'Content-Type: application/json' -d'
               "type": "text"
             }
           }
-        },
-        "files.length": {
-          "type": "long",
-          "index": false
         }
-      },
-      "dynamic_templates": [
-        {
-          "string_as_text": {
-            "match_mapping_type": "string",
-            "mapping": {
-              "type": "text"
-            }
-          }
-        }
-      ]
+      }
     }
   }
 }
 '
 
-curl -XPOST "http://localhost:9200/metadata/v1/46E40E64D0FC4797970A71BCDD5BB00B91D8D268" -H 'Content-Type: application/json' -d'
+curl -XPOST "http://localhost:9200/metadata/v1/46E40E64D0FC4797970A71BCDD5BB00B91D8D268" -H 'Content-Type: application/json' -d '
 {
   "collection-ts": 1532269676056,
   "name": "xxx",
@@ -74,7 +61,7 @@ curl -XPOST "http://localhost:9200/metadata/v1/46E40E64D0FC4797970A71BCDD5BB00B9
 }
 '
 
-curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d'
+curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d '
 {
   "query": {
     "multi_match": {
@@ -104,11 +91,11 @@ curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-T
 }
 '
 
-curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d'
+curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-Type:application/json' -d '
 {
   "query": {
     "multi_match": {
-      "query": "先生",
+      "query": "Agents of SHIELD",
       "fields": [
         "files.path",
         "files.path.standard"
@@ -133,7 +120,7 @@ curl -XPOST http://localhost:9200/metadata/v1/_search?pretty=true  -H 'Content-T
 }
 '
 
-curl -XGET "http://localhost:9200/metadata/_analyze?pretty=true" -H 'Content-Type: application/json' -d'
+curl -XGET "http://localhost:9200/metadata/_analyze?pretty=true" -H 'Content-Type: application/json' -d '
 {
   "field": "name.standard", 
   "text":  "EloricSear치의 몇 가지 중요한 분사기"

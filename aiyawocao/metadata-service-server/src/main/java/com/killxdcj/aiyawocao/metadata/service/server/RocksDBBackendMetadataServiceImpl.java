@@ -43,7 +43,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   private static final Logger METADATA = LoggerFactory.getLogger("metadata");
   private static final byte[] DUMMY_VALUE = new byte[0];
   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-  private static final SimpleDateFormat METADATA_SDF = new SimpleDateFormat("yyyy/MM/dd/HH");
+  private static final SimpleDateFormat METADATA_SDF = new SimpleDateFormat("yyyyMMdd/HH");
 
   private RocksDBBackendConfig config;
   private RocksDB rocksDB;

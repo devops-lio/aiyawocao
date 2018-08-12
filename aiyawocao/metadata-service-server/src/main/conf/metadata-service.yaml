@@ -17,5 +17,5 @@ influxdbBackendMetricsConfig:
   influxdbUser: ''
   reportPeriod: 60
 rocksDBBackendConfig:
-  originalMetadataPath: /var/log/aiyawocao/metadata/original
-  rocksDBPath: /var/log/aiyawocao/index
+  originalMetadataPath: /data/aiyawocao/metadata/original
+  rocksDBPath: /data/aiyawocao/metadata/index

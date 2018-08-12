@@ -11,7 +11,7 @@
       </Policies>
       <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile name="metadata" fileName="/var/log/aiyawocao/metadata/human/metadata.log"
+    <RollingFile name="metadata" fileName="/data/aiyawocao/metadata/human/metadata.log"
       filePattern="/var/log/aiyawocao/metadata/human/metadata.%d{yyyyMMdd}.%i.zip">
       <PatternLayout pattern="%m%n"/>
       <Policies>

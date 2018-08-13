@@ -27,9 +27,15 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ESUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ESUtils.class);
   private Namespace nameSpace;
+  private Timer costtime;
+  private Meter successed;
+  private Meter error;
 
   public static void main(String[] args) {
     ESUtils esUtils = new ESUtils();
@@ -55,19 +61,39 @@ public class ESUtils {
   private void index() {
     MetricRegistry registry =
         InfluxdbBackendMetrics.startMetricReport(new InfluxdbBackendMetricsConfig());
-    Timer costtime = registry.timer(MetricRegistry.name(ESUtils.class, "index.costtime"));
-    Meter successed =
+    costtime = registry.timer(MetricRegistry.name(ESUtils.class, "index.costtime"));
+    successed =
         registry.meter(MetricRegistry.name(ESUtils.class, "index.throughput.successed"));
-    Meter error = registry.meter(MetricRegistry.name(ESUtils.class, "index.throughput.error"));
+    error = registry.meter(MetricRegistry.name(ESUtils.class, "index.throughput.error"));
 
-    String metadataFile = nameSpace.getString("metadataFile");
+    String path = nameSpace.getString("path");
     String index = nameSpace.getString("index");
     String type = nameSpace.getString("type");
     int bulkSize = nameSpace.getInt("bulkSize");
 
     long start;
     try (RestHighLevelClient client = buildESClient()) {
-      LineIterator lineIterator = FileUtils.lineIterator(new File(metadataFile));
+      File root = new File(path);
+      if (root.isFile()) {
+        indexFile(root, client, index, type, bulkSize);
+      } else {
+        for (File file : FileUtils.listFiles(root, null, true)) {
+          indexFile(file, client, index, type, bulkSize);
+        }
+      }
+    } catch (IOException e) {
+      LOGGER.error("close es client error", e);
+    } finally {
+      InfluxdbBackendMetrics.shutdown();
+    }
+    LOGGER.info("fininshed");
+  }
+
+  private void indexFile(File file, RestHighLevelClient client, String index, String type, int bulkSize) {
+    LOGGER.info("start index {}", file);
+    try {
+      long start;
+      LineIterator lineIterator = FileUtils.lineIterator(file);
       List<String> batch = new ArrayList<>(bulkSize);
       while (lineIterator.hasNext()) {
         batch.add(lineIterator.nextLine());
@@ -84,13 +110,8 @@ public class ESUtils {
             for (BulkItemResponse response : responses.getItems()) {
               if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
                 error.mark();
-                System.out.println(
-                    "index error, "
-                        + response.getId()
-                        + " -> "
-                        + response.status().getStatus()
-                        + ", "
-                        + response.getFailureMessage());
+                LOGGER.info("index error, {} -> {}, {}", response.getId(), response.status().getStatus(),
+                    response.getFailureMessage());
               } else {
                 successed.mark();
               }
@@ -100,8 +121,7 @@ public class ESUtils {
             for (String metadata : batch) {
               sb.append("," + JSON.parseObject(metadata).getString("infohash"));
             }
-            System.out.println("index error" + sb.toString());
-            e.printStackTrace();
+            LOGGER.error("index error, " + sb.toString(), e);
           } finally {
             batch.clear();
             costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
@@ -109,11 +129,9 @@ public class ESUtils {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      InfluxdbBackendMetrics.shutdown();
+      LOGGER.error("metadata file error, " + file.getAbsolutePath(), e);
     }
-    System.out.println("fininshed");
+    LOGGER.info("complete index {}", file);
   }
 
   private RestHighLevelClient buildESClient() {
@@ -133,7 +151,7 @@ public class ESUtils {
             .setDefault("action", "index")
             .defaultHelp(true)
             .help("Index Json File");
-    index.addArgument("-f", "--metadataFile").required(true).help("Json Metadata File");
+    index.addArgument("-p", "--path").required(true).help("Json Metadata File/Dir path");
     index.addArgument("-e", "--esAddr").required(true).help("ES addr, host:port");
     index.addArgument("-i", "--index").required(true).help("Index name");
     index.addArgument("-t", "--type").required(true).help("Type name");

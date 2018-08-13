@@ -1,0 +1,10 @@
+[Unit]
+Description=es-demon
+[Service]
+User=es
+ExecStart=/usr/lib/elasticsearch-6.3.2/bin/start.sh
+ExecStop=/usr/lib/elasticsearch-6.3.2/bin/stop.sh
+Restart=always
+RestartSec=60
+[Install]
+WantedBy=default.target

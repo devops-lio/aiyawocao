@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Test</title>
+  <link rel="stylesheet" href="/css/ztree/demo.css" type="text/css">
+  <link rel="stylesheet" href="/css/ztree/zTreeStyle/zTreeStyle.css" type="text/css">
+  <script type="text/javascript" src="/js/ztree/jquery-1.4.4.min.js"></script>
+  <script type="text/javascript" src="/js/ztree/jquery.ztree.core.js"></script>
+</head>
+<body>
+<ul id="treeDemo" class="ztree"></ul>
+<p id="hidetext" th:text="${metadata.fileTree}" />
+</body>
+<script LANGUAGE="JavaScript">
+  var zTreeObj;
+  var setting = {
+    view: {
+      nameIsHTML: true
+    }
+  };
+  var zNodes = JSON.parse($("#hidetext").text());
+  $(document).ready(function(){
+    zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+    $("#treeDemo").height(800);
+    $("#treeDemo").width(1600);
+  });
+</script>
+</html>

@@ -22,3 +22,5 @@ influxdbBackendMetricsConfig:
 metadataServiceClientConfig:
   poolsize: 20
   server: btproxy.host:10242
+maxPendingAnnouncePeerReq: 10000
+fetcherSubmitterNum: 20

@@ -15,6 +15,7 @@ public abstract class AbstractBencodedValue implements IBencodedValue {
   public static final Set<Byte> STRING_ENTRYS =
       new HashSet<Byte>() {
         {
+          add((byte) '0');
           add((byte) '1');
           add((byte) '2');
           add((byte) '3');

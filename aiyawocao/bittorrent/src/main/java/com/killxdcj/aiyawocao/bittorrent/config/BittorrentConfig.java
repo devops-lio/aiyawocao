@@ -15,12 +15,12 @@ public class BittorrentConfig {
         }
       };
   private long transactionExpireTime = 5 * 60 * 1000;
-  private int maxNeighbor = 3000;
+  private int maxNeighbor = 10000;
   private long outBandwidthLimit = 1 * 1024 * 1024;
-  private long requestLimit = 1500;
+  private long requestLimit = 500;
   private int blackThreshold = 30;
   private boolean enableBlack = true;
-  private int nodeidChangeThreshold = 1000;
+  private int nodeidChangeThreshold = 50;
 
   public BittorrentConfig() {}
 

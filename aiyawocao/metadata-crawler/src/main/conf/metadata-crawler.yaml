@@ -1,16 +1,16 @@
 bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
-  maxNeighbor: 3000
+  maxNeighbor: 10000
   maxPacketSize: 65536
-  nodeidChangeThreshold: 1000
+  nodeidChangeThreshold: 50
   outBandwidthLimit: 1048576
   port: 10241
   primeNodes:
   - router.bittorrent.com:6881
   - router.utorrent.com:6881
   - dht.transmissionbt.com:6881
-  requestLimit: 1500
+  requestLimit: 500
   transactionExpireTime: 300000
 influxdbBackendMetricsConfig:
   cluster: default

@@ -1,27 +1,29 @@
 package com.killxdcj.aiyawocao.metadata.crawler;
 
-import com.alibaba.fastjson.JSON;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
-import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.dht.DHT;
 import com.killxdcj.aiyawocao.bittorrent.dht.MetaWatcher;
-import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataFetcher;
 import com.killxdcj.aiyawocao.bittorrent.metadata.MetadataListener;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetrics;
 import com.killxdcj.aiyawocao.metadata.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.net.SocketException;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -40,6 +42,9 @@ public class MetaCrawlerMain {
   private Meter metaFetchTimeout;
   private Timer metaFetchSuccessedTimer;
   private Timer metaFetchErrorTimer;
+
+  private BlockingQueue<Object[]> pendingAnnouncePeerReq;
+  private ExecutorService fetcherSubmitter;
 
   public static void main(String[] args) {
     MetaCrawlerMain metaCrawlerMain = new MetaCrawlerMain();
@@ -67,6 +72,17 @@ public class MetaCrawlerMain {
     }
     config = MetaCrawlerConfig.fromYamlConfFile(confPath);
 
+    pendingAnnouncePeerReq = new LinkedBlockingQueue<>(config.getMaxPendingAnnouncePeerReq());
+    fetcherSubmitter = Executors.newFixedThreadPool(config.getFetcherSubmitterNum(),
+        r -> {
+          Thread t = new Thread(r, "FetcherSummiter");
+          t.setDaemon(true);
+          return t;
+        });
+    for (int i = 0; i < config.getFetcherSubmitterNum(); i++) {
+      fetcherSubmitter.submit(this::submitNIOMetafetcher);
+    }
+
     metricRegistry =
         InfluxdbBackendMetrics.startMetricReport(config.getInfluxdbBackendMetricsConfig());
 
@@ -81,7 +97,10 @@ public class MetaCrawlerMain {
             MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchSuccessedCost"));
     metaFetchErrorTimer =
         metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
-    client = new MetadataServiceClient(config.getMetadataServiceClientConfig());
+    metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "pendingAnnouncePeerReq"),
+        (Gauge<Integer>) () -> pendingAnnouncePeerReq.size());
+
+    client = new MetadataServiceClient(config.getMetadataServiceClientConfig(), metricRegistry);
     fetcher = new MetadataFetcher(metricRegistry);
 
     dht =
@@ -95,7 +114,11 @@ public class MetaCrawlerMain {
 
               @Override
               public void onAnnouncePeer(BencodedString infohash, Peer peer) {
-                submitNIOMetafetcher(infohash, peer);
+                try {
+                  pendingAnnouncePeerReq.put(new Object[]{infohash, peer});
+                } catch (InterruptedException e) {
+                  // just ignore
+                }
               }
             },
             metricRegistry);
@@ -116,6 +139,10 @@ public class MetaCrawlerMain {
       dht.shutdown();
     }
 
+    if (fetcherSubmitter != null) {
+      fetcherSubmitter.shutdown();
+    }
+
     if (fetcher != null) {
       fetcher.shutdown();
     }
@@ -129,55 +156,62 @@ public class MetaCrawlerMain {
     LOGGER.info("MetaCrawler stoped");
   }
 
-  private void submitNIOMetafetcher(BencodedString infohash, Peer peer) {
-    String infohashStr = infohash.asHexString().toUpperCase();
-    if (client.doesMetadataExist(infohash.asBytes())) {
-      LOGGER.info("infohash has been fetched, {}", infohashStr);
-      return;
-    }
+  private void submitNIOMetafetcher() {
+    while (!exit) {
+      try {
+        Object[] req = pendingAnnouncePeerReq.take();
+        BencodedString infohash = (BencodedString) req[0];
+        Peer peer = (Peer) req[1];
+        String infohashStr = infohash.asHexString().toUpperCase();
+        if (client.doesMetadataExist(infohash.asBytes())) {
+          LOGGER.info("infohash has been fetched, {}", infohashStr);
+          continue;
+        }
 
-    try {
-      fetcher.submit(
-          infohash,
-          peer,
-          new MetadataListener() {
-            @Override
-            public void onSuccedded(
-                Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
-              LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
-              metaFetchSuccessed.mark();
-              metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
-              if (client.doesMetadataExist(infohash.asBytes())) {
-                LOGGER.info("{} has been fetched by others", infohashStr);
-                return;
-              }
-              try {
-                client.putMetadata(infohash.asBytes(), metadata);
-                LOGGER.info("{} meta uploaded", infohashStr);
-              } catch (Throwable t) {
-                LOGGER.error("upload metadata error, " + infohashStr, t);
-              }
-            }
-
-            @Override
-            public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
-              if (!LOGGER.isDebugEnabled()) {
-                LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
-                    t.getMessage(), costtime);
-              } else {
-                if (t instanceof TimeoutException) {
-                  metaFetchTimeout.mark();
-                } else {
-                  metaFetchError.mark();
+        fetcher.submit(
+            infohash,
+            peer,
+            new MetadataListener() {
+              @Override
+              public void onSuccedded(
+                  Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
+                LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
+                metaFetchSuccessed.mark();
+                metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
+                if (client.doesMetadataExist(infohash.asBytes())) {
+                  LOGGER.info("{} has been fetched by others", infohashStr);
+                  return;
                 }
-                metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
-                LOGGER.error(infohashStr + ", " + peer + " meta fetch error, costtime: " +
-                    costtime + "ms", t);
+                try {
+                  client.putMetadata(infohash.asBytes(), metadata);
+                  LOGGER.info("{} meta uploaded", infohashStr);
+                } catch (Throwable t) {
+                  LOGGER.error("upload metadata error, " + infohashStr, t);
+                }
               }
-            }
-          });
-    } catch (Exception e) {
-      LOGGER.error("submit metafetcher error", e);
+
+              @Override
+              public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
+                if (!LOGGER.isDebugEnabled()) {
+                  LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
+                      t.getMessage(), costtime);
+                } else {
+                  if (t instanceof TimeoutException) {
+                    metaFetchTimeout.mark();
+                  } else {
+                    metaFetchError.mark();
+                  }
+                  metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+                  LOGGER.error(infohashStr + ", " + peer + " meta fetch error, costtime: " +
+                      costtime + "ms", t);
+                }
+              }
+            });
+      } catch (InterruptedException e) {
+        return;
+      } catch (Exception e) {
+        LOGGER.error("submit metafetcher error", e);
+      }
     }
   }
 }

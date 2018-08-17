@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class MetaCrawlerConfig {
+  private int maxPendingAnnouncePeerReq = 10000;
+  private int fetcherSubmitterNum = 20;
   private BittorrentConfig bittorrentConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
@@ -61,16 +63,31 @@ public class MetaCrawlerConfig {
     this.influxdbBackendMetricsConfig = influxdbBackendMetricsConfig;
   }
 
+  public int getMaxPendingAnnouncePeerReq() {
+    return maxPendingAnnouncePeerReq;
+  }
+
+  public void setMaxPendingAnnouncePeerReq(int maxPendingAnnouncePeerReq) {
+    this.maxPendingAnnouncePeerReq = maxPendingAnnouncePeerReq;
+  }
+
+  public int getFetcherSubmitterNum() {
+    return fetcherSubmitterNum;
+  }
+
+  public void setFetcherSubmitterNum(int fetcherSubmitterNum) {
+    this.fetcherSubmitterNum = fetcherSubmitterNum;
+  }
+
   @Override
   public String toString() {
-    return "MetaCrawlerConfig{"
-        + "bittorrentConfig="
-        + bittorrentConfig
-        + ", metadataServiceClientConfig="
-        + metadataServiceClientConfig
-        + ", influxdbBackendMetricsConfig="
-        + influxdbBackendMetricsConfig
-        + '}';
+    return "MetaCrawlerConfig{" +
+        "maxPendingAnnouncePeerReq=" + maxPendingAnnouncePeerReq +
+        ", fetcherSubmitterNum=" + fetcherSubmitterNum +
+        ", bittorrentConfig=" + bittorrentConfig +
+        ", metadataServiceClientConfig=" + metadataServiceClientConfig +
+        ", influxdbBackendMetricsConfig=" + influxdbBackendMetricsConfig +
+        '}';
   }
 
   public String toYamlConf() {

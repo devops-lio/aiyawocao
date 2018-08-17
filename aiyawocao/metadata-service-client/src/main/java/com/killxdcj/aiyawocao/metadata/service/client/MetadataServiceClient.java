@@ -52,14 +52,14 @@ public class MetadataServiceClient {
     }
 
     doesMetadataExistTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.costtime"));
-    putMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "putMetadataTimer.costtime"));
-    getMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "getMetadataTimer.costtime"));
-    parseMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadataTimer.costtime"));
+    putMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.costtime"));
+    getMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.costtime"));
+    parseMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.costtime"));
 
     doesMetadataExistMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.throughput"));
-    putMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "putMetadataTimer.throughput"));
-    getMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadataTimer.throughput"));
-    parseMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadataTimer.throughput"));
+    putMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.throughput"));
+    getMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.throughput"));
+    parseMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.throughput"));
   }
 
   public void shutdown() {

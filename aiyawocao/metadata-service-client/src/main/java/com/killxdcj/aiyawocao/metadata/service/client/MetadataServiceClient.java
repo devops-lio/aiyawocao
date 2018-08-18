@@ -3,7 +3,11 @@ package com.killxdcj.aiyawocao.metadata.service.client;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.protobuf.ByteString;
+import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.metadata.service.*;
@@ -21,10 +25,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MetadataServiceClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceClient.class);
+  private static final byte NOT_EXIST = 0;
+  private static final byte EXIST = 1;
+  private static final byte UNKNOW = 2;
+
   private MetadataServiceClientConfig config;
 
   private List<GrpcClient> grpcClients;
   private AtomicInteger idx = new AtomicInteger(0);
+  private LoadingCache<BencodedString/* infohash */, Byte> localCache;
 
   private Timer doesMetadataExistTimer;
   private Timer putMetadataTimer;
@@ -32,12 +41,24 @@ public class MetadataServiceClient {
   private Timer parseMetadataTimer;
 
   private Meter doesMetadataExistMeter;
+  private Meter doesMetadataExistHitCacheMeter;
   private Meter putMetadataMeter;
   private Meter getMetadataMeter;
   private Meter parseMetadataMeter;
 
   public MetadataServiceClient(MetadataServiceClientConfig config, MetricRegistry metricRegistry) {
     this.config = config;
+
+    if (config.getEnableLocalCache()) {
+      localCache = CacheBuilder.newBuilder()
+          .expireAfterAccess(config.getExpiredTime(), TimeUnit.MILLISECONDS)
+          .build(new CacheLoader<BencodedString, Byte>() {
+            @Override
+            public Byte load(BencodedString bencodedString) throws Exception {
+              return UNKNOW;
+            }
+          });
+    }
 
     grpcClients = new ArrayList<>(config.getPoolsize());
     String[] servers = config.getServer().split(":");
@@ -57,6 +78,7 @@ public class MetadataServiceClient {
     parseMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.costtime"));
 
     doesMetadataExistMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.throughput"));
+    doesMetadataExistHitCacheMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.hitCache.throughput"));
     putMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.throughput"));
     getMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.throughput"));
     parseMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.throughput"));
@@ -73,6 +95,16 @@ public class MetadataServiceClient {
   }
 
   public boolean doesMetadataExist(byte[] infohash) {
+    BencodedString bInfohash = null;
+    if (config.getEnableLocalCache()) {
+      bInfohash = new BencodedString(infohash);
+      byte cache = localCache.getUnchecked(bInfohash);
+      if (cache != UNKNOW) {
+        doesMetadataExistHitCacheMeter.mark();
+        return cache == EXIST;
+      }
+    }
+
     long start = TimeUtils.getCurTime();
     try {
       DoesMetadataExistRequest request =
@@ -80,6 +112,9 @@ public class MetadataServiceClient {
 
       DoesMetadataExistResponse response = getNextStub().doesMetadataExist(request);
       doesMetadataExistMeter.mark();
+      if (config.getEnableLocalCache()) {
+        localCache.put(bInfohash, response.getExist() ? EXIST : NOT_EXIST);
+      }
       return response.getExist();
     } catch (StatusRuntimeException sre) {
       LOGGER.error("doesMetadataExist rpc error", sre);
@@ -103,6 +138,7 @@ public class MetadataServiceClient {
               .build();
       PutMetadataResponse response = getNextStub().putMetadata(request);
       putMetadataMeter.mark();
+      localCache.put(new BencodedString(infohash), EXIST);
     } catch (StatusRuntimeException sre) {
       throw sre.getCause();
     } finally {

@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.web.controller;
 
 import com.killxdcj.aiyawocao.web.model.Metadata;
+import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -20,18 +21,39 @@ public class WebController {
   @Autowired
   private ESService esService;
 
-  @RequestMapping("hello/{user}")
-  public String hello(@PathVariable String user, Model model) {
-    model.addAttribute("user", user);
-    return "hello";
+  @RequestMapping("")
+  public String home() {
+    return "home";
   }
 
   @RequestMapping("search")
-  public String search(@RequestParam String keyword, Model model) {
+  public String search(@RequestParam String keyword,
+      @RequestParam(value = "p", required = false, defaultValue = "1") int page,
+      Model model) {
     try {
-      Object result = esService.search(keyword, 0, 10);
-      return null;
+      SearchResult result = esService.search(keyword, (page - 1) * 10, 10);
+      model.addAttribute("result", result);
+      model.addAttribute("keyword", keyword);
+
+      long totalPage = result.getTotalHits() / 10 + (result.getTotalHits() % 10 > 0 ? 1 : 0);
+      model.addAttribute("curPage", page);
+      if (totalPage <= 10) {
+        model.addAttribute("totalPage", totalPage);
+        model.addAttribute("startPage", 1);
+      } else {
+        model.addAttribute("totalPage", 10);
+        if (page - 4 < 1) {
+          model.addAttribute("startPage", 1);
+        }
+        if (page + 5 > totalPage) {
+          model.addAttribute("startPage", totalPage - 9);
+        }
+      }
+      model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
+      model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
+      return "search";
     } catch (IOException e) {
+      LOGGER.error("xx", e);
       return "home";
     }
   }
@@ -39,8 +61,8 @@ public class WebController {
   @RequestMapping("detail/{infohash}")
   public String detail(@PathVariable String infohash, Model model) {
     try {
-      model.addAttribute("metadata", new Metadata(esService.detail(infohash)));
-      return "test";
+      model.addAttribute("metadata", esService.detail(infohash));
+      return "detail";
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
       return "home";

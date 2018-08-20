@@ -1,16 +1,21 @@
 package com.killxdcj.aiyawocao.web.model;
 
 import com.alibaba.fastjson.JSON;
+import com.killxdcj.aiyawocao.common.utils.CommonUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import javafx.util.Pair;
 
 public class Metadata {
   private static final String[] UNITS = {"Bytes", "KB", "MB", "GB", "TB"};
   private static final String NAME_WITH_SIZE_FMT = "<span style='color:red;margin-right:0px;"
       + "padding: 3px;'>%s</span>&nbsp;&nbsp;<span style='color:blue;margin-right:0px;"
       + "background-color:lawngreen;border:1px solid;border-radius:10px;padding:2px;'>%s</span>";
+  private static int DEFAULT_DIGEST_FILES_SIZE = 10;
+
   private Map<String, Object> originalData;
 
   private long totalLength;
@@ -19,16 +24,66 @@ public class Metadata {
     this.originalData = originalData;
   }
 
-  private String getDate() {
-    return (String)originalData.get("date");
+  public Map<String, Object> getOriginalData() {
+    return originalData;
   }
 
-  private String getName() {
+  public String getName() {
     return (String)originalData.get("name");
   }
 
-  private String getInfohash() {
+  public String getDate() {
+    return (String)originalData.get("date");
+  }
+
+  public String getInfohash() {
     return (String)originalData.get("infohash");
+  }
+
+  public int getPopularity() {
+    return new Random().nextInt(1000);
+  }
+
+  public String getHumanFileSize() {
+    long totalSize = 0;
+    if (originalData.containsKey("files")) {
+      if (originalData.containsKey("files")) {
+        for (Map<String, String> file : (List<Map<String, String>>)originalData.get("files")) {
+          totalSize += Long.parseLong(file.get("length"));
+        }
+      } else {
+        totalSize += Long.parseLong((String)originalData.get("length"));
+      }
+    }
+    return CommonUtils.fileSize2Human(totalSize);
+  }
+
+  public int getFileNum() {
+    if (originalData.containsKey("files")) {
+      return ((List<Map<String, String>>)originalData.get("files")).size();
+    } else {
+      return 1;
+    }
+  }
+
+  public List<Pair<String, Long>> getDigestFiles() {
+    return getDigestFiles(DEFAULT_DIGEST_FILES_SIZE);
+  }
+
+  public List<Pair<String, Long>> getDigestFiles(int digestFilesSize) {
+    Pair<String, String> x = new Pair<>("xx", "xx");
+    List<Pair<String, Long>> ret = new ArrayList<>();
+    if (originalData.containsKey("files")) {
+      List<Map<String, String>> files = (List<Map<String, String>>)originalData.get("files");
+      for (int i = 0; i < (files.size() > digestFilesSize ? digestFilesSize : files.size()); i++) {
+        Map<String, String> file = files.get(i);
+        String[] tmps = file.get("path").split("/");
+        ret.add(new Pair(tmps[tmps.length - 1], CommonUtils.fileSize2Human(Long.parseLong(file.get("length")))));
+      }
+    } else {
+      ret.add(new Pair(originalData.get("name"), CommonUtils.fileSize2Human(Long.parseLong((String)originalData.get("length")))));
+    }
+    return ret;
   }
 
   public String getFileTree() {
@@ -50,7 +105,7 @@ public class Metadata {
           if (!nodeMap.containsKey(parentPath)) {
             Map<String, Object> me = new HashMap<>();
             if (i == paths.length - 1) {
-              me.put("name", String.format(NAME_WITH_SIZE_FMT, paths[i], transLength(length)));
+              me.put("name", String.format(NAME_WITH_SIZE_FMT, paths[i], CommonUtils.fileSize2Human(length)));
             } else {
               me.put("name", paths[i]);
             }
@@ -68,16 +123,5 @@ public class Metadata {
       }
     }
     return JSON.toJSONString(root);
-  }
-
-  private String transLength(long length) {
-    double humanLength = length;
-    int unitIdx = 0;
-    while (humanLength > 1024 && unitIdx < 5) {
-      humanLength = humanLength / 1024;
-      unitIdx++;
-    }
-
-    return String.format("%.2f %s", humanLength, UNITS[unitIdx]);
   }
 }

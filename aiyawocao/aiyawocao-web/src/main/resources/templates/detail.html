@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="UTF-8" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title>Detail</title>
-  <link rel="stylesheet" href="../static/css/style.css">
-  <link rel="stylesheet" href="../static/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 <div class="container">
   <div class="site-wrapper-border"></div>
   <div class="header">
     <div class="header-content">
-      <a href="https://btdb.to/"><img src="../static/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
+      <a href="https://btdb.to/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
       <div class="search-area">
         <form action="/search" method="get" accept-charset="utf-8" class="search-form">
-          <input type="text" id="search-input" value="建国大业" title="BTDB Search" name="keyword"
+          <input type="text" id="search-input" value="" title="BTDB Search" name="keyword"
                  maxlength="2048" class="search-input" aria-haspopup="false">
           <button class="search-btn"><i class="fa fa-search"></i></button>
         </form>
@@ -24,22 +24,20 @@
   <div class="torrent-page">
     <div class="torrent-content clearfix">
       <div class="torrent-info">
-        <h1 class="torrent-name">建国大业+建党伟业</h1>
+        <h1 class="torrent-name" th:text="${metadata.getName()}"></h1>
         <dl class="torrent-meta-info clearfix">
           <div class="meta-info clearfix">
             <div class="meta-info-left">
               <dt>文件大小</dt>
-              <dd>1.23 GB</dd>
+              <dd th:text="${metadata.getHumanFileSize()}"></dd>
               <dt>文件数量</dt>
-              <dd>5</dd>
+              <dd th:text="${metadata.getFileNum()}"></dd>
               <dt>热度</dt>
-              <dd>393</dd>
+              <dd th:text="${metadata.getPopularity()}"></dd>
               <dt>创建时间</dt>
-              <dd>
-                2012-05-31 19:03:55
-              </dd>
+              <dd th:text="${metadata.getDate()}"></dd>
               <dt>Info Hash</dt>
-              <dd>97B3D96F4BF5BC3A8D75E41EAB11D98DABCC997E</dd>
+              <dd th:text="${metadata.getInfohash()}"></dd>
             </div>
           </div>
           <dt>关键词</dt>
@@ -52,15 +50,11 @@
           <dt>磁力链接</dt>
           <dd>
             <i class="fa fa-magnet"></i> <a title="Magnet Link"
-                                            href="magnet:?xt=urn:btih:97B3D96F4BF5BC3A8D75E41EAB11D98DABCC997E&amp;dn=%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A%2B%E5%BB%BA%E5%85%9A%E4%BC%9F%E4%B8%9A&amp;tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&amp;tr=udp%3A%2F%2Fopen.demonii.com%3A1337&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce"
-                                            class="magnet" onclick="popup();">magnet:?xt=urn:btih:97B3D96F4BF5BC3A8D75E41EAB11D98DABCC997E...</a>
+                                            th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                                            th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                                            class="magnet" onclick="popup();"></a>
           </dd>
         </dl>
-        <div class="sponsor">
-          <iframe src="./建国大业+建党伟业 - 磁力链接 - BT种子下载 - BTDB_files/ipvanish_affiliate.html"
-                  width="728px" height="90px" frameborder="0" scrolling="no"
-                  style="display: none !important;"></iframe>
-        </div>
         <h2>文件列表</h2>
         <table class="torrent-file-list">
           <tbody>

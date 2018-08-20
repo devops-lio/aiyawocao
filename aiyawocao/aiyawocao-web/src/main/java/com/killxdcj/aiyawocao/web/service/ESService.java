@@ -1,5 +1,7 @@
 package com.killxdcj.aiyawocao.web.service;
 
+import com.killxdcj.aiyawocao.web.model.Metadata;
+import com.killxdcj.aiyawocao.web.model.SearchResult;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +46,7 @@ public class ESService {
 
   private RestHighLevelClient client;
 
-  public Object search(String keyword, int from, int size) throws IOException {
+  public Object searchx(String keyword, int from, int size) throws IOException {
     QueryBuilder queryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
         .type(Type.MOST_FIELDS);
 
@@ -63,7 +65,7 @@ public class ESService {
     return searchResponse.getHits();
   }
 
-  public Map<String, Object> detail(String infohash) throws IOException {
+  public Metadata detail(String infohash) throws IOException {
     QueryBuilder queryBuilder = new TermQueryBuilder("infohash", infohash.toUpperCase());
 
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
@@ -84,7 +86,26 @@ public class ESService {
       LOGGER.warn("find duplica infohash {}", infohash);
     }
 
-    return searchHits.getAt(0).getSourceAsMap();
+    return new Metadata(searchHits.getAt(0).getSourceAsMap());
+  }
+
+  public SearchResult search(String keyword, int from, int size) throws IOException {
+    QueryBuilder queryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
+        .type(Type.MOST_FIELDS);
+
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+        .query(queryBuilder)
+        .from(from)
+        .size(size)
+        .timeout(new TimeValue(30, TimeUnit.SECONDS))
+        .fetchSource(true);
+
+    SearchRequest searchRequest = new SearchRequest("metadata")
+        .types("v1")
+        .source(searchSourceBuilder);
+
+    SearchResponse searchResponse = client.search(searchRequest);
+    return SearchResult.fromSearchResponse(searchResponse);
   }
 
   @PostConstruct

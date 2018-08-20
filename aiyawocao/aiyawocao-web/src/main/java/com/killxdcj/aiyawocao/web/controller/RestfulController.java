@@ -1,5 +1,6 @@
 package com.killxdcj.aiyawocao.web.controller;
 
+import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.service.ESService;
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class RestfulController {
       @RequestParam(value = "from", required = false, defaultValue = "0") int from,
       @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
     try {
-      return esService.search(keyword, from, size);
+      return esService.searchx(keyword, from, size);
     } catch (IOException e) {
       LOGGER.error("search error", e);
       return new HashMap<String, Object>(){{put("errmsg", "inter error");}};
@@ -39,11 +40,11 @@ public class RestfulController {
   @ResponseBody
   public Object detail(@PathVariable String infohash) {
     try {
-      Map<String, Object> result = esService.detail(infohash);
-      if (result == null) {
+      Metadata metadata = esService.detail(infohash);
+      if (metadata == null) {
         return new HashMap<String, Object>(){{put("errmsg", "not exist");}};
       }
-      return result;
+      return metadata.getOriginalData();
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
       return new HashMap<String, Object>(){{put("errmsg", "inter error");}};

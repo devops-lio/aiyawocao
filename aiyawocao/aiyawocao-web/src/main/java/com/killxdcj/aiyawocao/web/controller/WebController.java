@@ -42,9 +42,7 @@ public class WebController {
         model.addAttribute("startPage", 1);
       } else {
         model.addAttribute("totalPage", 10);
-        if (page - 4 < 1) {
-          model.addAttribute("startPage", 1);
-        }
+        model.addAttribute("startPage", page - 4 < 1 ? 1 : page - 4);
         if (page + 5 > totalPage) {
           model.addAttribute("startPage", totalPage - 9);
         }

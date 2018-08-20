@@ -5,6 +5,11 @@
   <title>Detail</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <link rel="stylesheet" href="/css/ztree/demo.css" type="text/css">
+  <link rel="stylesheet" href="/css/ztree/zTreeStyle/zTreeStyle.css" type="text/css">
+  <script type="text/javascript" src="/js/ztree/jquery-1.4.4.min.js"></script>
+  <script type="text/javascript" src="/js/ztree/jquery.ztree.core.js"></script>
 </head>
 <body>
 <div class="container">
@@ -56,37 +61,7 @@
           </dd>
         </dl>
         <h2>文件列表</h2>
-        <table class="torrent-file-list">
-          <tbody>
-          <tr>
-            <td class="file-size">556.59 MB</td>
-            <td>
-              <span class="file-icon"><i class="fa fa-file-video-o"></i></span>
-              <span class="file-name">
-建党伟业(蓝光).mp4
-</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="file-size">353.41 MB</td>
-            <td>
-              <span class="file-icon"><i class="fa fa-file-video-o"></i></span>
-              <span class="file-name">
-建国大业_2009_CD1.rmvb
-</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="file-size">351.99 MB</td>
-            <td>
-              <span class="file-icon"><i class="fa fa-file-video-o"></i></span>
-              <span class="file-name">
-建国大业_2009_CD2.rmvb
-</span>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+        <div id="treeDemo" class="ztree" th:text="${metadata.getFileTree()}"></div>
       </div>
     </div>
     <div class="footer">
@@ -108,4 +83,16 @@
   </div>
 </div>
 </body>
+<script LANGUAGE="JavaScript">
+  var zTreeObj;
+  var setting = {
+    view: {
+      nameIsHTML: true
+    }
+  };
+  var zNodes = JSON.parse($("#treeDemo").text());
+  $(document).ready(function(){
+    zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+  });
+</script>
 </html>

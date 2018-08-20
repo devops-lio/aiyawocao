@@ -38,10 +38,10 @@ public class WebController {
       long totalPage = result.getTotalHits() / 10 + (result.getTotalHits() % 10 > 0 ? 1 : 0);
       model.addAttribute("curPage", page);
       if (totalPage <= 10) {
-        model.addAttribute("totalPage", totalPage);
+        model.addAttribute("pageNum", totalPage);
         model.addAttribute("startPage", 1);
       } else {
-        model.addAttribute("totalPage", 10);
+        model.addAttribute("pageNum", 10);
         model.addAttribute("startPage", page - 4 < 1 ? 1 : page - 4);
         if (page + 5 > totalPage) {
           model.addAttribute("startPage", totalPage - 9);

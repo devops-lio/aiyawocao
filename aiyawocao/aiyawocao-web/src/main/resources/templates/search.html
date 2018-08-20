@@ -65,7 +65,7 @@
             <li class="button">
               <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« Previous</a>
             </li>
-            <li th:each="i : ${#numbers.sequence(startPage, totalPage)}" class="button">
+            <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}" class="button">
               <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}" th:if="${i} != ${curPage}"></a>
               <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
             </li>

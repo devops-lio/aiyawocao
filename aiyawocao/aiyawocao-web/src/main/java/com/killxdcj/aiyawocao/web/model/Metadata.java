@@ -77,6 +77,9 @@ public class Metadata {
       List<Map<String, String>> files = (List<Map<String, String>>)originalData.get("files");
       for (int i = 0; i < (files.size() > digestFilesSize ? digestFilesSize : files.size()); i++) {
         Map<String, String> file = files.get(i);
+        if (file.get("path").indexOf("请升级到BitComet") != -1) {
+          continue;
+        }
         String[] tmps = file.get("path").split("/");
         ret.add(new Pair(tmps[tmps.length - 1], CommonUtils.fileSize2Human(Long.parseLong(file.get("length")))));
       }
@@ -96,6 +99,10 @@ public class Metadata {
       for(Map<String, String> file : (List<Map<String, String>>)originalData.get("files")) {
         long length = Long.parseLong(file.get("length"));
         totalLength += length;
+
+        if (file.get("path").indexOf("请升级到BitComet") != -1) {
+          continue;
+        }
         String[] paths = file.get("path").split("/");
 
         String parentPath = "";

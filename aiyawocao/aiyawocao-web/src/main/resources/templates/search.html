@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="UTF-8" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Search</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+<div class="container">
+  <div class="site-wrapper-border"></div>
+  <div class="header">
+    <div class="header-content">
+      <a href="https://btdb.to/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
+      <div class="search-area">
+        <form action="/search" method="get" accept-charset="utf-8" class="search-form">
+          <input type="text" id="search-input" th:value="${keyword}" title="BTDB Search" name="keyword"
+                 maxlength="2048" class="search-input" aria-haspopup="false">
+          <button class="search-btn"><i class="fa fa-search"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <span class="sort">Order by: </span>
+    <span class="active">Relevance</span>
+    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=size">Size</a>
+    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=num_files">Files</a>
+    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=time">AddTime</a>
+    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=popular">Popularity</a>
+  </div>
+  <div class="content clearfix">
+    <div class="left-content">
+      <h1 class="hide text-hide", th:text="${keyword} + 'search result, Torrent Magnet'"></h1>
+      <div class="result-stats" th:text="'About ' + ${result.getTotalHits()} + ' results (' + ${result.getTook()} + ')'"></div>
+      <div class="search-ret">
+        <ul class="search-ret-list">
+          <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
+            <h2 class="item-title"><a
+                th:href="'/detail/' + ${metadata.getInfohash()}" th:title="${metadata.getName()}"><span
+                class="highlight" th:text="${metadata.getName()}"></span></a></h2>
+            <div class="item-meta-info">
+              <a title="Download using magnet"
+                 th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}" class="magnet"
+                 onclick="popup();"><i class="fa fa-magnet"></i> Magnet Link</a>
+              Size: <span class="item-meta-info-value" th:text="${metadata.getHumanFileSize()}"/>
+              Files: <span class="item-meta-info-value" th:text="${metadata.getFileNum()}"/>
+              AddTime: <span class="item-meta-info-value" th:text="${metadata.getDate()}"/>
+              Popularity: <span class="item-meta-info-value" th:text="${metadata.getPopularity()}"/>
+            </div>
+            <ul class="item-file-list">
+              <li class="file" th:each="file : ${metadata.getDigestFiles()}">
+                <span class="file-icon"><i class="fa fa-file-video-o"></i></span>
+                <span class="file-name" th:text="${file.getKey()}"/>
+                <span class="file-size" th:text="${file.getValue()}"/>
+              </li>
+              <li th:if="${metadata.getFileNum() gt 10}">...</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div class="nav">
+        <nav role="navigation">
+          <ul class="pagination">
+            <li class="button">
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« Previous</a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(startPage, totalPage)}" class="button">
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}" th:if="${i} != ${curPage}"></a>
+              <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
+            </li>
+            <li class="button">
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${next}">Next »</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-content">
+        <div class="pull-left">
+          © 2016 BTDB.to | Bitcoin: <a href="bitcoin:17DzhgMEWyFBB9he3fhDJwpbECUJdGct58">17DzhgMEWyFBB9he3fhDJwpbECUJdGct58</a>
+        </div>
+        <div class="pull-right">
+          <a href="https://btdb.to/">SSL</a> | <a href="https://btdb.to/about">About</a>
+        </div>
+        <div class="disclaimer pull-left">
+          BTDB (btdb.to) is not a tracker and doesn't store any content and only collects torrent
+          metadata (such as file names and file sizes) and a magnet link (torrent identifier). This
+          means BTDB is the entirely legal system.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="adsbox">&nbsp;</div>
+</div>
+</body>
+</html>

@@ -13,4 +13,4 @@ logconf_path=$work_dir/config/log4j2.xml
 springboot_conf=$work_dir/config/application.properties
 lib_path=$work_dir/lib/aiyawocao-web-1.1-SNAPSHOT.jar
 
-java -server ${jvm_opts} -Dlog4j.configurationFile=file:$logconf_path -Dspring.config.location=$springboot_conf -cp $lib_path ${main_class} >crawler.out 2>&1
+java -server ${jvm_opts} -Dlog4j.configurationFile=file:$logconf_path -Dspring.config.location=$springboot_conf -jar $lib_path ${main_class} >skrbt.out 2>&1

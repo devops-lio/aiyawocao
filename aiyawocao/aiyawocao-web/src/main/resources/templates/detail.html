@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Detail</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-  <link rel="stylesheet" href="/css/ztree/demo.css" type="text/css">
-  <link rel="stylesheet" href="/css/ztree/zTreeStyle/zTreeStyle.css" type="text/css">
-  <script type="text/javascript" src="/js/ztree/jquery-1.4.4.min.js"></script>
-  <script type="text/javascript" src="/js/ztree/jquery.ztree.core.js"></script>
+  <link rel="stylesheet" href="../static/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="../static/css/jquery.treeview.css" type="text/css">
+  <script type="text/javascript" src="../static/js/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="../static/js/jquery.treeview.js"></script>
 </head>
 <body>
 <div class="container">
@@ -63,6 +60,22 @@
         </dl>
         <h2>文件列表</h2>
         <div id="treeDemo" class="ztree" th:text="${metadata.getFileTree()}"></div>
+        <ul id="browser" class="filetree treeview">
+          <li><span>Folder 1</span>
+            <ul>
+              <li><i class="fa fa-folder fa-2x" aria-hidden="true"></i>Folder 2
+                <ul>
+                  <li style="height: 50px; line-height: 50px"><i class="fa fa-folder" aria-hidden="true"></i>Folder 2.1
+                    <ul id="folder21">
+                      <li><i class="fa fa-search"></i>&nbsp;&nbsp;File 2.1.1</li>
+                      <li><i class="fa fa-search"></i>&nbsp;&nbsp;File 2.1.2</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
       </div>
     </div>
     <div class="footer">
@@ -84,16 +97,13 @@
   </div>
 </div>
 </body>
-<script LANGUAGE="JavaScript">
-  var zTreeObj;
-  var setting = {
-    view: {
-      nameIsHTML: true
-    }
-  };
-  var zNodes = JSON.parse($("#treeDemo").text());
-  $(document).ready(function () {
-    zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+<script type="text/javascript">
+  $(document).ready(function(){
+    $("#browser").treeview({
+      toggle: function() {
+        console.log("%s was toggled.", $(this).find(">span").text());
+      }
+    });
   });
 </script>
 </html>

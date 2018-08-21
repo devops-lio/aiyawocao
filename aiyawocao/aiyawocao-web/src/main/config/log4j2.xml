@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Appenders>
+    <RollingFile fileName="/var/log/aiyawocao/skrbt.log" filePattern="/var/log/aiyawocao/metadata-crawler.log.%d{yyyyMMdd}"
+      name="aiyawocao">
+      <PatternLayout pattern="%d %p %c{1}: %m%n"/>
+      <Policies>
+        <OnStartupTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+        <TimeBasedTriggeringPolicy modulate="true"/>
+      </Policies>
+      <DefaultRolloverStrategy max="3"/>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="aiyawocao"></AppenderRef>
+    </Root>
+  </Loggers>
+</Configuration>

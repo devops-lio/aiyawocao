@@ -15,6 +15,7 @@ metadata_crawler_deploy/
 metadata_service_deploy/
 op_deploy/
 test/
+skrbt_deploy/
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar

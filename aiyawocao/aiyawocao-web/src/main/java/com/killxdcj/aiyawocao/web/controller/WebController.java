@@ -38,7 +38,7 @@ public class WebController {
       long totalPage = result.getTotalHits() / 10 + (result.getTotalHits() % 10 > 0 ? 1 : 0);
       model.addAttribute("curPage", page);
       if (totalPage <= 10) {
-        model.addAttribute("pageNum", totalPage);
+        model.addAttribute("pageNum", totalPage == 0 ? 1 : totalPage);
         model.addAttribute("startPage", 1);
       } else {
         model.addAttribute("pageNum", 10);

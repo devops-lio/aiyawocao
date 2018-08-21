@@ -1,11 +1,11 @@
 package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
-import org.apache.commons.codec.binary.Hex;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import org.apache.commons.codec.binary.Hex;
 
 public class BencodedString extends AbstractBencodedValue implements Comparable {
+
   private byte[] data;
 
   public BencodedString(byte[] data) {
@@ -51,8 +51,12 @@ public class BencodedString extends AbstractBencodedValue implements Comparable 
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     BencodedString that = (BencodedString) o;
 

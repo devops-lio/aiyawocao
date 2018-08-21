@@ -5,10 +5,6 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedMap;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -17,8 +13,12 @@ import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataFetcher extends Peer implements Runnable {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataFetcher.class);
 
   private static final int DEFAULT_FETCH_TIMEOUT = 5 * 60 * 1000;
@@ -62,8 +62,8 @@ public class MetadataFetcher extends Peer implements Runnable {
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
     packet.put(
-        new byte[] {
-          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        new byte[]{
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
         });
     return packet.array();
   }
@@ -298,6 +298,7 @@ public class MetadataFetcher extends Peer implements Runnable {
   }
 
   public interface IFetcherCallback {
+
     void onFinshed(BencodedString infohash, byte[] metadata);
 
     void onException(Exception e);

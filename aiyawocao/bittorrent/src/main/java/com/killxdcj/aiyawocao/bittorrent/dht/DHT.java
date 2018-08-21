@@ -12,9 +12,6 @@ import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketExcept
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.revinate.guava.util.concurrent.RateLimiter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -24,8 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DHT {
+
   public static final Logger LOGGER = LoggerFactory.getLogger(DHT.class);
 
   private BittorrentConfig config;

@@ -3,9 +3,6 @@ package com.killxdcj.aiyawocao.bittorrent.dht;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** Created with IntelliJ IDEA. User: caojianhua Date: 2017/04/04 Time: 16:38 */
+/**
+ * Created with IntelliJ IDEA. User: caojianhua Date: 2017/04/04 Time: 16:38
+ */
 public class TransactionManager {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TransactionManager.class);
 
   private static final int TRANSACTION_EXPIRED_CHECK_PERIOD = 1 * 60 * 1000;

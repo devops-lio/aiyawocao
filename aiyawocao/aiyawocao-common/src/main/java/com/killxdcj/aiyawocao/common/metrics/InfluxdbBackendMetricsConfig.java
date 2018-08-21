@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.common.metrics;
 
 public class InfluxdbBackendMetricsConfig {
+
   private String influxdbAddr = "influxdb.host:8086";
   private String influxdbUser = "";
   private String influxdbPassword = "";

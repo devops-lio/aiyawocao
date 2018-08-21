@@ -1,14 +1,14 @@
 @charset "utf-8";
 
-button,hr,input {
+button, hr, input {
   overflow: visible
 }
 
-audio,canvas,progress,video {
+audio, canvas, progress, video {
   display: inline-block
 }
 
-progress,sub,sup {
+progress, sub, sup {
   vertical-align: baseline
 }
 
@@ -23,7 +23,7 @@ body {
   margin: 0
 }
 
-menu,article,aside,details,footer,header,nav,section {
+menu, article, aside, details, footer, header, nav, section {
   display: block
 }
 
@@ -32,7 +32,7 @@ h1 {
   margin: .67em 0
 }
 
-figcaption,figure,main {
+figcaption, figure, main {
   display: block
 }
 
@@ -45,8 +45,8 @@ hr {
   height: 0
 }
 
-code,kbd,pre,samp {
-  font-family: monospace,monospace;
+code, kbd, pre, samp {
+  font-family: monospace, monospace;
   font-size: 1em
 }
 
@@ -55,7 +55,7 @@ a {
   -webkit-text-decoration-skip: objects
 }
 
-a:active,a:hover {
+a:active, a:hover {
   outline-width: 0
 }
 
@@ -65,7 +65,7 @@ abbr[title] {
   text-decoration: underline dotted
 }
 
-b,strong {
+b, strong {
   font-weight: bolder
 }
 
@@ -82,7 +82,7 @@ small {
   font-size: 80%
 }
 
-sub,sup {
+sub, sup {
   font-size: 75%;
   line-height: 0;
   position: relative
@@ -109,26 +109,32 @@ svg:not(:root) {
   overflow: hidden
 }
 
-button,input,optgroup,select,textarea {
+button, input, optgroup, select, textarea {
   font-family: sans-serif;
   font-size: 100%;
   line-height: 1.15;
   margin: 0
 }
 
-button,input {
+button, input {
 }
 
-button,select {
+button, select {
   text-transform: none
-}[type=submit],[type=reset],button,html [type=button] {
-   -webkit-appearance: button
- }[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner {
-    border-style: none;
-    padding: 0
-  }[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring {
-     outline: ButtonText dotted 1px
-   }
+}
+
+[type=submit], [type=reset], button, html [type=button] {
+  -webkit-appearance: button
+}
+
+[type=button]::-moz-focus-inner, [type=reset]::-moz-focus-inner, [type=submit]::-moz-focus-inner, button::-moz-focus-inner {
+  border-style: none;
+  padding: 0
+}
+
+[type=button]:-moz-focusring, [type=reset]:-moz-focusring, [type=submit]:-moz-focusring, button:-moz-focusring {
+  outline: ButtonText dotted 1px
+}
 
 fieldset {
   border: 1px solid silver;
@@ -150,17 +156,25 @@ progress {
 
 textarea {
   overflow: auto
-}[type=checkbox],[type=radio] {
-   box-sizing: border-box;
-   padding: 0
- }[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button {
-    height: auto
-  }[type=search] {
-     -webkit-appearance: textfield;
-     outline-offset: -2px
-   }[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration {
-      -webkit-appearance: none
-    }
+}
+
+[type=checkbox], [type=radio] {
+  box-sizing: border-box;
+  padding: 0
+}
+
+[type=number]::-webkit-inner-spin-button, [type=number]::-webkit-outer-spin-button {
+  height: auto
+}
+
+[type=search] {
+  -webkit-appearance: textfield;
+  outline-offset: -2px
+}
+
+[type=search]::-webkit-search-cancel-button, [type=search]::-webkit-search-decoration {
+  -webkit-appearance: none
+}
 
 ::-webkit-file-upload-button {
   -webkit-appearance: button;
@@ -169,18 +183,20 @@ textarea {
 
 summary {
   display: list-item
-}[hidden],template {
-   display: none
- }
+}
+
+[hidden], template {
+  display: none
+}
 
 body {
   background: #fff;
   color: #222;
   font-size: 14px;
-  font-family: pingfang sc,helvetica neue,Helvetica,hiragino sans gb,stheitisc-light,microsoft yahei,微软雅黑,wenquanyi micro hei,Arial,sans-serif
+  font-family: pingfang sc, helvetica neue, Helvetica, hiragino sans gb, stheitisc-light, microsoft yahei, 微软雅黑, wenquanyi micro hei, Arial, sans-serif
 }
 
-html,body {
+html, body {
   margin: 0;
   padding: 0;
   height: 100%
@@ -192,11 +208,11 @@ a {
   outline: 0
 }
 
-a:hover,a:active {
+a:hover, a:active {
   text-decoration: underline
 }
 
-input:focus,button,select,textarea:focus {
+input:focus, button, select, textarea:focus {
   outline: 0
 }
 
@@ -205,7 +221,7 @@ h1 {
   word-wrap: break-word
 }
 
-.clearfix:before,.clearfix:after {
+.clearfix:before, .clearfix:after {
   content: "";
   display: table
 }
@@ -276,7 +292,7 @@ h1 {
 }
 
 .search-form:hover {
-  border-color: #a0a0a0 #b9b9b9 #b9b9b9!important
+  border-color: #a0a0a0 #b9b9b9 #b9b9b9 !important
 }
 
 .bl-border {
@@ -337,11 +353,11 @@ h1 {
   font-size: 14px
 }
 
-.index .recent-link a,.index .other-links a,.index .friend-links a {
+.index .recent-link a, .index .other-links a, .index .friend-links a {
   color: #2f82c2
 }
 
-.index .other-links,.index .friend-links {
+.index .other-links, .index .friend-links {
   margin-top: 40px;
   text-align: center;
   font-size: 12px;
@@ -403,7 +419,7 @@ h1 {
   font-size: 14px
 }
 
-.toolbar b,.toolbar a,.toolbar span {
+.toolbar b, .toolbar a, .toolbar span {
   display: inline-block;
   text-decoration: none;
   text-align: center;
@@ -411,12 +427,12 @@ h1 {
   padding: 0 8px
 }
 
-.toolbar a:hover,.toolbar a:active {
+.toolbar a:hover, .toolbar a:active {
   color: #de5833;
   text-decoration: none
 }
 
-.toolbar b,.toolbar .active {
+.toolbar b, .toolbar .active {
   border-bottom: 3px solid #4285f4;
   color: #4285f4
 }
@@ -426,7 +442,7 @@ h1 {
   padding: 0
 }
 
-.content,.comment {
+.content, .comment {
   background-color: #fff;
   padding: 0 0 30px 10%
 }
@@ -463,13 +479,13 @@ ul {
   padding-bottom: 10px
 }
 
-.search-ret-item,.recent-item {
+.search-ret-item, .recent-item {
   margin-bottom: 23px;
   word-wrap: break-word;
   word-break: break-all
 }
 
-.search-ret-list,.recent-list {
+.search-ret-list, .recent-list {
   padding: 0;
   margin: 0
 }
@@ -514,7 +530,7 @@ nav[role=navigation] {
   max-width: 700px
 }
 
-.pagination li.button,.pagination .ellipsis {
+.pagination li.button, .pagination .ellipsis {
   display: inline-block;
   margin-right: 2px
 }
@@ -545,7 +561,7 @@ nav[role=navigation] {
   pointer-events: none
 }
 
-.pagination a.disabled::before,.pagination a.disabled::after {
+.pagination a.disabled::before, .pagination a.disabled::after {
   opacity: .4
 }
 
@@ -583,7 +599,7 @@ nav[role=navigation] {
 }
 
 .link-ads .fa {
-  color: #12c!important
+  color: #12c !important
 }
 
 .link-ads strong {
@@ -614,12 +630,12 @@ nav[role=navigation] {
   margin-top: 15px
 }
 
-.item-meta-info .magnet,.item-meta-info .thunder {
+.item-meta-info .magnet, .item-meta-info .thunder {
   margin-right: 5px;
   border-bottom: 1px dotted #12c
 }
 
-.item-meta-info .magnet:hover,.item-meta-info .thunder:hover {
+.item-meta-info .magnet:hover, .item-meta-info .thunder:hover {
   border-bottom: 1px solid #12c;
   text-decoration: none
 }
@@ -630,7 +646,7 @@ nav[role=navigation] {
   overflow: hidden
 }
 
-.related-search h3,.related-search-bottom h3 {
+.related-search h3, .related-search-bottom h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 400
@@ -726,7 +742,7 @@ nav[role=navigation] {
   margin: 0
 }
 
-.torrent-meta-info .magnet:hover,.torrent-meta-info .thunder:hover {
+.torrent-meta-info .magnet:hover, .torrent-meta-info .thunder:hover {
   border-bottom: 1px solid #12c;
   text-decoration: none
 }
@@ -798,7 +814,7 @@ table.torrent-file-list .file-size {
   padding-right: 15px
 }
 
-table.torrent-file-list thead,table.torrent-file-list tbody {
+table.torrent-file-list thead, table.torrent-file-list tbody {
   display: block
 }
 
@@ -824,7 +840,7 @@ table.torrent-file-list tbody {
 .friendly-time {
   background-color: #5cb85c;
   border-radius: 8px;
-  color: #fff!important;
+  color: #fff !important;
   font-size: 10px;
   line-height: 18px;
   padding: 2px 8px
@@ -835,60 +851,60 @@ table.torrent-file-list tbody {
 }
 
 .s-link {
-  color: green!important
+  color: green !important
 }
 
-div.widgets_logo109019,div.widgets_logo109021,div.widgets_logo109022,div.widgets_logo109057,div.widgets_logo109058,div.widgets_logo109059 {
-  display: none!important
+div.widgets_logo109019, div.widgets_logo109021, div.widgets_logo109022, div.widgets_logo109057, div.widgets_logo109058, div.widgets_logo109059 {
+  display: none !important
 }
 
-div.mctitle a:hover,div.mgline:hover .mctitle a {
-  color: #12c!important
+div.mctitle a:hover, div.mgline:hover .mctitle a {
+  color: #12c !important
 }
 
-#M200304Composite109021,#M200304Composite109058 {
+#M200304Composite109021, #M200304Composite109058 {
   max-width: 300px
 }
 
-#M200304Composite109022,#M200304Composite109059 {
-  max-width: 728px!important
+#M200304Composite109022, #M200304Composite109059 {
+  max-width: 728px !important
 }
 
 #M200304Composite109019 {
-  padding: 0 10%!important;
-  margin-top: 10px!important;
-  max-width: 728px!important
+  padding: 0 10% !important;
+  margin-top: 10px !important;
+  max-width: 728px !important
 }
 
 #M200304Composite109019 .mgline {
-  margin-top: 0!important;
-  margin-bottom: 0!important
+  margin-top: 0 !important;
+  margin-bottom: 0 !important
 }
 
 #M137873ScriptRootC108891 {
-  max-width: 728px!important
+  max-width: 728px !important
 }
 
 .left-content .banner #M137873ScriptRootC107667 {
-  padding: 0!important;
-  margin-top: 0!important;
-  padding-bottom: 10px!important
+  padding: 0 !important;
+  margin-top: 0 !important;
+  padding-bottom: 10px !important
 }
 
 #M137873ScriptRootC107667 {
-  padding: 0 10%!important;
-  margin-top: 10px!important;
-  max-width: 728px!important
+  padding: 0 10% !important;
+  margin-top: 10px !important;
+  max-width: 728px !important
 }
 
-#M137873PreloadC108877,#MarketGidComposite108877 div.mgheader,#M137873PreloadC108891,#MarketGidComposite108891 div.mgheader,#MarketGidComposite108891 div.mgline .text-elements .fake,#MarketGidComposite108891 div.mgline .text-elements .mgtobottom,#M137873PreloadC107667,#MarketGidComposite107667 div.mgheader,#MarketGidComposite107667 div.mgline .text-elements .fake,#MarketGidComposite107667 div.mgline .text-elements .mgtobottom {
-  height: 0!important;
-  display: none!important
+#M137873PreloadC108877, #MarketGidComposite108877 div.mgheader, #M137873PreloadC108891, #MarketGidComposite108891 div.mgheader, #MarketGidComposite108891 div.mgline .text-elements .fake, #MarketGidComposite108891 div.mgline .text-elements .mgtobottom, #M137873PreloadC107667, #MarketGidComposite107667 div.mgheader, #MarketGidComposite107667 div.mgline .text-elements .fake, #MarketGidComposite107667 div.mgline .text-elements .mgtobottom {
+  height: 0 !important;
+  display: none !important
 }
 
-#MarketGidComposite108891 div.mgline,#MarketGidComposite107667 div.mgline {
-  margin-top: 0!important;
-  margin-bottom: 0!important
+#MarketGidComposite108891 div.mgline, #MarketGidComposite107667 div.mgline {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important
 }
 
 #M137873ScriptRootC108877 {
@@ -902,19 +918,19 @@ div.mctitle a:hover,div.mgline:hover .mctitle a {
 }
 
 .pull-right {
-  float: right!important
+  float: right !important
 }
 
 .pull-left {
-  float: left!important
+  float: left !important
 }
 
 .hide {
-  display: none!important
+  display: none !important
 }
 
 .show {
-  display: block!important
+  display: block !important
 }
 
 .invisible {
@@ -930,7 +946,7 @@ div.mctitle a:hover,div.mgline:hover .mctitle a {
 }
 
 .hidden {
-  display: none!important
+  display: none !important
 }
 
 .about h1 {
@@ -1041,7 +1057,7 @@ div.mctitle a:hover,div.mgline:hover .mctitle a {
   margin: .67em 0
 }
 
-@media only screen and (max-width:736px) {
+@media only screen and (max-width: 736px) {
   .header {
     padding: 15px 10px
   }
@@ -1064,7 +1080,7 @@ div.mctitle a:hover,div.mgline:hover .mctitle a {
     padding: 0 3px
   }
 
-  .content,.torrent-content {
+  .content, .torrent-content {
     padding: 0 10px 70px
   }
 

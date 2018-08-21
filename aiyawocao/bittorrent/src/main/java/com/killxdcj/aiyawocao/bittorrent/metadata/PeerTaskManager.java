@@ -1,13 +1,13 @@
 package com.killxdcj.aiyawocao.bittorrent.metadata;
 
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class PeerTaskManager {
+
   private ConcurrentMap<Peer, List<Task>> peerTasks = new ConcurrentHashMap<>();
 
   public boolean submitTask(Task task) {

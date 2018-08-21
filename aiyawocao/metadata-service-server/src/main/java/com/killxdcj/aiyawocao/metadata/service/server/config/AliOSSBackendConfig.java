@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.metadata.service.server.config;
 
 public class AliOSSBackendConfig {
+
   private String bucketName = "bittorrent-meta";
   private String indexRoot = "index";
   private String indexPrefix = "index";

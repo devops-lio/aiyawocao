@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractBencodedValue implements IBencodedValue {
+
   public static final byte STRING_SPLIT = (byte) ':';
   public static final byte INTRGER_ENTRY = (byte) 'i';
   public static final byte MAP_ENTRY = (byte) 'd';

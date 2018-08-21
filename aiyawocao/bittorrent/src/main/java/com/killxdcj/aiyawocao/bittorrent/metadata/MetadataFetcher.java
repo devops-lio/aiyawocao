@@ -6,13 +6,13 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class MetadataFetcher {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataFetcher.class);
 
   private EventLoopGroup eventLoopGroup =
@@ -35,7 +35,8 @@ public class MetadataFetcher {
 
   private PeerTaskManager peerTaskManager = new PeerTaskManager();
 
-  public MetadataFetcher() {}
+  public MetadataFetcher() {
+  }
 
   public MetadataFetcher(MetricRegistry metricRegistry) {
     metricRegistry.register(

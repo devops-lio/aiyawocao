@@ -10,20 +10,28 @@ import com.google.protobuf.ByteString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
-import com.killxdcj.aiyawocao.metadata.service.*;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.GetMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.MetadataServiceGrpc;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.ParseMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.PutMetadataResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.codec.DecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class MetadataServiceClient {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceClient.class);
   private static final byte NOT_EXIST = 0;
   private static final byte EXIST = 1;
@@ -72,16 +80,25 @@ public class MetadataServiceClient {
       grpcClients.add(new GrpcClient(channel, stub));
     }
 
-    doesMetadataExistTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.costtime"));
-    putMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.costtime"));
-    getMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.costtime"));
-    parseMetadataTimer = metricRegistry.timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.costtime"));
+    doesMetadataExistTimer = metricRegistry
+        .timer(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.costtime"));
+    putMetadataTimer = metricRegistry
+        .timer(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.costtime"));
+    getMetadataTimer = metricRegistry
+        .timer(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.costtime"));
+    parseMetadataTimer = metricRegistry
+        .timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.costtime"));
 
-    doesMetadataExistMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.throughput"));
-    doesMetadataExistHitCacheMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.hitCache.throughput"));
-    putMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.throughput"));
-    getMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.throughput"));
-    parseMetadataMeter = metricRegistry.meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.throughput"));
+    doesMetadataExistMeter = metricRegistry
+        .meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.throughput"));
+    doesMetadataExistHitCacheMeter = metricRegistry.meter(
+        MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.hitCache.throughput"));
+    putMetadataMeter = metricRegistry
+        .meter(MetricRegistry.name(MetadataServiceClient.class, "putMetadata.throughput"));
+    getMetadataMeter = metricRegistry
+        .meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.throughput"));
+    parseMetadataMeter = metricRegistry
+        .meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.throughput"));
   }
 
   public void shutdown() {
@@ -194,6 +211,7 @@ public class MetadataServiceClient {
   }
 
   private class GrpcClient {
+
     private ManagedChannel managedChannel;
     private MetadataServiceGrpc.MetadataServiceBlockingStub stub;
 

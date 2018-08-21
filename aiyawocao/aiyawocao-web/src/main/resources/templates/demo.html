@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <title>Test</title>
@@ -10,7 +10,7 @@
 </head>
 <body>
 <ul id="treeDemo" class="ztree"></ul>
-<p id="hidetext" th:text="${test}" />
+<p id="hidetext" th:text="${test}"/>
 </body>
 <script LANGUAGE="JavaScript">
   var zTreeObj;
@@ -19,7 +19,7 @@
   // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
   var zNodes = JSON.parse($("#hidetext").text());
   alert("xx" + zNodes);
-  $(document).ready(function(){
+  $(document).ready(function () {
     zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
   });
 </script>

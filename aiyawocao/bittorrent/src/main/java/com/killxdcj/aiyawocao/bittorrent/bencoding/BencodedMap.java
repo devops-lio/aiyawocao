@@ -1,12 +1,12 @@
 package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class BencodedMap extends AbstractBencodedValue {
+
   private Map<String, IBencodedValue> data;
 
   public BencodedMap() {
@@ -52,7 +52,7 @@ public class BencodedMap extends AbstractBencodedValue {
       } else {
         Object value = entry.getValue().toHuman();
         if ((key.equals("path") || key.equals("path.utf-8")) && value instanceof List) {
-          value = String.join("/", (List)value);
+          value = String.join("/", (List) value);
         }
 //        else if (key.equals("files") && value instanceof List) {
 //          List<String> files = new ArrayList<>();
@@ -66,7 +66,7 @@ public class BencodedMap extends AbstractBencodedValue {
           utf8KV.put(key.replace(".utf-8", ""), value);
         } else if (key.endsWith(".utf8")) {
           utf8KV.put(key.replace(".utf8", ""), value);
-        }else {
+        } else {
           ret.put(key, value);
         }
       }
@@ -103,8 +103,12 @@ public class BencodedMap extends AbstractBencodedValue {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     BencodedMap that = (BencodedMap) o;
 

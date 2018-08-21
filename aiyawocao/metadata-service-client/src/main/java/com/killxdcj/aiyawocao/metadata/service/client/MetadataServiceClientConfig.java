@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.metadata.service.client;
 
 public class MetadataServiceClientConfig {
+
   private int poolsize = 10;
   private String server = "btproxy.host:10242";
   private boolean enableLocalCache = true;

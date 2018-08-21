@@ -54,8 +54,8 @@ public class ArchivedJsonFileIndexer {
     Meter meter = registry.meter("meter");
 
     try (ESBackendIndexerClient client = new ESBackendIndexerClient(config);
-         InputStreamReader in = new InputStreamReader(new FileInputStream(file), "utf8");
-         BufferedReader reader = new BufferedReader(in)) {
+        InputStreamReader in = new InputStreamReader(new FileInputStream(file), "utf8");
+        BufferedReader reader = new BufferedReader(in)) {
       String line;
       long start;
       while ((line = reader.readLine()) != null) {

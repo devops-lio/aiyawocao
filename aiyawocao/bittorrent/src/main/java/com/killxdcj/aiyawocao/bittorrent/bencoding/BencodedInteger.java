@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.bittorrent.bencoding;
 import java.nio.ByteBuffer;
 
 public class BencodedInteger extends AbstractBencodedValue {
+
   private long data;
 
   public BencodedInteger(String data) {
@@ -39,8 +40,12 @@ public class BencodedInteger extends AbstractBencodedValue {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     BencodedInteger that = (BencodedInteger) o;
 

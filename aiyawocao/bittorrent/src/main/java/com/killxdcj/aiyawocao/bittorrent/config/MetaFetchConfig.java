@@ -1,13 +1,15 @@
 package com.killxdcj.aiyawocao.bittorrent.config;
 
 public class MetaFetchConfig {
+
   private int blackThreshold = 3;
   private int blackTimeMs = 60 * 60 * 1000;
   private int metafetchTimeoutMs = 10 * 60 * 1000;
   private int fetcherNum = 20;
   private int infohashMaxPending = 3;
 
-  public MetaFetchConfig() {}
+  public MetaFetchConfig() {
+  }
 
   public int getBlackThreshold() {
     return blackThreshold;

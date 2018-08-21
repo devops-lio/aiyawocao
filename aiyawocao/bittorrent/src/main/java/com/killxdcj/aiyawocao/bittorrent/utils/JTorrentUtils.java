@@ -3,17 +3,23 @@ package com.killxdcj.aiyawocao.bittorrent.utils;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.dht.Node;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 public class JTorrentUtils {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(JTorrentUtils.class);
   private static final Random RANDOM = new Random();
   private static final Map<Integer, Byte> bitMap =

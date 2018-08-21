@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.metadata.indexer.config;
 
 public class ESIndexerConfig {
+
   private String hostname = "example.com";
   private int port = 9999;
   private String index = "example.index";

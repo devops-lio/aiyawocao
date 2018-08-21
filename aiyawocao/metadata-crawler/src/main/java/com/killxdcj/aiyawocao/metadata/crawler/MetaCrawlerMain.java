@@ -13,21 +13,20 @@ import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetrics;
 import com.killxdcj.aiyawocao.metadata.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
+import java.io.FileNotFoundException;
+import java.net.SocketException;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.net.SocketException;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 public class MetaCrawlerMain {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaCrawlerMain.class);
 
   MetaCrawlerConfig config;

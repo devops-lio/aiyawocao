@@ -2,8 +2,11 @@ package com.killxdcj.aiyawocao.bittorrent.utils;
 
 import java.util.concurrent.TimeUnit;
 
-/** Created with IntelliJ IDEA. User: caojianhua Date: 2017/04/07 Time: 20:25 */
+/**
+ * Created with IntelliJ IDEA. User: caojianhua Date: 2017/04/07 Time: 20:25
+ */
 public class TimeUtils {
+
   public static long getCurTime() {
     return System.nanoTime();
   }

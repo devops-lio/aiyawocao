@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BencodedList extends AbstractBencodedValue {
+
   private List<IBencodedValue> datas;
 
   public BencodedList() {
@@ -66,8 +67,12 @@ public class BencodedList extends AbstractBencodedValue {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     BencodedList that = (BencodedList) o;
 

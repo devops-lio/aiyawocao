@@ -6,21 +6,25 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetaFetcher {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaFetcher.class);
 
   private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
@@ -66,8 +70,8 @@ public class MetaFetcher {
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
     packet.put(
-        new byte[] {
-          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        new byte[]{
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
         });
     return packet.array();
   }
@@ -375,13 +379,18 @@ public class MetaFetcher {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     MetaFetcher fetcher = (MetaFetcher) o;
 
-    if (infohash != null ? !infohash.equals(fetcher.infohash) : fetcher.infohash != null)
+    if (infohash != null ? !infohash.equals(fetcher.infohash) : fetcher.infohash != null) {
       return false;
+    }
     return peer != null ? peer.equals(fetcher.peer) : fetcher.peer == null;
   }
 

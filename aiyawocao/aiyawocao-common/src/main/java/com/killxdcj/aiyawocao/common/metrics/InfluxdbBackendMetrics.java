@@ -3,12 +3,12 @@ package com.killxdcj.aiyawocao.common.metrics;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
+import java.util.concurrent.TimeUnit;
 import metrics_influxdb.HttpInfluxdbProtocol;
 import metrics_influxdb.InfluxdbReporter;
 
-import java.util.concurrent.TimeUnit;
-
 public class InfluxdbBackendMetrics {
+
   private static ScheduledReporter reporter = null;
   private static MetricRegistry registry = null;
 

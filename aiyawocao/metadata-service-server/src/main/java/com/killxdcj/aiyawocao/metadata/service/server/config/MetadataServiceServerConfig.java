@@ -1,13 +1,13 @@
 package com.killxdcj.aiyawocao.metadata.service.server.config;
 
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import org.yaml.snakeyaml.Yaml;
 
 public class MetadataServiceServerConfig {
+
   private int port = 10242;
   private int executorThreadNum = 50;
   private AliOSSBackendConfig aliOSSBackendConfig;

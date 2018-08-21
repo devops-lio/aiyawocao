@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.bittorrent.dht;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 
 public class Transaction {
+
   Node node;
   KRPC krpc;
   long expiredTime;
@@ -30,7 +31,9 @@ public class Transaction {
   }
 
   public boolean isExpired() {
-    if (TimeUtils.getCurTime() > expiredTime) return true;
+    if (TimeUtils.getCurTime() > expiredTime) {
+      return true;
+    }
     return false;
   }
 }

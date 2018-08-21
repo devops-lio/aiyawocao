@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ESUtils {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ESUtils.class);
   private Namespace nameSpace;
   private Timer costtime;
@@ -89,7 +90,8 @@ public class ESUtils {
     LOGGER.info("fininshed");
   }
 
-  private void indexFile(File file, RestHighLevelClient client, String index, String type, int bulkSize) {
+  private void indexFile(File file, RestHighLevelClient client, String index, String type,
+      int bulkSize) {
     LOGGER.info("start index {}", file);
     try {
       long start;
@@ -110,7 +112,8 @@ public class ESUtils {
             for (BulkItemResponse response : responses.getItems()) {
               if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
                 error.mark();
-                LOGGER.info("index error, {} -> {}, {}", response.getId(), response.status().getStatus(),
+                LOGGER.info("index error, {} -> {}, {}", response.getId(),
+                    response.status().getStatus(),
                     response.getFailureMessage());
               } else {
                 successed.mark();

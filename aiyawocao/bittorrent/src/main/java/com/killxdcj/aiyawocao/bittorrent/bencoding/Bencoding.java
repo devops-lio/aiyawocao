@@ -1,10 +1,10 @@
 package com.killxdcj.aiyawocao.bittorrent.bencoding;
 
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
-
 import java.util.Arrays;
 
 public class Bencoding {
+
   private byte[] data;
   private int curIndex;
   private int maxLength;

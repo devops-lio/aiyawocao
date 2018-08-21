@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ESBackendIndexerClient implements Closeable {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ESBackendIndexerClient.class);
 
   ESIndexerConfig config;
@@ -26,7 +27,8 @@ public class ESBackendIndexerClient implements Closeable {
 
   public ESBackendIndexerClient(ESIndexerConfig config) {
     this.config = config;
-    client = new RestHighLevelClient(RestClient.builder(new HttpHost(config.getHostname(), config.getPort(), "http")));
+    client = new RestHighLevelClient(
+        RestClient.builder(new HttpHost(config.getHostname(), config.getPort(), "http")));
   }
 
   @Override
@@ -43,10 +45,11 @@ public class ESBackendIndexerClient implements Closeable {
     index(type, infohash, metadataJson);
   }
 
-  public void index(String type, byte[] infohashBytes, byte[] metadataBytes) throws InvalidBittorrentPacketException, IOException {
+  public void index(String type, byte[] infohashBytes, byte[] metadataBytes)
+      throws InvalidBittorrentPacketException, IOException {
     String infohash = new BencodedString(infohashBytes).asHexString().toUpperCase();
     Bencoding bencoding = new Bencoding(metadataBytes);
-    Map<String, Object> metaHuman = (Map<String, Object>)bencoding.decode().toHuman();
+    Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
     metaHuman.put("infohash", infohash);
     metaHuman.put("collection-ts", System.currentTimeMillis());
     String metadataJson = JSON.toJSONString(bencoding.decode().toHuman());

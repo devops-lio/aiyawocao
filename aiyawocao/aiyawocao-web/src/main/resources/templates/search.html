@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="UTF-8" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
   <title>Search</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 <div class="container">
@@ -14,7 +15,8 @@
       <a href="https://btdb.to/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
       <div class="search-area">
         <form action="/search" method="get" accept-charset="utf-8" class="search-form">
-          <input type="text" id="search-input" th:value="${keyword}" title="BTDB Search" name="keyword"
+          <input type="text" id="search-input" th:value="${keyword}" title="BTDB Search"
+                 name="keyword"
                  maxlength="2048" class="search-input" aria-haspopup="false">
           <button class="search-btn"><i class="fa fa-search"></i></button>
         </form>
@@ -31,13 +33,15 @@
   </div>
   <div class="content clearfix">
     <div class="left-content">
-      <h1 class="hide text-hide", th:text="${keyword} + 'search result, Torrent Magnet'"></h1>
-      <div class="result-stats" th:text="'About ' + ${result.getTotalHits()} + ' results (' + ${result.getTook()} + ')'"></div>
+      <h1 class="hide text-hide" , th:text="${keyword} + 'search result, Torrent Magnet'"></h1>
+      <div class="result-stats"
+           th:text="'About ' + ${result.getTotalHits()} + ' results (' + ${result.getTook()} + ')'"></div>
       <div class="search-ret">
         <ul class="search-ret-list">
           <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
             <h2 class="item-title"><a
-                th:href="'/detail/' + ${metadata.getInfohash()}" th:title="${metadata.getName()}"><span
+                th:href="'/detail/' + ${metadata.getInfohash()}"
+                th:title="${metadata.getName()}"><span
                 class="highlight" th:text="${metadata.getName()}"></span></a></h2>
             <div class="item-meta-info">
               <a title="Download using magnet"
@@ -65,8 +69,10 @@
             <li class="button">
               <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« Previous</a>
             </li>
-            <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}" class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}" th:if="${i} != ${curPage}"></a>
+            <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}"
+                class="button">
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}"
+                 th:if="${i} != ${curPage}"></a>
               <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
             </li>
             <li class="button">

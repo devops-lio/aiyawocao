@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class NodeFetchersManager {
+
   private volatile boolean waiting = true;
   private List<MetaFetcher> fetchers = new ArrayList<>();
   private HashMap<MetaFetcher, Object> fetcherMap = new HashMap<>();

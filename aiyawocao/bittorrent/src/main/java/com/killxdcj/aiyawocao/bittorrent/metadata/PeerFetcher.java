@@ -10,24 +10,29 @@ import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PeerFetcher {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PeerFetcher.class);
   // utils
   private static final byte[] handshakePrefix = buildHandshakePacketPrefix();
@@ -62,8 +67,8 @@ public class PeerFetcher {
     packet.put((byte) 19);
     packet.put("BitTorrent protocol".getBytes());
     packet.put(
-        new byte[] {
-          (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
+        new byte[]{
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 16, (byte) 0, (byte) 1
         });
     return packet.array();
   }
@@ -129,6 +134,7 @@ public class PeerFetcher {
   }
 
   private class Fetcher extends SimpleChannelInboundHandler implements GenericFutureListener {
+
     private Task task;
     private volatile boolean successed = false;
     private AtomicBoolean notifyed = new AtomicBoolean(false);

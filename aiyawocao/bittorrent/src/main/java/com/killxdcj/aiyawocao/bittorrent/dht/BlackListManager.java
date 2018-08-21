@@ -1,9 +1,6 @@
 package com.killxdcj.aiyawocao.bittorrent.dht;
 
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlackListManager {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(BlackListManager.class);
 
   private ConcurrentSkipListSet<String> blackList = new ConcurrentSkipListSet<>();

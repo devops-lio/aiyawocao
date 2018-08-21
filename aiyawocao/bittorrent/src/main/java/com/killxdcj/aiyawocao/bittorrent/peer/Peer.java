@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.bittorrent.peer;
 import java.net.InetAddress;
 
 public class Peer {
+
   protected InetAddress addr;
   protected int port;
 
@@ -36,12 +37,18 @@ public class Peer {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Peer peer = (Peer) o;
 
-    if (port != peer.port) return false;
+    if (port != peer.port) {
+      return false;
+    }
     return addr != null ? addr.equals(peer.addr) : peer.addr == null;
   }
 

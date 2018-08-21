@@ -15,16 +15,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -41,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OSSUtils {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(OSSUtils.class);
 
   private Namespace namespace;
@@ -101,7 +98,8 @@ public class OSSUtils {
   }
 
   private void archive() {
-    MetricRegistry registry = InfluxdbBackendMetrics.startMetricReport(new InfluxdbBackendMetricsConfig());
+    MetricRegistry registry = InfluxdbBackendMetrics
+        .startMetricReport(new InfluxdbBackendMetricsConfig());
     String localIndex = namespace.getString("localIndex");
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String collectionTime = sdf.format(new Date());
@@ -115,7 +113,8 @@ public class OSSUtils {
           return t;
         });
     Meter successed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.successed"));
-    Meter decodeFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
+    Meter decodeFailed = registry
+        .meter(MetricRegistry.name(OSSUtils.class, "archive.failed.decode"));
     Meter otherFailed = registry.meter(MetricRegistry.name(OSSUtils.class, "archive.failed.other"));
     Timer costtime = registry.timer(MetricRegistry.name(OSSUtils.class, "archive.fetch"));
     AtomicInteger suc = new AtomicInteger(0);
@@ -157,7 +156,7 @@ public class OSSUtils {
               LOGGER.error("archived metadata error, " + infohash, e);
             }
             costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
-          }  catch (InterruptedException e) {
+          } catch (InterruptedException e) {
             LOGGER.info("Interrupted");
             return;
           } catch (Exception e) {
@@ -248,14 +247,16 @@ public class OSSUtils {
         .help("Archive Metadata to file");
     addOSSArguments(archive);
     archive.addArgument("-l", "--localIndex").required(true).help("Local IndexFile");
-    archive.addArgument("-p", "--parallelism").required(false).type(Integer.class).setDefault(20).help("parallelism");
+    archive.addArgument("-p", "--parallelism").required(false).type(Integer.class).setDefault(20)
+        .help("parallelism");
 
     Subparser list = subparsers.addParser("list")
         .setDefault("action", "list")
         .defaultHelp(true)
         .help("List dir");
     addOSSArguments(list);
-    list.addArgument("-m", "--maxFiles").required(false).type(Integer.class).setDefault(100).help("Max Files");
+    list.addArgument("-m", "--maxFiles").required(false).type(Integer.class).setDefault(100)
+        .help("Max Files");
     list.addArgument("-p", "--prefix").required(true).help("prefix");
 
     return parser;

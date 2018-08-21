@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.common.utils;
 
 public class CommonUtils {
+
   private static final double GB = 1.0 * 1024 * 1024 * 1024;
   private static final double MB = 1.0 * 1024 * 1024;
   private static final double KB = 1.0 * 1024;

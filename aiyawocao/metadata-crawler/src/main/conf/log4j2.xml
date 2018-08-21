@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <RollingFile name="aiyawocao" fileName="/var/log/aiyawocao/metadata-crawler.log"
-                 filePattern="/var/log/aiyawocao/metadata-crawler.log.%d{yyyyMMdd}">
+    <RollingFile fileName="/var/log/aiyawocao/metadata-crawler.log" filePattern="/var/log/aiyawocao/metadata-crawler.log.%d{yyyyMMdd}"
+      name="aiyawocao">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>

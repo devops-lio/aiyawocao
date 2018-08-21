@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="UTF-8" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
   <title>Detail</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <link rel="stylesheet" href="/css/ztree/demo.css" type="text/css">
   <link rel="stylesheet" href="/css/ztree/zTreeStyle/zTreeStyle.css" type="text/css">
@@ -91,7 +92,7 @@
     }
   };
   var zNodes = JSON.parse($("#treeDemo").text());
-  $(document).ready(function(){
+  $(document).ready(function () {
     zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
   });
 </script>

@@ -1,6 +1,5 @@
 package com.killxdcj.aiyawocao.web.controller;
 
-import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
 import java.io.IOException;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/")
 public class WebController {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(WebController.class);
 
   @Autowired

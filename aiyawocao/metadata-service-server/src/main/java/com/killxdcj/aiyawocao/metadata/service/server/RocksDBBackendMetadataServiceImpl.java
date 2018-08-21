@@ -39,7 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.MetadataServiceImplBase {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RocksDBBackendMetadataServiceImpl.class);
+
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(RocksDBBackendMetadataServiceImpl.class);
   private static final Logger METADATA = LoggerFactory.getLogger("metadata");
   private static final byte[] DUMMY_VALUE = new byte[0];
   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -49,7 +51,8 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   private RocksDB rocksDB;
   private AtomicInteger totalSize = new AtomicInteger(0);
 
-  public RocksDBBackendMetadataServiceImpl(MetadataServiceServerConfig config, MetricRegistry registry)
+  public RocksDBBackendMetadataServiceImpl(MetadataServiceServerConfig config,
+      MetricRegistry registry)
       throws RocksDBException {
     this.config = config.getRocksDBBackendConfig();
     this.rocksDB = buildRocksDB(config.getRocksDBBackendConfig().getRocksDBPath());
@@ -59,7 +62,8 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
       }
     }
     LOGGER.info("index loaded, {}", totalSize.get());
-    registry.register(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "MetadataNum"), (Gauge<Integer>) () -> totalSize.get());
+    registry.register(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "MetadataNum"),
+        (Gauge<Integer>) () -> totalSize.get());
   }
 
   public void shutdown() {
@@ -126,7 +130,8 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
         LOGGER.error("save metadta error, " + infohash + ", " + metadataFile, e);
       }
 
-      LOGGER.info("metadata saved, {} -> {}bytes", infohash, request.getMetadata().toByteArray().length);
+      LOGGER.info("metadata saved, {} -> {}bytes", infohash,
+          request.getMetadata().toByteArray().length);
       PutMetadataResponse response = PutMetadataResponse.newBuilder().setResult(true).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
@@ -152,6 +157,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   }
 
   private String buildOriginalMetadataPath(String infohash) {
-    return config.getOriginalMetadataPath() + "/" + METADATA_SDF.format(new Date()) + "/" + infohash;
+    return config.getOriginalMetadataPath() + "/" + METADATA_SDF.format(new Date()) + "/"
+        + infohash;
   }
 }

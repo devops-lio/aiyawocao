@@ -27,7 +27,21 @@ import org.rocksdb.Statistics;
 import org.rocksdb.util.SizeUnit;
 
 public class IndexUtils {
+
   private Namespace namespace;
+
+  public static byte[] toHex(String xx) throws DecoderException {
+    return Hex.decodeHex(xx.toCharArray());
+  }
+
+  public static String toString(byte[] xx) {
+    return Hex.encodeHexString(xx);
+  }
+
+  public static void main(String[] args) {
+    IndexUtils indexUtils = new IndexUtils();
+    indexUtils.start(args);
+  }
 
   public void start(String[] args) {
     ArgumentParser parser = buildParser();
@@ -40,8 +54,8 @@ public class IndexUtils {
         case "rdb2file":
           transRocksDB2IndexFile();
           break;
-          default:
-            break;
+        default:
+          break;
       }
     } catch (ArgumentParserException e) {
       parser.handleError(e);
@@ -58,7 +72,7 @@ public class IndexUtils {
       if (indexFile.isFile()) {
         transIndexFile2RocksDB(indexFile, rocksDB);
       } else {
-        for(File file : indexFile.listFiles()) {
+        for (File file : indexFile.listFiles()) {
           transIndexFile2RocksDB(file, rocksDB);
         }
       }
@@ -87,7 +101,8 @@ public class IndexUtils {
     String indexFilePath = namespace.getString("indexPath");
     String rocksdbPath = namespace.getString("rocksDBPath");
     try (RocksDB db = buildRDB(rocksdbPath)) {
-      try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(indexFilePath))))) {
+      try (BufferedWriter writer = new BufferedWriter(
+          new OutputStreamWriter(new FileOutputStream(new File(indexFilePath))))) {
         try (final RocksIterator iterator = db.newIterator()) {
           for (iterator.seekToLast(); iterator.isValid(); iterator.prev()) {
             writer.write(toString(iterator.key()).toUpperCase() + "\n");
@@ -100,14 +115,6 @@ public class IndexUtils {
     } catch (RocksDBException e) {
       e.printStackTrace();
     }
-  }
-
-  public static byte[] toHex(String xx) throws DecoderException {
-    return Hex.decodeHex(xx.toCharArray());
-  }
-
-  public static String toString(byte[] xx) {
-    return Hex.encodeHexString(xx);
   }
 
   private RocksDB buildRDB(String dbPath) throws RocksDBException {
@@ -157,10 +164,5 @@ public class IndexUtils {
     rdb2file.addArgument("-r", "--rocksDBPath").required(true).help("RocksDB Path");
 
     return parser;
-  }
-
-  public static void main(String[] args) {
-    IndexUtils indexUtils = new IndexUtils();
-    indexUtils.start(args);
   }
 }

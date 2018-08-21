@@ -4,6 +4,7 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 
 public class Task {
+
   private BencodedString infohash;
   private Peer peer;
   private MetadataListener listener;
@@ -35,13 +36,18 @@ public class Task {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Task metadata = (Task) o;
 
-    if (infohash != null ? !infohash.equals(metadata.infohash) : metadata.infohash != null)
+    if (infohash != null ? !infohash.equals(metadata.infohash) : metadata.infohash != null) {
       return false;
+    }
     return peer != null ? peer.equals(metadata.peer) : metadata.peer == null;
   }
 

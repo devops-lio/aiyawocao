@@ -7,11 +7,11 @@ import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class KRPC {
+
   public static final String TRANS_ID = "t";
   public static final String TRANS_TYPE = "y";
   public static final String QUERY_ACTION = "q";

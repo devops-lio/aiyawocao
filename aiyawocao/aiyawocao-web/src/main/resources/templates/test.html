@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <title>Test</title>
@@ -10,7 +10,7 @@
 </head>
 <body>
 <ul id="treeDemo" class="ztree"></ul>
-<p id="hidetext" th:text="${metadata.fileTree}" />
+<p id="hidetext" th:text="${metadata.fileTree}"/>
 </body>
 <script LANGUAGE="JavaScript">
   var zTreeObj;
@@ -20,7 +20,7 @@
     }
   };
   var zNodes = JSON.parse($("#hidetext").text());
-  $(document).ready(function(){
+  $(document).ready(function () {
     zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
     $("#treeDemo").height(800);
     $("#treeDemo").width(1600);

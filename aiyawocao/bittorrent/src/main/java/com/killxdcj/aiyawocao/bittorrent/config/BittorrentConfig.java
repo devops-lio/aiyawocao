@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BittorrentConfig {
+
   private int port = 10240;
   private int maxPacketSize = 64 * 1024;
   private List<String> primeNodes =
@@ -22,7 +23,8 @@ public class BittorrentConfig {
   private boolean enableBlack = true;
   private int nodeidChangeThreshold = 50;
 
-  public BittorrentConfig() {}
+  public BittorrentConfig() {
+  }
 
   public int getPort() {
     return port;

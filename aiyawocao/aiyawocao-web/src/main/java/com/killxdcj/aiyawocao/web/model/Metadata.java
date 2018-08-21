@@ -10,6 +10,7 @@ import java.util.Random;
 import javafx.util.Pair;
 
 public class Metadata {
+
   private static final String[] UNITS = {"Bytes", "KB", "MB", "GB", "TB"};
   private static final String NAME_WITH_SIZE_FMT = "<span style='color:red;margin-right:0px;"
       + "padding: 3px;'>%s</span>&nbsp;&nbsp;<span style='color:blue;margin-right:0px;"
@@ -29,15 +30,15 @@ public class Metadata {
   }
 
   public String getName() {
-    return (String)originalData.get("name");
+    return (String) originalData.get("name");
   }
 
   public String getDate() {
-    return (String)originalData.get("date");
+    return (String) originalData.get("date");
   }
 
   public String getInfohash() {
-    return (String)originalData.get("infohash");
+    return (String) originalData.get("infohash");
   }
 
   public int getPopularity() {
@@ -48,11 +49,11 @@ public class Metadata {
     long totalSize = 0;
     if (originalData.containsKey("files")) {
       if (originalData.containsKey("files")) {
-        for (Map<String, String> file : (List<Map<String, String>>)originalData.get("files")) {
+        for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
           totalSize += Long.parseLong(file.get("length"));
         }
       } else {
-        totalSize += Long.parseLong((String)originalData.get("length"));
+        totalSize += Long.parseLong((String) originalData.get("length"));
       }
     }
     return CommonUtils.fileSize2Human(totalSize);
@@ -60,7 +61,7 @@ public class Metadata {
 
   public int getFileNum() {
     if (originalData.containsKey("files")) {
-      return ((List<Map<String, String>>)originalData.get("files")).size();
+      return ((List<Map<String, String>>) originalData.get("files")).size();
     } else {
       return 1;
     }
@@ -74,17 +75,19 @@ public class Metadata {
     Pair<String, String> x = new Pair<>("xx", "xx");
     List<Pair<String, Long>> ret = new ArrayList<>();
     if (originalData.containsKey("files")) {
-      List<Map<String, String>> files = (List<Map<String, String>>)originalData.get("files");
+      List<Map<String, String>> files = (List<Map<String, String>>) originalData.get("files");
       for (int i = 0; i < (files.size() > digestFilesSize ? digestFilesSize : files.size()); i++) {
         Map<String, String> file = files.get(i);
         if (file.get("path").indexOf("请升级到BitComet") != -1) {
           continue;
         }
         String[] tmps = file.get("path").split("/");
-        ret.add(new Pair(tmps[tmps.length - 1], CommonUtils.fileSize2Human(Long.parseLong(file.get("length")))));
+        ret.add(new Pair(tmps[tmps.length - 1],
+            CommonUtils.fileSize2Human(Long.parseLong(file.get("length")))));
       }
     } else {
-      ret.add(new Pair(originalData.get("name"), CommonUtils.fileSize2Human(Long.parseLong((String)originalData.get("length")))));
+      ret.add(new Pair(originalData.get("name"),
+          CommonUtils.fileSize2Human(Long.parseLong((String) originalData.get("length")))));
     }
     return ret;
   }
@@ -96,7 +99,7 @@ public class Metadata {
     Map<String, Map<String, Object>> nodeMap = new HashMap<>();
     if (originalData.containsKey("files")) {
       boolean needOpen = true;
-      for(Map<String, String> file : (List<Map<String, String>>)originalData.get("files")) {
+      for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
         long length = Long.parseLong(file.get("length"));
         totalLength += length;
 
@@ -112,7 +115,8 @@ public class Metadata {
           if (!nodeMap.containsKey(parentPath)) {
             Map<String, Object> me = new HashMap<>();
             if (i == paths.length - 1) {
-              me.put("name", String.format(NAME_WITH_SIZE_FMT, paths[i], CommonUtils.fileSize2Human(length)));
+              me.put("name",
+                  String.format(NAME_WITH_SIZE_FMT, paths[i], CommonUtils.fileSize2Human(length)));
             } else {
               me.put("name", paths[i]);
             }
@@ -124,7 +128,7 @@ public class Metadata {
                 needOpen = false;
               }
             }
-            ((List)parent.get("children")).add(me);
+            ((List) parent.get("children")).add(me);
           }
         }
       }

@@ -4,7 +4,6 @@ import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.service.ESService;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/rest")
 public class RestfulController {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RestfulController.class);
 
   @Autowired
@@ -32,7 +32,9 @@ public class RestfulController {
       return esService.searchx(keyword, from, size);
     } catch (IOException e) {
       LOGGER.error("search error", e);
-      return new HashMap<String, Object>(){{put("errmsg", "inter error");}};
+      return new HashMap<String, Object>() {{
+        put("errmsg", "inter error");
+      }};
     }
   }
 
@@ -42,12 +44,16 @@ public class RestfulController {
     try {
       Metadata metadata = esService.detail(infohash);
       if (metadata == null) {
-        return new HashMap<String, Object>(){{put("errmsg", "not exist");}};
+        return new HashMap<String, Object>() {{
+          put("errmsg", "not exist");
+        }};
       }
       return metadata.getOriginalData();
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
-      return new HashMap<String, Object>(){{put("errmsg", "inter error");}};
+      return new HashMap<String, Object>() {{
+        put("errmsg", "inter error");
+      }};
     }
   }
 }

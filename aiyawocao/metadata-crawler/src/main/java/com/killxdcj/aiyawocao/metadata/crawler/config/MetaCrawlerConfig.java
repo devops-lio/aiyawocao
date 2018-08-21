@@ -3,19 +3,20 @@ package com.killxdcj.aiyawocao.metadata.crawler.config;
 import com.killxdcj.aiyawocao.bittorrent.config.BittorrentConfig;
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClientConfig;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import org.yaml.snakeyaml.Yaml;
 
 public class MetaCrawlerConfig {
+
   private int maxPendingAnnouncePeerReq = 10000;
   private int fetcherSubmitterNum = 20;
   private BittorrentConfig bittorrentConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
 
-  public MetaCrawlerConfig() {}
+  public MetaCrawlerConfig() {
+  }
 
   public static MetaCrawlerConfig fromYamlString(String yamlConf) {
     Yaml yaml = new Yaml();

@@ -2,10 +2,10 @@ package com.killxdcj.aiyawocao.bittorrent.dht;
 
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
-
 import java.net.InetAddress;
 
 public class Node {
+
   BencodedString id;
   int port;
   long lastActive;

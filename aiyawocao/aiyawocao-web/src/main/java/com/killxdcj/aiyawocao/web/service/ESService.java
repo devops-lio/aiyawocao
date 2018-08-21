@@ -16,6 +16,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
@@ -91,7 +92,8 @@ public class ESService {
 
   public SearchResult search(String keyword, int from, int size) throws IOException {
     QueryBuilder queryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
-        .type(Type.MOST_FIELDS);
+        .type(Type.MOST_FIELDS)
+        .operator(Operator.AND);
 
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
         .query(queryBuilder)

@@ -1171,3 +1171,8 @@ div.mctitle a:hover, div.mgline:hover .mctitle a {
     max-height: none
   }
 }
+
+.detail-file-size {
+  color: #999;
+  padding-left: 5px
+}

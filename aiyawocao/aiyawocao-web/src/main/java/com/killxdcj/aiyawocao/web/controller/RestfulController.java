@@ -20,21 +20,23 @@ public class RestfulController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RestfulController.class);
 
-  @Autowired
-  private ESService esService;
+  @Autowired private ESService esService;
 
   @RequestMapping(value = "/search/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Object search(@PathVariable String keyword,
+  public Object search(
+      @PathVariable String keyword,
       @RequestParam(value = "from", required = false, defaultValue = "0") int from,
       @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
     try {
       return esService.searchx(keyword, from, size);
     } catch (IOException e) {
       LOGGER.error("search error", e);
-      return new HashMap<String, Object>() {{
-        put("errmsg", "inter error");
-      }};
+      return new HashMap<String, Object>() {
+        {
+          put("errmsg", "inter error");
+        }
+      };
     }
   }
 
@@ -44,16 +46,20 @@ public class RestfulController {
     try {
       Metadata metadata = esService.detail(infohash);
       if (metadata == null) {
-        return new HashMap<String, Object>() {{
-          put("errmsg", "not exist");
-        }};
+        return new HashMap<String, Object>() {
+          {
+            put("errmsg", "not exist");
+          }
+        };
       }
       return metadata.getOriginalData();
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
-      return new HashMap<String, Object>() {{
-        put("errmsg", "inter error");
-      }};
+      return new HashMap<String, Object>() {
+        {
+          put("errmsg", "inter error");
+        }
+      };
     }
   }
 }

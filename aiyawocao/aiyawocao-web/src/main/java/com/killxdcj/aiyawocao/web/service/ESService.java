@@ -8,11 +8,13 @@ import com.killxdcj.aiyawocao.common.utils.TimeUtils;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.http.HttpHost;
@@ -25,6 +27,7 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
 import org.elasticsearch.index.query.Operator;
@@ -32,6 +35,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +66,8 @@ public class ESService {
 
   private String analyze_endpoint;
 
-  @Autowired private MetricsService metricsService;
+  @Autowired
+  private MetricsService metricsService;
 
   private Meter searchMeter;
   private Meter detailMeter;
@@ -160,18 +165,30 @@ public class ESService {
                   new StringEntity(
                       String.format(ANALYZE_BODY_FMT, text), ContentType.APPLICATION_JSON));
       if (response.getStatusLine().getStatusCode() == 200) {
-        List<String> keywords = new ArrayList<>();
-        JSON.parseObject(EntityUtils.toString(response.getEntity()))
+        return JSON.parseObject(EntityUtils.toString(response.getEntity()))
             .getJSONArray("tokens")
-            .forEach(
-                token -> {
-                  String keyword = (String) ((Map<String, Object>) token).get("token");
-                  if (keyword.length() >= 2 && keyword.length() <= 8) {
-                    keywords.add(keyword);
-                  }
-                });
-        Collections.sort(keywords, (o1, o2) -> o2.length() - o1.length());
-        return keywords;
+            .stream()
+            .sorted((o1, o2) -> {
+              String o1type = (String) ((Map<String, Object>) o1).get("type");
+              String o2type = (String) ((Map<String, Object>) o2).get("type");
+              if (o1type.equals("CN_WORD") && o2type.equals("CN_WORD")) {
+                return ((String) ((Map<String, Object>) o2).get("type")).length() -
+                    ((String) ((Map<String, Object>) o1).get("type")).length();
+              }
+              if (o1type.equals("CN_WORD")) {
+                return -1;
+              } else {
+                return 1;
+              }
+            })
+            .map(new Function<Object, String>() {
+              @Override
+              public String apply(Object o) {
+                return (String) ((Map<String, Object>) o).get("token");
+              }
+            })
+            .filter(s -> s.length() >= 2)
+            .collect(Collectors.toList());
       }
     } catch (IOException e) {
       LOGGER.error("analyz keyword error", e);
@@ -180,6 +197,23 @@ public class ESService {
       analyzeTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
     }
     return Collections.emptyList();
+  }
+
+  public SearchResult recent(int from, int size) throws IOException {
+    QueryBuilder queryBuilder = new MatchAllQueryBuilder();
+    SearchSourceBuilder searchSourceBuilder =
+        new SearchSourceBuilder()
+            .query(queryBuilder)
+            .sort("date", SortOrder.DESC)
+            .from(from)
+            .size(size)
+            .timeout(new TimeValue(30, TimeUnit.SECONDS))
+            .fetchSource(true);
+    SearchRequest searchRequest =
+        new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+
+    SearchResponse searchResponse = client.search(searchRequest);
+    return SearchResult.fromSearchResponse(searchResponse);
   }
 
   @PostConstruct

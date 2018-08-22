@@ -6,6 +6,7 @@ import com.killxdcj.aiyawocao.web.service.ESService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +73,7 @@ public class WebController {
       Metadata metadata = esService.detail(infohash);
       model.addAttribute("metadata", metadata);
       List<String> nameKeywords = esService.analyze(metadata.getName());
+      LOGGER.info(String.join(",", nameKeywords));
       List<String> contentKeywords =
           esService.analyze(
               String.join(
@@ -81,15 +83,47 @@ public class WebController {
                       .stream()
                       .map(f -> f.getKey())
                       .collect(Collectors.toList())));
+      LOGGER.info(String.join(",", contentKeywords));
       Set<String> keywords = new HashSet<>();
       keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
       keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
+      List<String> finalKeywords = new ArrayList<>(keywords);
+      Collections.shuffle(finalKeywords);
       model.addAttribute(
           "keywords",
-          keywords.size() > 6 ? new ArrayList(keywords).subList(0, 6) : new ArrayList(keywords));
+          finalKeywords.size() > 6 ? finalKeywords.subList(0, 6) : finalKeywords);
       return "detail";
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
+      return "home";
+    }
+  }
+
+  @RequestMapping("recent")
+  public String recent(@RequestParam(value = "p", required = false, defaultValue = "1") int page,
+      Model model) {
+    try {
+      SearchResult result = esService.recent((page - 1) * 10, 10);
+      model.addAttribute("result", result);
+      model.addAttribute("keyword", "");
+
+      long totalPage = result.getTotalHits() / 10 + (result.getTotalHits() % 10 > 0 ? 1 : 0);
+      model.addAttribute("curPage", page);
+      if (totalPage <= 10) {
+        model.addAttribute("pageNum", totalPage == 0 ? 1 : totalPage);
+        model.addAttribute("startPage", 1);
+      } else {
+        model.addAttribute("pageNum", 10);
+        model.addAttribute("startPage", page - 4 < 1 ? 1 : page - 4);
+        if (page + 5 > totalPage) {
+          model.addAttribute("startPage", totalPage - 9);
+        }
+      }
+      model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
+      model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
+      return "recent";
+    } catch (IOException e) {
+      LOGGER.error("recent error", e);
       return "home";
     }
   }

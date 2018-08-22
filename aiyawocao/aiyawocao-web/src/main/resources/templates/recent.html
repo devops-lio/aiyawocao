@@ -26,10 +26,10 @@
   <div class="toolbar">
     <span class="sort">Order by: </span>
     <span class="active">Relevance</span>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=size'">Size</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=filenum'">Files</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=date'">AddTime</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=popularity'">Popularity</a>
+    <a href="/recent?sort=size">Size</a>
+    <a href="/recent?sort=filenum">Files</a>
+    <a href="/recent?sort=date">AddTime</a>
+    <a href="/recent?sort=popularity">Popularity</a>
   </div>
   <div class="content clearfix">
     <div class="left-content">
@@ -67,16 +67,16 @@
         <nav role="navigation">
           <ul class="pagination">
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« Previous</a>
+              <a th:href="'/recent?&p=' + ${pre}">« Previous</a>
             </li>
             <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}"
                 class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}"
+              <a th:href="'/recent?&p=' + ${i}" th:text="${i}"
                  th:if="${i} != ${curPage}"></a>
               <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
             </li>
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${next}">Next »</a>
+              <a th:href="'/recent?&p=' + ${next}">Next »</a>
             </li>
           </ul>
         </nav>

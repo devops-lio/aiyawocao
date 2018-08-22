@@ -1,8 +1,15 @@
 package com.killxdcj.aiyawocao.web.controller;
 
+import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
+import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +25,7 @@ public class WebController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WebController.class);
 
-  @Autowired
-  private ESService esService;
+  @Autowired private ESService esService;
 
   @RequestMapping("")
   public String home() {
@@ -27,7 +33,8 @@ public class WebController {
   }
 
   @RequestMapping("search")
-  public String search(@RequestParam String keyword,
+  public String search(
+      @RequestParam String keyword,
       @RequestParam(value = "p", required = false, defaultValue = "1") int page,
       Model model) {
     try {
@@ -56,15 +63,34 @@ public class WebController {
     }
   }
 
-  @RequestMapping("detail/{infohash}")
-  public String detail(@PathVariable String infohash, Model model) {
+  @RequestMapping("detail/{magic}/{infohash}")
+  public String detail(@PathVariable String magic, @PathVariable String infohash, Model model) {
     try {
-      model.addAttribute("metadata", esService.detail(infohash));
+      if (!WebUtils.verifyMagic(infohash, magic)) {
+        return "home";
+      }
+      Metadata metadata = esService.detail(infohash);
+      model.addAttribute("metadata", metadata);
+      List<String> nameKeywords = esService.analyze(metadata.getName());
+      List<String> contentKeywords =
+          esService.analyze(
+              String.join(
+                  " ",
+                  metadata
+                      .getDigestFiles()
+                      .stream()
+                      .map(f -> f.getKey())
+                      .collect(Collectors.toList())));
+      Set<String> keywords = new HashSet<>();
+      keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
+      keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
+      model.addAttribute(
+          "keywords",
+          keywords.size() > 6 ? new ArrayList(keywords).subList(0, 6) : new ArrayList(keywords));
       return "detail";
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);
       return "home";
     }
-
   }
 }

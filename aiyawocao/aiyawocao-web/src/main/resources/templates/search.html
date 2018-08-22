@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
-  <title>Search</title>
+  <title th:text="${keyword} + '磁力链接&种子下载 SKRBT'">Search</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -12,7 +12,7 @@
   <div class="site-wrapper-border"></div>
   <div class="header">
     <div class="header-content">
-      <a href="https://btdb.to/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
+      <a href="http://skrbt.com/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
       <div class="search-area">
         <form action="/search" method="get" accept-charset="utf-8" class="search-form">
           <input type="text" id="search-input" th:value="${keyword}" title="BTDB Search"
@@ -26,10 +26,10 @@
   <div class="toolbar">
     <span class="sort">Order by: </span>
     <span class="active">Relevance</span>
-    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=size">Size</a>
-    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=num_files">Files</a>
-    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=time">AddTime</a>
-    <a href="https://btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/?sort=popular">Popularity</a>
+    <a th:href="'/search?keyword=' + ${keyword} + '&sort=size'">Size</a>
+    <a th:href="'/search?keyword=' + ${keyword} + '&sort=filenum'">Files</a>
+    <a th:href="'/search?keyword=' + ${keyword} + '&sort=date'">AddTime</a>
+    <a th:href="'/search?keyword=' + ${keyword} + '&sort=popularity'">Popularity</a>
   </div>
   <div class="content clearfix">
     <div class="left-content">
@@ -40,7 +40,7 @@
         <ul class="search-ret-list">
           <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
             <h2 class="item-title"><a
-                th:href="'/detail/' + ${metadata.getInfohash()}"
+                th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}"
                 th:title="${metadata.getName()}"><span
                 class="highlight" th:text="${metadata.getName()}"></span></a></h2>
             <div class="item-meta-info">
@@ -85,15 +85,15 @@
     <div class="footer">
       <div class="footer-content">
         <div class="pull-left">
-          © 2016 BTDB.to | Bitcoin: <a href="bitcoin:17DzhgMEWyFBB9he3fhDJwpbECUJdGct58">17DzhgMEWyFBB9he3fhDJwpbECUJdGct58</a>
+          © 2018 SKRBT.com
         </div>
         <div class="pull-right">
-          <a href="https://btdb.to/">SSL</a> | <a href="https://btdb.to/about">About</a>
+          <a href="http://skrbt.com/">SSL</a> | <a href="http://skrbt.com/about">About</a>
         </div>
         <div class="disclaimer pull-left">
-          BTDB (btdb.to) is not a tracker and doesn't store any content and only collects torrent
+          SKRBT (skrbt.com) is not a tracker and doesn't store any content and only collects torrent
           metadata (such as file names and file sizes) and a magnet link (torrent identifier). This
-          means BTDB is the entirely legal system.
+          means SKRBT is the entirely legal system.
         </div>
       </div>
     </div>

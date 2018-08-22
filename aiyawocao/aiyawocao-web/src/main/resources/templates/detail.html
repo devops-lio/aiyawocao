@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
-  <title>Detail</title>
+  <title th:text="${metadata.getName()}"></title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/jquery.treeview.css" type="text/css">
@@ -14,7 +14,7 @@
   <div class="site-wrapper-border"></div>
   <div class="header">
     <div class="header-content">
-      <a href="https://btdb.to/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
+      <a href="http://skrbt.com/"><img src="/img/logo_40.png" alt="BTDB LOGO" class="logo"></a>
       <div class="search-area">
         <form action="/search" method="get" accept-charset="utf-8" class="search-form">
           <input type="text" id="search-input" value="" title="BTDB Search" name="keyword"
@@ -45,10 +45,7 @@
           </div>
           <dt>关键词</dt>
           <dd>
-            <a href="https://zh.btdb.to/q/%E5%BB%BA%E5%9B%BD%E5%A4%A7%E4%B8%9A/" class="tag"
-               rel="tag">建国大业</a>
-            <a href="https://zh.btdb.to/q/%E5%BB%BA%E5%85%9A%E4%BC%9F%E4%B8%9A/" class="tag"
-               rel="tag">建党伟业</a>
+            <a class="tag" rel="tag" th:each="key : ${keywords}" th:href="'/search?keyword=' + ${key}" th:text="${key}"></a>
           </dd>
           <dt>磁力链接</dt>
           <dd>
@@ -59,22 +56,22 @@
           </dd>
         </dl>
         <h2>文件列表</h2>
-        <ul id="browser" class="filetree treeview" th:utext="${metadata.getFileTree()}">
+        <ul id="metadata-detail" class="filetree treeview" th:utext="${metadata.getFileTree()}">
         </ul>
       </div>
     </div>
     <div class="footer">
       <div class="footer-content">
         <div class="pull-left">
-          © 2016 BTDB.to | Bitcoin: <a href="bitcoin:17DzhgMEWyFBB9he3fhDJwpbECUJdGct58">17DzhgMEWyFBB9he3fhDJwpbECUJdGct58</a>
+          © 2018 SKRBT.com
         </div>
         <div class="pull-right">
-          <a href="https://btdb.to/">SSL</a> | <a href="https://zh.btdb.to/about">关于</a> |
+          <a href="http://skrbt.com/">SSL</a> | <a href="http://skrbt.com/about">About</a>
         </div>
         <div class="disclaimer pull-left">
-          BTDB (btdb.to) is not a tracker and doesn't store any content and only collects torrent
+          SKRBT (skrbt.com) is not a tracker and doesn't store any content and only collects torrent
           metadata (such as file names and file sizes) and a magnet link (torrent identifier). This
-          means BTDB is the entirely legal system.
+          means SKRBT is the entirely legal system.
         </div>
       </div>
     </div>
@@ -84,7 +81,7 @@
 </body>
 <script type="text/javascript">
   $(document).ready(function(){
-    $("#browser").treeview({
+    $("#metadata-detail").treeview({
       toggle: function() {
         console.log("%s was toggled.", $(this).find(">span").text());
       }

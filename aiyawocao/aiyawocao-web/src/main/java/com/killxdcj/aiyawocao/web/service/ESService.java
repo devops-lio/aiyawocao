@@ -177,9 +177,12 @@ public class ESService {
               }
               if (o1type.equals("CN_WORD")) {
                 return -1;
-              } else {
+              }
+              if (o2type.equals("CN_WORD")){
                 return 1;
               }
+              return ((String) ((Map<String, Object>) o2).get("type")).length() -
+                  ((String) ((Map<String, Object>) o1).get("type")).length();
             })
             .map(new Function<Object, String>() {
               @Override

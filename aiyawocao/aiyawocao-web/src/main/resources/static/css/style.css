@@ -1171,3 +1171,14 @@ div.mctitle a:hover, div.mgline:hover .mctitle a {
     max-height: none
   }
 }
+
+.file-size {
+  margin-right: 5px;
+  background-color: #fffcd7;
+  border: 1px solid #d5d458;
+  border-radius: 4px;
+  color: #555;
+  font-size: 12px;
+  padding: 0 .5em;
+  text-decoration: none
+}

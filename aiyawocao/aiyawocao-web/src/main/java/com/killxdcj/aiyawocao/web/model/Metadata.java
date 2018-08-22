@@ -19,8 +19,6 @@ public class Metadata {
 
   private Map<String, Object> originalData;
 
-  private long totalLength;
-
   public Metadata(Map<String, Object> originalData) {
     this.originalData = originalData;
   }
@@ -92,47 +90,101 @@ public class Metadata {
     return ret;
   }
 
+//  public String getFileTree() {
+//    Map<String, Object> root = new HashMap<>();
+//    root.put("name", getName());
+//
+//    Map<String, Map<String, Object>> nodeMap = new HashMap<>();
+//    if (originalData.containsKey("files")) {
+//      boolean needOpen = true;
+//      for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
+//        long length = Long.parseLong(file.get("length"));
+//        totalLength += length;
+//
+//        if (file.get("path").indexOf("请升级到BitComet") != -1) {
+//          continue;
+//        }
+//        String[] paths = file.get("path").split("/");
+//
+//        String parentPath = "";
+//        for (int i = 0; i < paths.length; i++) {
+//          Map<String, Object> parent = parentPath.length() == 0 ? root : nodeMap.get(parentPath);
+//          parentPath += paths[i];
+//          if (!nodeMap.containsKey(parentPath)) {
+//            Map<String, Object> me = new HashMap<>();
+//            if (i == paths.length - 1) {
+//              me.put("name",
+//                  String.format(NAME_WITH_SIZE_FMT, paths[i], CommonUtils.fileSize2Human(length)));
+//            } else {
+//              me.put("name", paths[i]);
+//            }
+//            nodeMap.put(parentPath, me);
+//            if (!parent.containsKey("children")) {
+//              parent.put("children", new ArrayList<>());
+//              if (needOpen) {
+//                parent.put("open", true);
+//                needOpen = false;
+//              }
+//            }
+//            ((List) parent.get("children")).add(me);
+//          }
+//        }
+//      }
+//    }
+//    return JSON.toJSONString(root);
+//  }
+
   public String getFileTree() {
-    Map<String, Object> root = new HashMap<>();
-    root.put("name", getName());
-
-    Map<String, Map<String, Object>> nodeMap = new HashMap<>();
+    Pair<String, Object> root;
+    Map<String, Pair<String, Object>> dirNodeMap = new HashMap<>();
     if (originalData.containsKey("files")) {
-      boolean needOpen = true;
-      for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
-        long length = Long.parseLong(file.get("length"));
-        totalLength += length;
+      root = new Pair<>(getName(), new ArrayList<>());
+      dirNodeMap.put(getName(), root);
 
+      for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
         if (file.get("path").indexOf("请升级到BitComet") != -1) {
           continue;
         }
+
+        long length = Long.parseLong(file.get("length"));
         String[] paths = file.get("path").split("/");
 
-        String parentPath = "";
-        for (int i = 0; i < paths.length; i++) {
-          Map<String, Object> parent = parentPath.length() == 0 ? root : nodeMap.get(parentPath);
-          parentPath += paths[i];
-          if (!nodeMap.containsKey(parentPath)) {
-            Map<String, Object> me = new HashMap<>();
-            if (i == paths.length - 1) {
-              me.put("name",
-                  String.format(NAME_WITH_SIZE_FMT, paths[i], CommonUtils.fileSize2Human(length)));
-            } else {
-              me.put("name", paths[i]);
-            }
-            nodeMap.put(parentPath, me);
-            if (!parent.containsKey("children")) {
-              parent.put("children", new ArrayList<>());
-              if (needOpen) {
-                parent.put("open", true);
-                needOpen = false;
-              }
-            }
-            ((List) parent.get("children")).add(me);
+        List<Pair<String, Object>> parentChilds = (List<Pair<String, Object>>)root.getValue();
+        String fullPath = "";
+        for (int i = 0; i < paths.length - 1; i++) {
+          fullPath = fullPath + "/" + paths[i];
+          if (dirNodeMap.containsKey(fullPath)) {
+            parentChilds = (List<Pair<String, Object>>)dirNodeMap.get(fullPath).getValue();
+            continue;
           }
+
+          Pair<String, Object> curDir = new Pair<>(paths[i], new ArrayList<>());
+          parentChilds.add(curDir);
+          dirNodeMap.put(fullPath, curDir);
+          parentChilds = (List<Pair<String, Object>>)curDir.getValue();
         }
+
+        parentChilds.add(new Pair<>(paths[paths.length - 1], file.get("length")));
       }
+    } else {
+      root = new Pair<>(getName(), (String)originalData.get("length"));
     }
-    return JSON.toJSONString(root);
+
+    return appendNode("", root);
+  }
+
+  private String appendNode(String parent, Pair<String, Object> node) {
+    if (node.getValue() instanceof String) {
+      String humanFileSize = CommonUtils.fileSize2Human(Long.parseLong((String)node.getValue()));
+      parent = parent + "<li><i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i>&nbsp;" + node.getKey() +
+          "&nbsp;<a class=\"file-size\">" + humanFileSize + "</a></li>";
+    } else {
+      parent = parent + "<li><i class=\"fa fa-folder\" aria-hidden=\"true\"></i>&nbsp" + node.getKey() + "<ul>";
+      for (Pair child : (List<Pair<String, Object>>)node.getValue()) {
+        parent = appendNode(parent, child);
+      }
+      parent = parent + "</ul></li>";
+    }
+    return parent;
   }
 }

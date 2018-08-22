@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Detail</title>
-  <link rel="stylesheet" href="../static/css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="../static/css/jquery.treeview.css" type="text/css">
-  <script type="text/javascript" src="../static/js/jquery-3.3.1.min.js"></script>
-  <script type="text/javascript" src="../static/js/jquery.treeview.js"></script>
+  <link rel="stylesheet" href="/css/jquery.treeview.css" type="text/css">
+  <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="/js/jquery.treeview.js"></script>
 </head>
 <body>
 <div class="container">
@@ -59,22 +59,7 @@
           </dd>
         </dl>
         <h2>文件列表</h2>
-        <div id="treeDemo" class="ztree" th:text="${metadata.getFileTree()}"></div>
-        <ul id="browser" class="filetree treeview">
-          <li><span>Folder 1</span>
-            <ul>
-              <li><i class="fa fa-folder fa-2x" aria-hidden="true"></i>Folder 2
-                <ul>
-                  <li style="height: 50px; line-height: 50px"><i class="fa fa-folder" aria-hidden="true"></i>Folder 2.1
-                    <ul id="folder21">
-                      <li><i class="fa fa-search"></i>&nbsp;&nbsp;File 2.1.1</li>
-                      <li><i class="fa fa-search"></i>&nbsp;&nbsp;File 2.1.2</li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
+        <ul id="browser" class="filetree treeview" th:utext="${metadata.getFileTree()}">
         </ul>
       </div>
     </div>

@@ -5,11 +5,14 @@ import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetrics;
 import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MetricsService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetricsService.class);
 
   @Value("${metrics.influxdb.host}")
   private String host;
@@ -40,6 +43,7 @@ public class MetricsService {
     config.setInfluxdbName(name);
     config.setCluster(cluster);
 
+    LOGGER.info("init metricservice with {}", config);
     metricRegistry = InfluxdbBackendMetrics.startMetricReport(config);
   }
 

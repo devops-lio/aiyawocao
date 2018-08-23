@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <RollingFile fileName="/var/log/aiyawocao/skrbt.log" filePattern="/var/log/aiyawocao/metadata-crawler.log.%d{yyyyMMdd}"
-      name="aiyawocao">
+    <RollingFile fileName="/var/log/aiyawocao/skrbt.log" filePattern="/var/log/aiyawocao/skrbt.log.%d{yyyyMMdd}"
+      name="skrbt">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>
@@ -14,7 +14,7 @@
   </Appenders>
   <Loggers>
     <Root level="info">
-      <AppenderRef ref="aiyawocao"></AppenderRef>
+      <AppenderRef ref="skrbt"></AppenderRef>
     </Root>
   </Loggers>
 </Configuration>

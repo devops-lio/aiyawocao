@@ -73,7 +73,6 @@ public class WebController {
       Metadata metadata = esService.detail(infohash);
       model.addAttribute("metadata", metadata);
       List<String> nameKeywords = esService.analyze(metadata.getName());
-      LOGGER.info(String.join(",", nameKeywords));
       List<String> contentKeywords =
           esService.analyze(
               String.join(
@@ -83,7 +82,6 @@ public class WebController {
                       .stream()
                       .map(f -> f.getKey())
                       .collect(Collectors.toList())));
-      LOGGER.info(String.join(",", contentKeywords));
       Set<String> keywords = new HashSet<>();
       keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
       keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);

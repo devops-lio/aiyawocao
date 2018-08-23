@@ -72,9 +72,11 @@ public class ESService {
   private Meter searchMeter;
   private Meter detailMeter;
   private Meter analyzeMeter;
+  private Meter recentMeter;
   private Timer searchTimer;
   private Timer detailTimer;
   private Timer analyzeTimer;
+  private Timer recentTimer;
 
   public Object searchx(String keyword, int from, int size) throws IOException {
     QueryBuilder queryBuilder =
@@ -203,20 +205,26 @@ public class ESService {
   }
 
   public SearchResult recent(int from, int size) throws IOException {
-    QueryBuilder queryBuilder = new MatchAllQueryBuilder();
-    SearchSourceBuilder searchSourceBuilder =
-        new SearchSourceBuilder()
-            .query(queryBuilder)
-            .sort("date", SortOrder.DESC)
-            .from(from)
-            .size(size)
-            .timeout(new TimeValue(30, TimeUnit.SECONDS))
-            .fetchSource(true);
-    SearchRequest searchRequest =
-        new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+    long start = TimeUtils.getCurTime();
+    try {
+      QueryBuilder queryBuilder = new MatchAllQueryBuilder();
+      SearchSourceBuilder searchSourceBuilder =
+          new SearchSourceBuilder()
+              .query(queryBuilder)
+              .sort("date", SortOrder.DESC)
+              .from(from)
+              .size(size)
+              .timeout(new TimeValue(30, TimeUnit.SECONDS))
+              .fetchSource(true);
+      SearchRequest searchRequest =
+          new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
 
-    SearchResponse searchResponse = client.search(searchRequest);
-    return SearchResult.fromSearchResponse(searchResponse);
+      SearchResponse searchResponse = client.search(searchRequest);
+      return SearchResult.fromSearchResponse(searchResponse);
+    } finally {
+      recentMeter.mark();
+      recentTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+    }
   }
 
   @PostConstruct
@@ -230,9 +238,11 @@ public class ESService {
     searchMeter = registry.meter(MetricRegistry.name(ESService.class, "search.throughput"));
     detailMeter = registry.meter(MetricRegistry.name(ESService.class, "detail.throughput"));
     analyzeMeter = registry.meter(MetricRegistry.name(ESService.class, "analyze.throughput"));
+    recentMeter = registry.meter(MetricRegistry.name(ESService.class, "recent.throughput"));
     searchTimer = registry.timer(MetricRegistry.name(ESService.class, "search.costtime"));
     detailTimer = registry.timer(MetricRegistry.name(ESService.class, "detail.costtime"));
     analyzeTimer = registry.timer(MetricRegistry.name(ESService.class, "analyze.costtime"));
+    recentTimer = registry.timer(MetricRegistry.name(ESService.class, "recent.costtime"));
   }
 
   @PreDestroy

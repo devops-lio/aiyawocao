@@ -2,12 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
-  <title th:text="${keyword} + '磁力链接、种子搜索结果'">Search</title>
+  <title th:text="${keyword} + ' 磁力链接、种子搜索结果'">Search</title>
   <meta name="keywords" th:content="${keyword}" />
-  <meta name="description" th:content="${keyword} + '种子,磁力链接搜索结果'" />
+  <meta name="description" th:content="${keyword} + ' 种子,磁力链接搜索结果'" />
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?88a96a4af334169bd6492b8c714822aa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
 </head>
 <body>
 <div class="container">
@@ -103,4 +112,18 @@
   <div class="adsbox">&nbsp;</div>
 </div>
 </body>
+<script>
+  (function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+      bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+  })();
+</script>
 </html>

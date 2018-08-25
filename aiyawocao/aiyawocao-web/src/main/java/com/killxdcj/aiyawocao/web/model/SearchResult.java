@@ -29,7 +29,7 @@ public class SearchResult {
   public List<Metadata> getMetadatas() {
     List<Metadata> metadatas = new ArrayList<>();
     for (SearchHit searchHit : searchResponse.getHits()) {
-      metadatas.add(new Metadata(searchHit.getSourceAsMap()));
+      metadatas.add(new Metadata(searchHit));
     }
     return metadatas;
   }

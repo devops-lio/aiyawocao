@@ -35,38 +35,35 @@
     </div>
   </div>
   <div class="toolbar">
-    <span class="sort">Order by: </span>
-    <span class="active">Relevance</span>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=size'">Size</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=filenum'">Files</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=date'">AddTime</a>
-    <a th:href="'/search?keyword=' + ${keyword} + '&sort=popularity'">Popularity</a>
+    <span class="sort">排序: </span>
+    <span class="active" th:if="${sort} eq 'relevance'">相关度</span>
+    <a th:href="'/search?keyword=' + ${keyword} + '&s=relevance'" th:unless="${sort} eq 'relevance'">相关度</a>
+    <span class="active" th:if="${sort} eq 'date'">收录时间</span>
+    <a th:href="'/search?keyword=' + ${keyword} + '&s=date'" th:unless="${sort} eq 'date'">收录时间</a>
   </div>
   <div class="content clearfix">
     <div class="left-content">
       <h1 class="hide text-hide" , th:text="${keyword} + 'search result, Torrent Magnet'"></h1>
       <div class="result-stats"
-           th:text="'About ' + ${result.getTotalHits()} + ' results (' + ${result.getTook()} + ')'"></div>
+           th:text="'找到约 ' + ${result.getTotalHits()} + ' 条结果 (用时' + ${result.getTook()} + ')'"></div>
       <div class="search-ret">
         <ul class="search-ret-list">
           <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
             <h2 class="item-title"><a
                 th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}"
-                th:title="${metadata.getName()}"><span
-                class="highlight" th:text="${metadata.getName()}"></span></a></h2>
+                th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}"></a></h2>
             <div class="item-meta-info">
               <a title="Download using magnet"
                  th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}" class="magnet"
-                 onclick="popup();"><i class="fa fa-magnet"></i> Magnet Link</a>
-              Size: <span class="item-meta-info-value" th:text="${metadata.getHumanFileSize()}"/>
-              Files: <span class="item-meta-info-value" th:text="${metadata.getFileNum()}"/>
-              AddTime: <span class="item-meta-info-value" th:text="${metadata.getDate()}"/>
-              Popularity: <span class="item-meta-info-value" th:text="${metadata.getPopularity()}"/>
+                 onclick="popup();"><i class="fa fa-magnet"></i> 磁力链接</a>
+              文件大小: <span class="item-meta-info-value" th:text="${metadata.getHumanFileSize()}"/>
+              文件数量: <span class="item-meta-info-value" th:text="${metadata.getFileNum()}"/>
+              收录时间: <span class="item-meta-info-value" th:text="${metadata.getDate()}"/>
+              热度: <span class="item-meta-info-value" th:text="${metadata.getPopularity()}"/>
             </div>
             <ul class="item-file-list">
               <li class="file" th:each="file : ${metadata.getDigestFiles()}">
-                <span class="file-icon"><i class="fa fa-file-video-o"></i></span>
-                <span class="file-name" th:text="${file.getKey()}"/>
+                <span class="file-name" th:utext="${file.getKey()}"/>
                 <span class="file-size" th:text="${file.getValue()}"/>
               </li>
               <li th:if="${metadata.getFileNum() gt 10}">...</li>
@@ -78,7 +75,7 @@
         <nav role="navigation">
           <ul class="pagination">
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« Previous</a>
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« 上一页</a>
             </li>
             <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}"
                 class="button">
@@ -87,7 +84,7 @@
               <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
             </li>
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${next}">Next »</a>
+              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${next}">下一页 »</a>
             </li>
           </ul>
         </nav>

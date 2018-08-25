@@ -21,3 +21,4 @@ skrbt_deploy/
 !/.mvn/wrapper/maven-wrapper.jar
 aiyawocao/bittorrent/src/main/resources/
 aiyawocao/logs/
+log/

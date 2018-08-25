@@ -37,9 +37,10 @@ public class WebController {
   public String search(
       @RequestParam String keyword,
       @RequestParam(value = "p", required = false, defaultValue = "1") int page,
+      @RequestParam(value = "s", required = false, defaultValue = "relevance") String sort,
       Model model) {
     try {
-      SearchResult result = esService.search(keyword, (page - 1) * 10, 10);
+      SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort);
       model.addAttribute("result", result);
       model.addAttribute("keyword", keyword);
 
@@ -57,6 +58,7 @@ public class WebController {
       }
       model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
+      model.addAttribute("sort", sort);
       return "search";
     } catch (IOException e) {
       LOGGER.error("xx", e);
@@ -119,6 +121,7 @@ public class WebController {
       }
       model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
+      model.addAttribute("sort", "date");
       return "recent";
     } catch (IOException e) {
       LOGGER.error("recent error", e);

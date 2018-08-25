@@ -6,22 +6,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import javafx.util.Pair;
+import org.elasticsearch.common.text.Text;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 
 public class Metadata {
 
-  private static final String[] UNITS = {"Bytes", "KB", "MB", "GB", "TB"};
-  private static final String NAME_WITH_SIZE_FMT =
-      "<span style='color:red;margin-right:0px;"
-          + "padding: 3px;'>%s</span>&nbsp;&nbsp;<span style='color:blue;margin-right:0px;"
-          + "background-color:lawngreen;border:1px solid;border-radius:10px;padding:2px;'>%s</span>";
+  private static final String HIGHLIGHT_PRE = "<span class=\"highlight\">";
+  private static final String HIGHLIGHT_POST = "</span>";
   private static int DEFAULT_DIGEST_FILES_SIZE = 10;
 
   private Map<String, Object> originalData;
+  private Map<String, HighlightField> highlightFields;
+  private SearchHit searchHit;
 
-  public Metadata(Map<String, Object> originalData) {
-    this.originalData = originalData;
+  public Metadata(SearchHit searchHit) {
+    this.searchHit = searchHit;
+    this.originalData = searchHit.getSourceAsMap();
+    this.highlightFields = searchHit.getHighlightFields();
   }
 
   public Map<String, Object> getOriginalData() {
@@ -30,6 +35,14 @@ public class Metadata {
 
   public String getName() {
     return (String) originalData.get("name");
+  }
+
+  public String getHighlightName() {
+    HighlightField highlightField = highlightFields.get("name");
+    if (highlightField == null || highlightField.getFragments().length == 0) {
+      return getName();
+    }
+    return replaceHighlight(highlightField.getFragments()[0].string());
   }
 
   public String getDate() {
@@ -51,13 +64,11 @@ public class Metadata {
   public String getHumanFileSize() {
     long totalSize = 0;
     if (originalData.containsKey("files")) {
-      if (originalData.containsKey("files")) {
-        for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
-          totalSize += Long.parseLong(file.get("length"));
-        }
-      } else {
-        totalSize += Long.parseLong((String) originalData.get("length"));
+      for (Map<String, String> file : (List<Map<String, String>>) originalData.get("files")) {
+        totalSize += Long.parseLong(file.get("length"));
       }
+    } else {
+      totalSize += Long.parseLong((String) originalData.get("length"));
     }
     return CommonUtils.fileSize2Human(totalSize);
   }
@@ -75,28 +86,44 @@ public class Metadata {
   }
 
   public List<Pair<String, Long>> getDigestFiles(int digestFilesSize) {
-    Pair<String, String> x = new Pair<>("xx", "xx");
-    List<Pair<String, Long>> ret = new ArrayList<>();
+    List<Pair<String, Long>> rets = new ArrayList<>();
+
+    Map<String, Long> fileMap = new HashMap<>();
     if (originalData.containsKey("files")) {
       List<Map<String, String>> files = (List<Map<String, String>>) originalData.get("files");
-      for (int i = 0; i < (files.size() > digestFilesSize ? digestFilesSize : files.size()); i++) {
-        Map<String, String> file = files.get(i);
+      for (Map<String, String> file : files) {
         if (file.get("path").indexOf("请升级到BitComet") != -1) {
           continue;
         }
         String[] tmps = file.get("path").split("/");
-        ret.add(
-            new Pair(
-                tmps[tmps.length - 1],
-                CommonUtils.fileSize2Human(Long.parseLong(file.get("length")))));
+        fileMap.put(tmps[tmps.length - 1], Long.parseLong(file.get("length")));
       }
     } else {
-      ret.add(
-          new Pair(
-              originalData.get("name"),
-              CommonUtils.fileSize2Human(Long.parseLong((String) originalData.get("length")))));
+      fileMap.put((String)originalData.get("name"), Long.parseLong((String) originalData.get("length")));
     }
-    return ret;
+
+    HighlightField highlightField = highlightFields.get("files.path");
+    if (highlightField != null && highlightField.getFragments().length != 0) {
+      for (Text text : highlightField.getFragments()) {
+        String[] paths =text.string().split("/");
+        String name = paths[paths.length - 1];
+        String originalName = name.replace("skrbt-high-pre", "")
+            .replace("skrbt-high-post", "");
+        if (fileMap.containsKey(originalName)) {
+          rets.add(new Pair(attachFileIcon(replaceHighlight(name)), CommonUtils.fileSize2Human(fileMap.get(originalName))));
+          fileMap.remove(originalName);
+        }
+      }
+    }
+
+    for (Entry<String, Long> entry : fileMap.entrySet()){
+      if (rets.size() >= digestFilesSize) {
+        break;
+      }
+      rets.add(new Pair(attachFileIcon(entry.getKey()), CommonUtils.fileSize2Human(entry.getValue())));
+    }
+
+    return rets;
   }
 
   public String getFileTree() {
@@ -143,7 +170,8 @@ public class Metadata {
       String humanFileSize = CommonUtils.fileSize2Human(Long.parseLong((String) node.getValue()));
       parent =
           parent
-              + "<li><i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i>&nbsp;"
+              + "<li>"
+              + WebUtils.calcAwesomeIcon(node.getKey()) + "&nbsp;"
               + node.getKey()
               + "<span class=\"detail-file-size\">"
               + humanFileSize
@@ -168,5 +196,14 @@ public class Metadata {
       parent = parent + "</ul></li>";
     }
     return parent;
+  }
+
+  private String replaceHighlight(String text) {
+    return text.replace("skrbt-high-pre", HIGHLIGHT_PRE)
+        .replace("skrbt-high-post", HIGHLIGHT_POST);
+  }
+
+  private String attachFileIcon(String fileName) {
+    return WebUtils.calcAwesomeIcon(fileName) + "&nbsp" + fileName;
   }
 }

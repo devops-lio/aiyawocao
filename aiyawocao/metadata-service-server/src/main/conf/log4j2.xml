@@ -9,7 +9,12 @@
         <SizeBasedTriggeringPolicy size="100 MB"/>
         <TimeBasedTriggeringPolicy modulate="true"/>
       </Policies>
-      <DefaultRolloverStrategy max="3"/>
+      <DefaultRolloverStrategy>
+        <Delete basePath="/var/log/aiyawocao/" maxDepth="1">
+          <IfFileName glob="metadata-service.log.*" />
+          <IfLastModified age="2d" />
+        </Delete>
+      </DefaultRolloverStrategy>
     </RollingFile>
     <RollingFile fileName="/data/aiyawocao/metadata/human/metadata.log" filePattern="/data/aiyawocao/metadata/human/metadata.%d{yyyyMMdd}.%i.zip"
       name="metadata">

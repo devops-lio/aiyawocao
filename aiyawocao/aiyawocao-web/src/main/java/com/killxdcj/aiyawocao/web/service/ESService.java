@@ -49,8 +49,7 @@ public class ESService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ESService.class);
 
-  private static final String ANALYZE_BODY_FMT =
-      "{\n" + "  \"field\": \"name\", \n" + "  \"text\":  \"%s\"\n" + "}";
+  private static final String ANALYZE_BODY_FMT ="{\"field\":\"name\",\"text\":\"%s\"}";
 
   @Value("${es.host}")
   private String host;
@@ -180,15 +179,10 @@ public class ESService {
   public List<String> analyze(String text) {
     long start = TimeUtils.getCurTime();
     try {
-      Response response =
-          client
-              .getLowLevelClient()
-              .performRequest(
-                  "GET",
-                  analyze_endpoint,
-                  Collections.EMPTY_MAP,
-                  new StringEntity(
-                      String.format(ANALYZE_BODY_FMT, text), ContentType.APPLICATION_JSON));
+      Response response = client
+          .getLowLevelClient()
+          .performRequest("GET", analyze_endpoint, Collections.EMPTY_MAP,
+              new StringEntity(String.format(ANALYZE_BODY_FMT, text), ContentType.APPLICATION_JSON));
       if (response.getStatusLine().getStatusCode() == 200) {
         return JSON.parseObject(EntityUtils.toString(response.getEntity()))
             .getJSONArray("tokens")

@@ -3,11 +3,14 @@ package com.killxdcj.aiyawocao.web.model;
 import com.killxdcj.aiyawocao.common.utils.CommonUtils;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javafx.util.Pair;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
@@ -78,6 +81,20 @@ public class Metadata {
       return ((List<Map<String, String>>) originalData.get("files")).size();
     } else {
       return 1;
+    }
+  }
+
+  public List<String> getAllOriginalFiles() {
+    if (originalData.containsKey("files")) {
+      return ((List<Map<String, String>>)originalData.get("files")).stream()
+          .map(o -> {
+            String[] tmps = o.get("path").split("/");
+            return tmps[tmps.length - 1];
+          })
+          .filter(s -> s.indexOf("请升级到BitComet") == -1)
+          .collect(Collectors.toList());
+    } else {
+      return Arrays.asList(getName());
     }
   }
 

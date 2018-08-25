@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.util.Pair;
@@ -66,7 +68,7 @@ public class PredictService {
   public List<Pair<String, Integer>> listHotWordsWithScore(int size) {
     List<Pair<String, Integer>> hotwords = wordsFrequency.asMap().entrySet().stream()
         .sorted((o1, o2) -> (int) (o2.getValue().get() - o1.getValue().get()))
-        .map(o -> new Pair(o.getKey(), o.getValue()))
+        .map(o -> new Pair<>(o.getKey(), (int) o.getValue().get()))
         .collect(Collectors.toList());
     if (size == -1) {
       return hotwords;

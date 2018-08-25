@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="UTF-8">
+<html xmlns:th="http://www.thymeleaf.org" lang="UTF-8">
 <head>
   <meta charset="UTF-8">
   <title>SkrBT - 专业的种子搜索、磁力链接搜索引擎</title>
@@ -33,10 +33,14 @@
         <button class="search-btn"><i class="fa fa-search"></i></button>
       </form>
     </div>
-    <h2>磁力链接、BT 种子搜索引擎</h2>
     <div class="recent-link">
+      <a th:each="word : ${hotWords}" th:href="'/search?keyword=' + ${word}" th:text="${word} + '&nbsp'"></a>
       <a href="/recent">最新收录</a>
     </div>
+    <h2>@SkrBT 磁力链接、BT 种子搜索引擎 | <a href="/about">About</a></h2>
+    <!--<div class="recent-link">-->
+      <!--<a href="/recent">最新收录</a>-->
+    <!--</div>-->
   </div>
 </div>
 </body>

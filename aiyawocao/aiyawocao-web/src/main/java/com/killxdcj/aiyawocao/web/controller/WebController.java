@@ -3,9 +3,11 @@ package com.killxdcj.aiyawocao.web.controller;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
+import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,9 +30,18 @@ public class WebController {
 
   @Autowired private ESService esService;
 
+  @Autowired
+  private PredictService predictService;
+
   @RequestMapping("")
-  public String home() {
+  public String home(Model model) {
+    model.addAttribute("hotWords", predictService.getHotWords(7));
     return "home";
+  }
+
+  @RequestMapping("about")
+  public String about() {
+    return "about";
   }
 
   @RequestMapping("search")
@@ -40,6 +51,8 @@ public class WebController {
       @RequestParam(value = "s", required = false, defaultValue = "relevance") String sort,
       Model model) {
     try {
+      predictService.markRequest(keyword);
+
       SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort);
       model.addAttribute("result", result);
       model.addAttribute("keyword", keyword);

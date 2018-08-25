@@ -6,9 +6,13 @@ import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.common.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,12 @@ public class PredictService {
   private long nextUpdateTime = 0;
   private long hotWordsCacheExpiredTime = 10 * 60 * 1000;
 
+  private static final Set<String> blkHotWords = new HashSet(){{
+    add("强奸");
+    add("强暴");
+    add("轮奸");
+  }};
+
   public List<String> getHotWordsCache() {
     return getHotWords(8);
   }
@@ -29,6 +39,7 @@ public class PredictService {
     if (hotWordsCache.size() < size || TimeUtils.getCurTime() > nextUpdateTime) {
       List<String> newHotWords = wordsFrequency.asMap().keySet().stream()
           .sorted((o1, o2) -> (int) (wordsFrequency.getUnchecked(o2).get() - wordsFrequency.getUnchecked(o1).get()))
+          .filter(s -> !blkHotWords.contains(s) && s.length() > 1)
           .collect(Collectors.toList());
       if (newHotWords.size() > size) {
         newHotWords = newHotWords.subList(0, size);
@@ -46,6 +57,24 @@ public class PredictService {
     for (String word : keyword.split(" ")) {
       wordsFrequency.getUnchecked(word).incrementAndGet();
     }
+  }
+
+  public void cleanHotWords() {
+    hotWordsCache.clear();
+  }
+
+  public List<Pair<String, Integer>> listHotWordsWithScore(int size) {
+    List<Pair<String, Integer>> hotwords = wordsFrequency.asMap().entrySet().stream()
+        .sorted((o1, o2) -> (int) (o2.getValue().get() - o1.getValue().get()))
+        .map(o -> new Pair(o.getKey(), o.getValue()))
+        .collect(Collectors.toList());
+    if (size == -1) {
+      return hotwords;
+    }
+    if (size <= hotwords.size()) {
+      return hotwords.subList(0, size);
+    }
+    return hotwords;
   }
 
   @PostConstruct

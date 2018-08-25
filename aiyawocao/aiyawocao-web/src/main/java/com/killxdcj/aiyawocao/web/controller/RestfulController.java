@@ -2,8 +2,11 @@ package com.killxdcj.aiyawocao.web.controller;
 
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.service.ESService;
+import com.killxdcj.aiyawocao.web.service.PredictService;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,9 @@ public class RestfulController {
   private static final Logger LOGGER = LoggerFactory.getLogger(RestfulController.class);
 
   @Autowired private ESService esService;
+
+  @Autowired
+  private PredictService predictService;
 
   @RequestMapping(value = "/search/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -61,5 +67,22 @@ public class RestfulController {
         }
       };
     }
+  }
+
+  @RequestMapping(value = "/hotwords/list", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public Object listAllHotwords(@RequestParam(value = "size", required = false, defaultValue = "20") int size) {
+    List<Pair<String, Integer>> hotwords = predictService.listHotWordsWithScore(size);
+    return new HashMap<String, Object>(){{
+      put("size", hotwords.size());
+      put("hotwords", hotwords);
+    }};
+  }
+
+  @RequestMapping(value = "/hotwords/clean", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public Object cleanHotWords() {
+    predictService.cleanHotWords();
+    return "{\"result\": \"ok\"}";
   }
 }

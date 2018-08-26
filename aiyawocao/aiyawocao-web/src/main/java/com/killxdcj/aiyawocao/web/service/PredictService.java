@@ -62,8 +62,14 @@ public class PredictService {
   }
 
   public void cleanHotWords() {
+    wordsFrequency = CacheBuilder.newBuilder()
+        .build(new CacheLoader<String, AtomicLong>() {
+          @Override
+          public AtomicLong load(String key) throws Exception {
+            return new AtomicLong(0);
+          }
+        });
     hotWordsCache.clear();
-    wordsFrequency.cleanUp();
   }
 
   public List<Pair<String, Integer>> listHotWordsWithScore(int size) {

@@ -35,7 +35,7 @@ public class WebController {
 
   @RequestMapping("")
   public String home(Model model) {
-    model.addAttribute("hotWords", predictService.getHotWords(8));
+    model.addAttribute("hotWords", predictService.getHotWords(10));
     return "home";
   }
 
@@ -51,7 +51,9 @@ public class WebController {
       @RequestParam(value = "s", required = false, defaultValue = "relevance") String sort,
       Model model) {
     try {
-      predictService.markRequest(keyword);
+      if (page == 1) {
+        predictService.markRequest(keyword);
+      }
 
       SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort);
       model.addAttribute("result", result);

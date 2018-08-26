@@ -63,6 +63,7 @@ public class PredictService {
 
   public void cleanHotWords() {
     hotWordsCache.clear();
+    wordsFrequency.cleanUp();
   }
 
   public List<Pair<String, Integer>> listHotWordsWithScore(int size) {

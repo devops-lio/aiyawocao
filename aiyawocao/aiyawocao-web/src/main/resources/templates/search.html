@@ -54,8 +54,11 @@
                 th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}"></a></h2>
             <div class="item-meta-info">
               <a title="Download using magnet"
-                 th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}" class="magnet"
-                 onclick="popup();"><i class="fa fa-magnet"></i> 磁力链接</a>
+                 th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}" class="magnet">
+                <i class="fa fa-magnet"></i> 磁力链接</a>
+              <!--<a title="Download using magnet"-->
+                 <!--th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}" class="magnet"-->
+                 <!--onclick="popup();"><i class="fa fa-magnet"></i> 磁力链接</a>-->
               文件大小: <span class="item-meta-info-value" th:text="${metadata.getHumanFileSize()}"/>
               文件数量: <span class="item-meta-info-value" th:text="${metadata.getFileNum()}"/>
               收录时间: <span class="item-meta-info-value" th:text="${metadata.getDate()}"/>

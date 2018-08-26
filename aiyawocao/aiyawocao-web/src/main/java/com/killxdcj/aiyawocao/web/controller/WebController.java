@@ -55,7 +55,11 @@ public class WebController {
         predictService.markRequest(keyword);
       }
 
-      SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort);
+      SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort, false);
+      if (result.getTotalHits() == 0) {
+        LOGGER.info("search hits is empty, use fuzzyQuery, {}", keyword);
+        result = esService.search(keyword, (page - 1) * 10, 10, sort, true);
+      }
       model.addAttribute("result", result);
       model.addAttribute("keyword", keyword);
 

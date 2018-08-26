@@ -129,16 +129,17 @@ public class ESService {
   }
 
   public SearchResult search(String keyword, int from, int size) throws IOException {
-    return search(keyword, from, size, "");
+    return search(keyword, from, size, "", false);
   }
 
-  public SearchResult search(String keyword, int from, int size, String sortFiled) throws IOException {
+  public SearchResult search(String keyword, int from, int size, String sortFiled, boolean fuzzyQuery) throws IOException {
     long start = TimeUtils.getCurTime();
     try {
-      QueryBuilder queryBuilder =
-          new MultiMatchQueryBuilder(keyword, "name", "files.path")
-              .type(Type.MOST_FIELDS)
-              .operator(Operator.AND);
+      MultiMatchQueryBuilder queryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
+          .type(Type.MOST_FIELDS);
+      if (!fuzzyQuery) {
+        queryBuilder.operator(Operator.AND);
+      }
 
       HighlightBuilder highlightBuilder = new HighlightBuilder()
           .field("name")

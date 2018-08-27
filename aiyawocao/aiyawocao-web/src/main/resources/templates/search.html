@@ -51,9 +51,9 @@
           <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
             <h2 class="item-title"><a
                 th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}"
-                th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}"></a></h2>
+                th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}" target="_blank"></a></h2>
             <div class="item-meta-info">
-              <a title="Download using magnet"
+              <a title="Download using magnet" target="_blank"
                  th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}" class="magnet">
                 <i class="fa fa-magnet"></i> 磁力链接</a>
               <!--<a title="Download using magnet"-->

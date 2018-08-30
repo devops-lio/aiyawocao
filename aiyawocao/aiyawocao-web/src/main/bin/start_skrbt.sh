@@ -8,7 +8,7 @@ export PATH=$PATH:$JAVA_HOME/bin
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 
 main_class=com.killxdcj.aiyawocao.web.WebMain
-jvm_opts="-Xmx200m -Xms200m -Xmn100m -XX:SurvivorRatio=4 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
+jvm_opts="-Xmx200m -Xms200m -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:$work_dir/gc.log"
 springboot_conf=$work_dir/config/application.properties
 lib_path=$work_dir/lib/aiyawocao-web-1.1-SNAPSHOT.jar
 

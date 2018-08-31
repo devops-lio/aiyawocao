@@ -130,7 +130,7 @@ public class PeerFetcher {
             })
         .connect(peer.getAddr(), peer.getPort())
         .addListener(fetcher);
-    LOGGER.info("fetcher started, {}", nextTask);
+    LOGGER.debug("fetcher started, {}", nextTask);
   }
 
   private class Fetcher extends SimpleChannelInboundHandler implements GenericFutureListener {

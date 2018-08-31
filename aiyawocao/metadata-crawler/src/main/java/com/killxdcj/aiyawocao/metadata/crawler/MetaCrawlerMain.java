@@ -41,6 +41,7 @@ public class MetaCrawlerMain {
   private Meter metaFetchTimeout;
   private Timer metaFetchSuccessedTimer;
   private Timer metaFetchErrorTimer;
+  private Meter metaFetchHasFetched;
 
   private BlockingQueue<Object[]> pendingAnnouncePeerReq;
   private ExecutorService fetcherSubmitter;
@@ -98,6 +99,8 @@ public class MetaCrawlerMain {
         metricRegistry.timer(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchErrorCost"));
     metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "pendingAnnouncePeerReq"),
         (Gauge<Integer>) () -> pendingAnnouncePeerReq.size());
+    metaFetchHasFetched =
+        metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchHasFetched"));
 
     client = new MetadataServiceClient(config.getMetadataServiceClientConfig(), metricRegistry);
     fetcher = new MetadataFetcher(metricRegistry);
@@ -163,7 +166,8 @@ public class MetaCrawlerMain {
         Peer peer = (Peer) req[1];
         String infohashStr = infohash.asHexString().toUpperCase();
         if (client.doesMetadataExist(infohash.asBytes())) {
-          LOGGER.info("infohash has been fetched, {}", infohashStr);
+          metaFetchHasFetched.mark();
+          LOGGER.debug("infohash has been fetched, {}", infohashStr);
           continue;
         }
 
@@ -191,18 +195,15 @@ public class MetaCrawlerMain {
 
               @Override
               public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
-                if (!LOGGER.isDebugEnabled()) {
+                if (t instanceof TimeoutException) {
+                  metaFetchTimeout.mark();
+                } else {
+                  metaFetchError.mark();
+                }
+                metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+                if (LOGGER.isDebugEnabled()) {
                   LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
                       t.getMessage(), costtime);
-                } else {
-                  if (t instanceof TimeoutException) {
-                    metaFetchTimeout.mark();
-                  } else {
-                    metaFetchError.mark();
-                  }
-                  metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
-                  LOGGER.error(infohashStr + ", " + peer + " meta fetch error, costtime: " +
-                      costtime + "ms", t);
                 }
               }
             });

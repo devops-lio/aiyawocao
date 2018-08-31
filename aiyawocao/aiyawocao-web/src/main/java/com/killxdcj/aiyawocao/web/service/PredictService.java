@@ -25,7 +25,7 @@ public class PredictService {
   private LoadingCache<String, AtomicLong> wordsFrequency;
   private List<String> hotWordsCache = new ArrayList<>();
   private long nextUpdateTime = 0;
-  private long hotWordsCacheExpiredTime = 10 * 60 * 1000;
+  private long hotWordsCacheExpiredTime = 60 * 1000;
 
   private static final Set<String> blkHotWords = new HashSet(){{
     add("强奸");

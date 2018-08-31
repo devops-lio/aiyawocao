@@ -43,6 +43,7 @@ public class DHT {
   private BlackListManager blkManager;
   private boolean enableBlk;
   private int nodeidChangeThreshold;
+  private RateLimiter findNodeLimiter;
 
   private Meter inBoundwidthMeter;
   private Meter outBoundwidthMeter;
@@ -54,6 +55,8 @@ public class DHT {
   private Meter getpeersMeter;
   private Meter announcePeerMeter;
   private Counter neighborEmpty;
+  private Meter pingNodeReqMeter;
+  private Meter pingNodeRespMeter;
 
   public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry)
       throws SocketException {
@@ -69,6 +72,9 @@ public class DHT {
     }
     if (config.getOutBandwidthLimit() != -1) {
       outBandwidthLimit = RateLimiter.create(config.getOutBandwidthLimit());
+    }
+    if (config.getFindNodeLimit() != -1) {
+      findNodeLimiter = RateLimiter.create(config.getFindNodeLimit());
     }
     int port = config.getPort();
     if (port == -1) {
@@ -97,6 +103,8 @@ public class DHT {
     announcePeerMeter =
         metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTQueryAnnouncePeer"));
     neighborEmpty = metricRegistry.counter(MetricRegistry.name(DHT.class, "DHTNeighborEmpty"));
+    pingNodeReqMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeReq"));
+    pingNodeRespMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeResp"));
   }
 
   public void shutdown() {
@@ -153,6 +161,10 @@ public class DHT {
     int idx = 0;
     BencodedString neighborId = null;
     while (!exit) {
+      if (findNodeLimiter != null) {
+        findNodeLimiter.acquire();
+      }
+
       try {
         if (idx == 0 || neighborId == null) {
           byte[] randomId = Arrays.copyOf(nodeId.asBytes(), 20);
@@ -197,6 +209,17 @@ public class DHT {
 
   private int sendFindNodeReq(Node node, BencodedString targetNodeId) {
     return sendFindNodeReq(node, this.nodeId, targetNodeId);
+  }
+
+  private int sendPingNodeReq(Node node, BencodedString localNodeId) {
+    try {
+      KRPC krpc = KRPC.buildPingReqPacket(localNodeId);
+      transactionManager.putTransaction(new Transaction(node, krpc, config.getTransactionExpireTime()));
+      return sendKrpcPacket(node, krpc);
+    } catch (Exception e) {
+      LOGGER.error("sendPingNodeReq error, node:{}", node, e);
+      return 0;
+    }
   }
 
   private int sendKrpcPacket(Node node, KRPC krpc) throws IOException {
@@ -301,6 +324,7 @@ public class DHT {
     switch (transaction.getKrpc().action()) {
       case PING:
         // ignore
+        pingNodeRespMeter.mark();
         break;
       case FIND_NODE:
         handleFindNodeResponse(krpc);
@@ -327,7 +351,12 @@ public class DHT {
     for (Node node : nodes) {
       if (node.port != 0) {
         if (!nodeManager.putNode(node)) {
-          discardNodeMeter.mark();
+          if (config.getEnablePing()) {
+            sendPingNodeReq(node, buildDummyNodeId(node.id));
+            pingNodeReqMeter.mark();
+          } else {
+            discardNodeMeter.mark();
+          }
         }
       }
     }

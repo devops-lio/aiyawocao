@@ -22,6 +22,8 @@ public class BittorrentConfig {
   private int blackThreshold = 30;
   private boolean enableBlack = true;
   private int nodeidChangeThreshold = 50;
+  private boolean enablePing = false;
+  private long findNodeLimit = 500;
 
   public BittorrentConfig() {
   }
@@ -106,29 +108,37 @@ public class BittorrentConfig {
     this.nodeidChangeThreshold = nodeidChangeThreshold;
   }
 
+  public boolean getEnablePing() {
+    return enablePing;
+  }
+
+  public void setEnablePing(boolean enablePing) {
+    this.enablePing = enablePing;
+  }
+
+  public long getFindNodeLimit() {
+    return findNodeLimit;
+  }
+
+  public void setFindNodeLimit(long findNodeLimit) {
+    this.findNodeLimit = findNodeLimit;
+  }
+
   @Override
   public String toString() {
-    return "BittorrentConfig{"
-        + "port="
-        + port
-        + ", maxPacketSize="
-        + maxPacketSize
-        + ", primeNodes="
-        + primeNodes
-        + ", transactionExpireTime="
-        + transactionExpireTime
-        + ", maxNeighbor="
-        + maxNeighbor
-        + ", outBandwidthLimit="
-        + outBandwidthLimit
-        + ", requestLimit="
-        + requestLimit
-        + ", blackThreshold="
-        + blackThreshold
-        + ", enableBlack="
-        + enableBlack
-        + ", nodeidChangeThreshold="
-        + nodeidChangeThreshold
-        + '}';
+    return "BittorrentConfig{" +
+        "port=" + port +
+        ", maxPacketSize=" + maxPacketSize +
+        ", primeNodes=" + primeNodes +
+        ", transactionExpireTime=" + transactionExpireTime +
+        ", maxNeighbor=" + maxNeighbor +
+        ", outBandwidthLimit=" + outBandwidthLimit +
+        ", requestLimit=" + requestLimit +
+        ", blackThreshold=" + blackThreshold +
+        ", enableBlack=" + enableBlack +
+        ", nodeidChangeThreshold=" + nodeidChangeThreshold +
+        ", enablePing=" + enablePing +
+        ", findNodeLimit=" + findNodeLimit +
+        '}';
   }
 }

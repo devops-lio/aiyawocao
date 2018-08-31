@@ -12,6 +12,8 @@ bittorrentConfig:
   - dht.transmissionbt.com:6881
   requestLimit: 500
   transactionExpireTime: 300000
+  enablePing: false
+  findNodeLimit: -1
 influxdbBackendMetricsConfig:
   cluster: default
   influxdbAddr: influxdb.host:8086

@@ -27,10 +27,14 @@ public class PredictService {
   private long nextUpdateTime = 0;
   private long hotWordsCacheExpiredTime = 60 * 1000;
 
-  private static final Set<String> blkHotWords = new HashSet(){{
-    add("强奸");
-    add("强暴");
-    add("轮奸");
+  private static final List<String> blkHotWords = new ArrayList(){{
+    add("奸");
+    add("强");
+    add("暴");
+    add("幼");
+    add("萝");
+    add("小");
+    add("正");
   }};
 
   public List<String> getHotWordsCache() {
@@ -41,7 +45,18 @@ public class PredictService {
     if (hotWordsCache.size() < size || TimeUtils.getCurTime() > nextUpdateTime) {
       List<String> newHotWords = wordsFrequency.asMap().keySet().stream()
           .sorted((o1, o2) -> (int) (wordsFrequency.getUnchecked(o2).get() - wordsFrequency.getUnchecked(o1).get()))
-          .filter(s -> !blkHotWords.contains(s) && s.length() > 1)
+          .filter(s -> {
+            if (s.length() < 2) {
+              return false;
+            }
+
+            for (String blk : blkHotWords) {
+              if (s.indexOf(blk) != -1) {
+                return false;
+              }
+            }
+            return true;
+          })
           .collect(Collectors.toList());
       if (newHotWords.size() > size) {
         newHotWords = newHotWords.subList(0, size);

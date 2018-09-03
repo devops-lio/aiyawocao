@@ -74,6 +74,7 @@ public class MetaCrawlerMain {
     config = MetaCrawlerConfig.fromYamlConfFile(confPath);
 
     pendingAnnouncePeerReq = new LinkedBlockingQueue<>(config.getMaxPendingAnnouncePeerReq());
+    pendingPutMetadata = new LinkedBlockingQueue<>(config.getMaxPendingPutMetadata());
     executors = Executors.newCachedThreadPool(r -> {
       Thread t = new Thread(r, "MainExecutors");
       t.setDaemon(true);

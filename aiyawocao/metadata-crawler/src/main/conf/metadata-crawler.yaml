@@ -27,4 +27,6 @@ metadataServiceClientConfig:
   enableLocalCache: true
   expiredTime: 1200000
 maxPendingAnnouncePeerReq: 10000
-fetcherSubmitterNum: 20
+fetcherSubmitterNum: 10
+maxPendingPutMetadata: 1000
+metadataPutterNum: 20

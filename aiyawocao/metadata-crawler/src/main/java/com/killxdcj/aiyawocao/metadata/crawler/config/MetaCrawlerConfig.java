@@ -11,6 +11,8 @@ public class MetaCrawlerConfig {
 
   private int maxPendingAnnouncePeerReq = 10000;
   private int fetcherSubmitterNum = 20;
+  private int maxPendingPutMetadata = 1000;
+  private int metadataPutterNum = 20;
   private BittorrentConfig bittorrentConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
@@ -80,11 +82,29 @@ public class MetaCrawlerConfig {
     this.fetcherSubmitterNum = fetcherSubmitterNum;
   }
 
+  public int getMaxPendingPutMetadata() {
+    return maxPendingPutMetadata;
+  }
+
+  public void setMaxPendingPutMetadata(int maxPendingPutMetadata) {
+    this.maxPendingPutMetadata = maxPendingPutMetadata;
+  }
+
+  public int getMetadataPutterNum() {
+    return metadataPutterNum;
+  }
+
+  public void setMetadataPutterNum(int metadataPutterNum) {
+    this.metadataPutterNum = metadataPutterNum;
+  }
+
   @Override
   public String toString() {
     return "MetaCrawlerConfig{" +
         "maxPendingAnnouncePeerReq=" + maxPendingAnnouncePeerReq +
         ", fetcherSubmitterNum=" + fetcherSubmitterNum +
+        ", maxPendingPutMetadata=" + maxPendingPutMetadata +
+        ", metadataPutterNum=" + metadataPutterNum +
         ", bittorrentConfig=" + bittorrentConfig +
         ", metadataServiceClientConfig=" + metadataServiceClientConfig +
         ", influxdbBackendMetricsConfig=" + influxdbBackendMetricsConfig +

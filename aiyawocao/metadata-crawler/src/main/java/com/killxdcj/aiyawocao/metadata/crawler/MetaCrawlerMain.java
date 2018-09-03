@@ -44,7 +44,8 @@ public class MetaCrawlerMain {
   private Meter metaFetchHasFetched;
 
   private BlockingQueue<Object[]> pendingAnnouncePeerReq;
-  private ExecutorService fetcherSubmitter;
+  private BlockingQueue<Object[]> pendingPutMetadata;
+  private ExecutorService executors;
 
   public static void main(String[] args) {
     MetaCrawlerMain metaCrawlerMain = new MetaCrawlerMain();
@@ -73,14 +74,16 @@ public class MetaCrawlerMain {
     config = MetaCrawlerConfig.fromYamlConfFile(confPath);
 
     pendingAnnouncePeerReq = new LinkedBlockingQueue<>(config.getMaxPendingAnnouncePeerReq());
-    fetcherSubmitter = Executors.newFixedThreadPool(config.getFetcherSubmitterNum(),
-        r -> {
-          Thread t = new Thread(r, "FetcherSummiter");
-          t.setDaemon(true);
-          return t;
-        });
+    executors = Executors.newCachedThreadPool(r -> {
+      Thread t = new Thread(r, "MainExecutors");
+      t.setDaemon(true);
+      return t;
+    });
     for (int i = 0; i < config.getFetcherSubmitterNum(); i++) {
-      fetcherSubmitter.submit(this::submitNIOMetafetcher);
+      executors.submit(this::submitNIOMetafetcher);
+    }
+    for (int i = 0; i < config.getMetadataPutterNum(); i++) {
+      executors.submit(this::metadataPutter);
     }
 
     metricRegistry =
@@ -101,6 +104,8 @@ public class MetaCrawlerMain {
         (Gauge<Integer>) () -> pendingAnnouncePeerReq.size());
     metaFetchHasFetched =
         metricRegistry.meter(MetricRegistry.name(MetaCrawlerMain.class, "DHTMetaFetchHasFetched"));
+    metricRegistry.register(MetricRegistry.name(MetaCrawlerMain.class, "pendingPutMetadata"),
+        (Gauge<Integer>) () -> pendingPutMetadata.size());
 
     client = new MetadataServiceClient(config.getMetadataServiceClientConfig(), metricRegistry);
     fetcher = new MetadataFetcher(metricRegistry);
@@ -141,8 +146,8 @@ public class MetaCrawlerMain {
       dht.shutdown();
     }
 
-    if (fetcherSubmitter != null) {
-      fetcherSubmitter.shutdown();
+    if (executors != null) {
+      executors.shutdown();
     }
 
     if (fetcher != null) {
@@ -181,15 +186,11 @@ public class MetaCrawlerMain {
                 LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
                 metaFetchSuccessed.mark();
                 metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
-                if (client.doesMetadataExist(infohash.asBytes())) {
-                  LOGGER.info("{} has been fetched by others", infohashStr);
-                  return;
-                }
+
                 try {
-                  client.putMetadata(infohash.asBytes(), metadata);
-                  LOGGER.info("{} meta uploaded", infohashStr);
-                } catch (Throwable t) {
-                  LOGGER.error("upload metadata error, " + infohashStr, t);
+                  pendingPutMetadata.put(new Object[]{infohash, metadata});
+                } catch (InterruptedException e) {
+                  return;
                 }
               }
 
@@ -211,6 +212,30 @@ public class MetaCrawlerMain {
         return;
       } catch (Exception e) {
         LOGGER.error("submit metafetcher error", e);
+      }
+    }
+  }
+
+  public void metadataPutter() {
+    String infohashStr = null;
+    while (!exit) {
+      try {
+        Object[] objs = pendingPutMetadata.take();
+        BencodedString infohash = (BencodedString)objs[0];
+        byte[] metadata = (byte[])objs[1];
+        infohashStr = infohash.asHexString().toUpperCase();
+
+        if (client.doesMetadataExist(infohash.asBytes())) {
+          LOGGER.info("{} has been fetched by others", infohashStr);
+          continue;
+        }
+
+        client.putMetadata(infohash.asBytes(), metadata);
+        LOGGER.info("{} meta uploaded", infohashStr);
+      } catch (InterruptedException e) {
+        return;
+      } catch (Throwable e) {
+        LOGGER.error("put metadata error, " + infohashStr, e);
       }
     }
   }

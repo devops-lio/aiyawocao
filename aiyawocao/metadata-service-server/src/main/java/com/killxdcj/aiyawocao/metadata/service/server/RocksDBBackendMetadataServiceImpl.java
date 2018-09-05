@@ -2,9 +2,12 @@ package com.killxdcj.aiyawocao.metadata.service.server;
 
 import com.alibaba.fastjson.JSON;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
+import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
 import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
@@ -47,27 +51,63 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private static final SimpleDateFormat METADATA_SDF = new SimpleDateFormat("yyyyMMdd/HH");
 
+  private byte[] bitMap = null;
+  private byte[] existFlag = new byte[]{0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, (byte)0x80};
+
   private RocksDBBackendConfig config;
   private RocksDB rocksDB;
   private AtomicInteger totalSize = new AtomicInteger(0);
+
+  private Timer doesExistCosttime;
+  private Timer putCosttime;
+  private Meter doesExistThroughput;
+  private Meter putThroughput;
+  private Meter bitfilterHit;
 
   public RocksDBBackendMetadataServiceImpl(MetadataServiceServerConfig config,
       MetricRegistry registry)
       throws RocksDBException {
     this.config = config.getRocksDBBackendConfig();
     this.rocksDB = buildRocksDB(config.getRocksDBBackendConfig().getRocksDBPath());
+
+    if (this.config.getEnableBitfilter()) {
+      bitMap = new byte[0XFFFFFF + 1];
+    }
     try (final RocksIterator iterator = rocksDB.newIterator()) {
-      for (iterator.seekToLast(); iterator.isValid(); iterator.prev()) {
-        totalSize.incrementAndGet();
+      if (this.config.getEnableBitfilter()) {
+        for (iterator.seekToLast(); iterator.isValid(); iterator.prev()) {
+          totalSize.incrementAndGet();
+          put(iterator.key());
+        }
+      } else {
+        for (iterator.seekToLast(); iterator.isValid(); iterator.prev()) {
+          totalSize.incrementAndGet();
+        }
       }
     }
     LOGGER.info("index loaded, {}", totalSize.get());
+
     registry.register(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "MetadataNum"),
         (Gauge<Integer>) () -> totalSize.get());
+    doesExistCosttime = registry.timer(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExist.costtime"));
+    putCosttime = registry.timer(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "put.costtime"));
+    doesExistThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExist.throughput"));
+    putThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "put.throughput"));
+    bitfilterHit = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "bitfilterHit"));
   }
 
   public void shutdown() {
     rocksDB.close();
+  }
+
+  private synchronized void put(byte[] key) {
+    int index = ((key[0] & 0xFF) << 16) | ((key[1] & 0xFF) << 8) | (key[2] & 0xFF);
+    bitMap[index] = (byte) (bitMap[index] | existFlag[key[3] & 0x07]);
+  }
+
+  private boolean mayExist(byte[] key) {
+    int index = ((key[0] & 0xFF) << 16) | ((key[1] & 0xFF) << 8) | (key[2] & 0xFF);
+    return (bitMap[index] & existFlag[key[3] & 0x07]) != 0;
   }
 
   private RocksDB buildRocksDB(String rocksDBPath) throws RocksDBException {
@@ -98,21 +138,34 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   @Override
   public void doesMetadataExist(DoesMetadataExistRequest request,
       StreamObserver<DoesMetadataExistResponse> responseObserver) {
+    long start = TimeUtils.getCurTime();
     try {
+      byte[] key = request.getInfohash().toByteArray();
+      boolean exist = mayExist(key);
+      if (exist) {
+        exist = rocksDB.get(request.getInfohash().toByteArray()) != null;
+      } else {
+        bitfilterHit.mark();
+      }
+
       DoesMetadataExistResponse response = DoesMetadataExistResponse.newBuilder()
-          .setExist(rocksDB.get(request.getInfohash().toByteArray()) != null)
+          .setExist(exist)
           .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (RocksDBException e) {
       LOGGER.error("rocksdb error", e);
       responseObserver.onError(e);
+    } finally {
+      doesExistCosttime.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+      doesExistThroughput.mark();
     }
   }
 
   @Override
   public void putMetadata(PutMetadataRequest request,
       StreamObserver<PutMetadataResponse> responseObserver) {
+    long start = TimeUtils.getCurTime();
     try {
       String infohash = Hex.encodeHexString(request.getInfohash().toByteArray()).toUpperCase();
       Bencoding bencoding = new Bencoding(request.getMetadata().toByteArray());
@@ -121,6 +174,9 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
       metaHuman.put("date", SDF.format(new Date()));
       METADATA.info(JSON.toJSONString(metaHuman));
       rocksDB.put(request.getInfohash().toByteArray(), DUMMY_VALUE);
+      if (this.config.getEnableBitfilter()) {
+        put(request.getInfohash().toByteArray());
+      }
       totalSize.incrementAndGet();
 
       String metadataFile = buildOriginalMetadataPath(infohash);
@@ -141,6 +197,9 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
     } catch (InvalidBittorrentPacketException e) {
       LOGGER.error("decode metadata error", e);
       responseObserver.onError(e);
+    } finally {
+      putCosttime.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+      putThroughput.mark();
     }
   }
 

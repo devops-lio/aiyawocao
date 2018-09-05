@@ -19,3 +19,4 @@ influxdbBackendMetricsConfig:
 rocksDBBackendConfig:
   originalMetadataPath: /data/aiyawocao/metadata/original
   rocksDBPath: /data/aiyawocao/metadata/index
+  enableBitfilter: true

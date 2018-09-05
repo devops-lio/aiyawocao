@@ -63,6 +63,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   private Meter doesExistThroughput;
   private Meter putThroughput;
   private Meter bitfilterHit;
+  private Meter existThroughput;
 
   public RocksDBBackendMetadataServiceImpl(MetadataServiceServerConfig config,
       MetricRegistry registry)
@@ -94,6 +95,7 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
     doesExistThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExist.throughput"));
     putThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "put.throughput"));
     bitfilterHit = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "bitfilterHit"));
+    existThroughput = registry.meter(MetricRegistry.name(RocksDBBackendConfig.class, "exist.throughput"));
   }
 
   public void shutdown() {
@@ -148,6 +150,9 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
         bitfilterHit.mark();
       }
 
+      if (exist) {
+        existThroughput.mark();
+      }
       DoesMetadataExistResponse response = DoesMetadataExistResponse.newBuilder()
           .setExist(exist)
           .build();

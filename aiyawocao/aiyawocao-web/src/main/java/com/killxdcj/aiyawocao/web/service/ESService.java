@@ -143,7 +143,7 @@ public class ESService {
 
       HighlightBuilder highlightBuilder = new HighlightBuilder()
           .field("name")
-//          .field("files.path")
+          .field("files.path")
           .preTags("skrbt-high-pre")
           .postTags("skrbt-high-post");
 

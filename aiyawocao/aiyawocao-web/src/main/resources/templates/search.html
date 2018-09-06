@@ -46,6 +46,10 @@
       <h1 class="hide text-hide" , th:text="${keyword} + 'search result, Torrent Magnet'"></h1>
       <div class="result-stats"
            th:text="'找到约 ' + ${result.getTotalHits()} + ' 条结果 (用时' + ${result.getTook()} + ')'"></div>
+      <div>
+        <!-- lrs ad -->
+        <script src="http://wm.lrswl.com/page/s.php?s=284133&w=760&h=90"></script>
+      </div>
       <div class="search-ret">
         <ul class="search-ret-list">
           <li class="search-ret-item" th:each="metadata : ${result.getMetadatas()}">
@@ -73,6 +77,10 @@
             </ul>
           </li>
         </ul>
+      </div>
+      <div>
+        <!-- lrs ad -->
+        <script src="http://wm.lrswl.com/page/s.php?s=284131&w=950&h=90"></script>
       </div>
       <div class="nav">
         <nav role="navigation">

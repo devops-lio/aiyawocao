@@ -94,10 +94,10 @@ public class WebController {
       Metadata metadata = esService.detail(infohash);
       model.addAttribute("metadata", metadata);
       List<String> nameKeywords = esService.analyze(metadata.getName());
-      List<String> contentKeywords = esService.analyze(String.join(",", metadata.getAllOriginalFiles()));
+//      List<String> contentKeywords = esService.analyze(String.join(",", metadata.getAllOriginalFiles()));
       Set<String> keywords = new HashSet<>();
       keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
-      keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
+//      keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
       List<String> finalKeywords = new ArrayList<>(keywords);
       Collections.shuffle(finalKeywords);
       model.addAttribute(

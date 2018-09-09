@@ -78,16 +78,16 @@
         <nav role="navigation">
           <ul class="pagination">
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${pre}">« 上一页</a>
+              <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${pre}">« 上一页</a>
             </li>
             <li th:each="i : ${#numbers.sequence(startPage, startPage + pageNum - 1)}"
                 class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${i}" th:text="${i}"
+              <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${i}" th:text="${i}"
                  th:if="${i} != ${curPage}"></a>
               <strong th:text="${i}" th:if="${i} == ${curPage}"></strong>
             </li>
             <li class="button">
-              <a th:href="'/search?keyword=' + ${keyword} + '&p=' + ${next}">下一页 »</a>
+              <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${next}">下一页 »</a>
             </li>
           </ul>
         </nav>

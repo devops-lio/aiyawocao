@@ -1,13 +1,20 @@
 package com.killxdcj.aiyawocao.bittorrent.dht;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,14 +22,20 @@ public class BlackListManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlackListManager.class);
 
-  private ConcurrentSkipListSet<String> blackList = new ConcurrentSkipListSet<>();
-  private ConcurrentMap<String, AtomicInteger> getpeersCnt = new ConcurrentHashMap<>();
+  private static final Object DUMMY_OBJ = new Object();
+
+  private Cache<InetAddress, Object> blackHost;
+  private ConcurrentMap<InetAddress, AtomicInteger> getpeersRecord = new ConcurrentHashMap<>();
   private int blackThreshold;
   private volatile boolean exit = false;
   private Thread blackListCalcProc;
 
   public BlackListManager(int blackThreshold) {
     this.blackThreshold = blackThreshold;
+
+    blackHost = CacheBuilder.newBuilder()
+        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .build();
     blackListCalcProc = new Thread(this::calcBlackListProc);
     blackListCalcProc.start();
   }
@@ -32,12 +45,12 @@ public class BlackListManager {
     blackListCalcProc.interrupt();
   }
 
-  public void mark(String addr) {
-    getpeersCnt.computeIfAbsent(addr, nodeaddr -> new AtomicInteger(0)).incrementAndGet();
+  public void markGetPeers(InetAddress host) {
+    getpeersRecord.computeIfAbsent(host, bytes -> new AtomicInteger(0)).incrementAndGet();
   }
 
-  public boolean isInBlackList(String addr) {
-    return blackList.contains(addr);
+  public boolean isInBlack(InetAddress host) {
+    return blackHost.getIfPresent(host) != null;
   }
 
   private void calcBlackListProc() {
@@ -47,19 +60,18 @@ public class BlackListManager {
         Thread.sleep(60 * 1000);
 
         long cur = TimeUtils.getCurTime();
-        ConcurrentMap<String, AtomicInteger> oldGetpeersCnt = getpeersCnt;
-        getpeersCnt = new ConcurrentHashMap<>();
+        ConcurrentMap<InetAddress, AtomicInteger> oldGetpeersCnt = getpeersRecord;
+        getpeersRecord = new ConcurrentHashMap<>();
 
         List<String> newBlackList = new ArrayList<>();
         StringBuilder sbBlk = new StringBuilder();
-        for (Map.Entry<String, AtomicInteger> entry : oldGetpeersCnt.entrySet()) {
+        for (Map.Entry<InetAddress, AtomicInteger> entry : oldGetpeersCnt.entrySet()) {
           if (entry.getValue().get() > blackThreshold) {
-            newBlackList.add(entry.getKey());
+            blackHost.put(entry.getKey(), DUMMY_OBJ);
             sbBlk.append(" " + entry.getKey() + "->" + entry.getValue().get());
           }
         }
 
-        blackList.addAll(newBlackList);
         LOGGER.info(
             "BlackListManager Blacklist Calc Proc, costtime:{}, total:{}, black:{}, blks:{}",
             TimeUtils.getElapseTime(cur),

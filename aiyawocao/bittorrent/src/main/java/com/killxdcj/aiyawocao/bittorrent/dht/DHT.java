@@ -184,6 +184,9 @@ public class DHT {
             sendFindNodeReq(node, neighborId);
           }
         } else {
+          if (enableBlk && blkManager.isInBlack(node.getAddr())) {
+            continue;
+          }
           sendFindNodeReq(node, buildDummyNodeId(node.id), neighborId);
           findNodeMeter.mark();
         }
@@ -265,12 +268,10 @@ public class DHT {
   }
 
   private void handleGetPeersQuery(DatagramPacket packet, KRPC krpc) throws IOException {
-    String addr = "" + packet.getAddress().getHostAddress() + ":" + packet.getPort();
-    if (enableBlk && blkManager.isInBlackList(addr)) {
+    if (enableBlk && blkManager.isInBlack(packet.getAddress())) {
       return;
     }
-
-    blkManager.mark(addr);
+    blkManager.markGetPeers(packet.getAddress());
     getpeersMeter.mark();
     Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());
     BencodedMap reqArgs = (BencodedMap) krpc.getData().get(KRPC.QUERY_ARGS);

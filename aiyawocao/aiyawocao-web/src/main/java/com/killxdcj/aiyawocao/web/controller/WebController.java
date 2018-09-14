@@ -91,6 +91,11 @@ public class WebController {
       if (!WebUtils.verifyMagic(infohash, magic)) {
         return "home";
       }
+
+      if (infohash.equals("315854C6D68D5155C70D8C6E1B3869A6BDA28B08") || infohash.equals("B9571A124BC1F23068F5BDF0FE263F49380FA5BB")) {
+        return "home";
+      }
+
       Metadata metadata = esService.detail(infohash);
       model.addAttribute("metadata", metadata);
       List<String> nameKeywords = esService.analyze(metadata.getName());

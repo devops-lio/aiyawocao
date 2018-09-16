@@ -21,14 +21,11 @@ import org.slf4j.LoggerFactory;
 public class BlackListManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlackListManager.class);
-
-  private static final Object DUMMY_OBJ = new Object();
+  private static final Object DUMMY_VALUE = new Object();
 
   private Cache<InetAddress, Object> blackHost;
-  private ConcurrentMap<InetAddress, AtomicInteger> getpeersRecord = new ConcurrentHashMap<>();
+  private LoadingCache<InetAddress, AtomicInteger> getPeersRecord;
   private int blackThreshold;
-  private volatile boolean exit = false;
-  private Thread blackListCalcProc;
 
   public BlackListManager(int blackThreshold) {
     this.blackThreshold = blackThreshold;
@@ -36,52 +33,30 @@ public class BlackListManager {
     blackHost = CacheBuilder.newBuilder()
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
-    blackListCalcProc = new Thread(this::calcBlackListProc);
-    blackListCalcProc.start();
+    getPeersRecord = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.MINUTES)
+        .build(new CacheLoader<InetAddress, AtomicInteger>() {
+          @Override
+          public AtomicInteger load(InetAddress inetAddress) throws Exception {
+            return new AtomicInteger(0);
+          }
+        });
   }
 
   public void shutdown() {
-    exit = true;
-    blackListCalcProc.interrupt();
   }
 
-  public void markGetPeers(InetAddress host) {
-    getpeersRecord.computeIfAbsent(host, bytes -> new AtomicInteger(0)).incrementAndGet();
+  public boolean markGetPeers(InetAddress host) {
+    int cnt = getPeersRecord.getUnchecked(host).incrementAndGet();
+    if (cnt > blackThreshold) {
+      LOGGER.info("add {} to black", host);
+      blackHost.put(host, DUMMY_VALUE);
+      return true;
+    }
+    return false;
   }
 
   public boolean isInBlack(InetAddress host) {
     return blackHost.getIfPresent(host) != null;
-  }
-
-  private void calcBlackListProc() {
-    Thread.currentThread().setName("BlackListManager Blacklist Calc Proc");
-    while (!exit) {
-      try {
-        Thread.sleep(60 * 1000);
-
-        long cur = TimeUtils.getCurTime();
-        ConcurrentMap<InetAddress, AtomicInteger> oldGetpeersCnt = getpeersRecord;
-        getpeersRecord = new ConcurrentHashMap<>();
-
-        List<String> newBlackList = new ArrayList<>();
-        StringBuilder sbBlk = new StringBuilder();
-        for (Map.Entry<InetAddress, AtomicInteger> entry : oldGetpeersCnt.entrySet()) {
-          if (entry.getValue().get() > blackThreshold) {
-            blackHost.put(entry.getKey(), DUMMY_OBJ);
-            sbBlk.append(" " + entry.getKey() + "->" + entry.getValue().get());
-          }
-        }
-
-        LOGGER.info(
-            "BlackListManager Blacklist Calc Proc, costtime:{}, total:{}, black:{}, blks:{}",
-            TimeUtils.getElapseTime(cur),
-            oldGetpeersCnt.size(),
-            newBlackList.size(),
-            sbBlk.toString());
-      } catch (InterruptedException e) {
-      } catch (Throwable t) {
-        LOGGER.error("BlackListManager proc error", t);
-      }
-    }
   }
 }

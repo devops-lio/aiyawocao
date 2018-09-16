@@ -57,6 +57,7 @@ public class DHT {
   private Counter neighborEmpty;
   private Meter pingNodeReqMeter;
   private Meter pingNodeRespMeter;
+  private Meter blackPacketMeter;
 
   public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry)
       throws SocketException {
@@ -105,6 +106,7 @@ public class DHT {
     neighborEmpty = metricRegistry.counter(MetricRegistry.name(DHT.class, "DHTNeighborEmpty"));
     pingNodeReqMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeReq"));
     pingNodeRespMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeResp"));
+    blackPacketMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTBlackPacket"));
   }
 
   public void shutdown() {
@@ -125,6 +127,11 @@ public class DHT {
         DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
         datagramSocket.receive(packet);
         inBoundwidthMeter.mark(packet.getLength());
+        if (enableBlk && blkManager.isInBlack(packet.getAddress())) {
+          blackPacketMeter.mark();
+          continue;
+        }
+
         IBencodedValue value = new Bencoding(packet.getData(), 0, packet.getLength()).decode();
         krpc = new KRPC((BencodedMap) value);
         krpc.validate();
@@ -263,14 +270,12 @@ public class DHT {
         handleAnnouncePeerQuery(packet, krpc);
         break;
       default:
-        LOGGER.warn("unsupport krpc packet action, packet:{}", krpc);
+        LOGGER.warn("unsupport krpc packet action, host:{}, packet:{}", krpc, packet.getAddress());
+        blkManager.markGetPeers(packet.getAddress());
     }
   }
 
   private void handleGetPeersQuery(DatagramPacket packet, KRPC krpc) throws IOException {
-    if (enableBlk && blkManager.isInBlack(packet.getAddress())) {
-      return;
-    }
     blkManager.markGetPeers(packet.getAddress());
     getpeersMeter.mark();
     Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());

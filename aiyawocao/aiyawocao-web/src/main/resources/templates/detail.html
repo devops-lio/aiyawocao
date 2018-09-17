@@ -37,7 +37,23 @@
   </div>
   <div class="torrent-page">
     <div class="torrent-content clearfix">
-      <div class="torrent-info">
+      <div class="left-content">
+        <div id="adskeeper-lh" style="width:0px;">
+          <!-- Composite Start -->
+          <style>#M364206ScriptRootC277771 {min-height: 0px;}</style>
+          <div id="M364206ScriptRootC277771">
+            <div id="M364206PreloadC277771">Loading...</div>
+            <script>
+                (function(){
+            var D=new Date(),d=document,b='body',ce='createElement',ac='appendChild',st='style',ds='display',n='none',gi='getElementById',lp=d.location.protocol,wp=lp.indexOf('http')==0?lp:'https:';
+            var i=d[ce]('iframe');i[st][ds]=n;d[gi]("M364206ScriptRootC277771")[ac](i);try{var iw=i.contentWindow.document;iw.open();iw.writeln("<ht"+"ml><bo"+"dy></bo"+"dy></ht"+"ml>");iw.close();var c=iw[b];}
+            catch(e){var iw=d;var c=d[gi]("M364206ScriptRootC277771");}var dv=iw[ce]('div');dv.id="MG_ID";dv[st][ds]=n;dv.innerHTML=277771;c[ac](dv);
+            var s=iw[ce]('script');s.async='async';s.defer='defer';s.charset='utf-8';s.src=wp+"//jsc.adskeeper.co.uk/s/k/skrbt.club.277771.js?t="+D.getYear()+D.getMonth()+D.getUTCDate()+D.getUTCHours();c[ac](s);})();
+          </script>
+          </div>
+          <!-- Composite End -->
+        </div>
+        <div class="torrent-info">
         <h1 class="torrent-name" th:text="${metadata.getName()}"></h1>
         <dl class="torrent-meta-info clearfix">
           <div class="meta-info clearfix">
@@ -69,6 +85,23 @@
         <h2>文件列表</h2>
         <ul id="metadata-detail" class="filetree treeview" th:utext="${metadata.getFileTree()}">
         </ul>
+      </div>
+      </div>
+      <div class="right-content">
+        <div id="adskeeper-r">
+          <!-- Composite Start -->
+          <div id="M364206ScriptRootC277820">
+            <div id="M364206PreloadC277820">Loading...</div>
+            <script>
+                (function(){
+            var D=new Date(),d=document,b='body',ce='createElement',ac='appendChild',st='style',ds='display',n='none',gi='getElementById',lp=d.location.protocol,wp=lp.indexOf('http')==0?lp:'https:';
+            var i=d[ce]('iframe');i[st][ds]=n;d[gi]("M364206ScriptRootC277820")[ac](i);try{var iw=i.contentWindow.document;iw.open();iw.writeln("<ht"+"ml><bo"+"dy></bo"+"dy></ht"+"ml>");iw.close();var c=iw[b];}
+            catch(e){var iw=d;var c=d[gi]("M364206ScriptRootC277820");}var dv=iw[ce]('div');dv.id="MG_ID";dv[st][ds]=n;dv.innerHTML=277820;c[ac](dv);
+            var s=iw[ce]('script');s.async='async';s.defer='defer';s.charset='utf-8';s.src=wp+"//jsc.adskeeper.co.uk/s/k/skrbt.club.277820.js?t="+D.getYear()+D.getMonth()+D.getUTCDate()+D.getUTCHours();c[ac](s);})();
+          </script>
+          </div>
+          <!-- Composite End -->
+        </div>
       </div>
     </div>
     <div class="footer">

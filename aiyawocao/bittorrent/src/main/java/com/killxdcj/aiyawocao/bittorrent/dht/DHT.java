@@ -340,7 +340,7 @@ public class DHT {
       case ANNOUNCE_PEER:
         break;
       default:
-        LOGGER.warn(
+        LOGGER.debug(
             "unsupport krpc packet action, action:{}, packet:{}",
             transaction.getKrpc().action(),
             krpc);

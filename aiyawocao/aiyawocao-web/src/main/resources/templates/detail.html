@@ -37,38 +37,48 @@
   </div>
   <div class="torrent-page">
     <div class="torrent-content clearfix">
-      <div class="torrent-info">
-        <h1 class="torrent-name" th:text="${metadata.getName()}"></h1>
-        <dl class="torrent-meta-info clearfix">
-          <div class="meta-info clearfix">
-            <div class="meta-info-left">
-              <dt>文件大小</dt>
-              <dd th:text="${metadata.getHumanFileSize()}"></dd>
-              <dt>文件数量</dt>
-              <dd th:text="${metadata.getFileNum()}"></dd>
-              <dt>热度</dt>
-              <dd th:text="${metadata.getPopularity()}"></dd>
-              <dt>创建时间</dt>
-              <dd th:text="${metadata.getDate()}"></dd>
-              <dt>Info Hash</dt>
-              <dd th:text="${metadata.getInfohash()}"></dd>
+      <div class="left-content">
+        <div id="ad-lh" style="width:0px;">
+          <!-- ad code -->
+        </div>
+        <div class="torrent-info">
+          <h1 class="torrent-name" th:text="${metadata.getName()}"></h1>
+          <dl class="torrent-meta-info clearfix">
+            <div class="meta-info clearfix">
+              <div class="meta-info-left">
+                <dt>文件大小</dt>
+                <dd th:text="${metadata.getHumanFileSize()}"></dd>
+                <dt>文件数量</dt>
+                <dd th:text="${metadata.getFileNum()}"></dd>
+                <dt>热度</dt>
+                <dd th:text="${metadata.getPopularity()}"></dd>
+                <dt>创建时间</dt>
+                <dd th:text="${metadata.getDate()}"></dd>
+                <dt>Info Hash</dt>
+                <dd th:text="${metadata.getInfohash()}"></dd>
+              </div>
             </div>
-          </div>
-          <dt>关键词</dt>
-          <dd>
-            <a class="tag" rel="tag" th:each="key : ${keywords}" th:href="'/search?keyword=' + ${key}" th:text="${key}"></a>
-          </dd>
-          <dt>磁力链接</dt>
-          <dd>
-            <i class="fa fa-magnet"></i> <a title="Magnet Link"
-                                            th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-                                            th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-                                            class="magnet" onclick="popup();"></a>
-          </dd>
-        </dl>
-        <h2>文件列表</h2>
-        <ul id="metadata-detail" class="filetree treeview" th:utext="${metadata.getFileTree()}">
-        </ul>
+            <dt>关键词</dt>
+            <dd>
+              <a class="tag" rel="tag" th:each="key : ${keywords}" th:href="'/search?keyword=' + ${key}" th:text="${key}"></a>
+            </dd>
+            <dt>磁力链接</dt>
+            <dd>
+              <i class="fa fa-magnet"></i> <a title="Magnet Link"
+                                              th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                                              th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                                              class="magnet" onclick="popup();"></a>
+            </dd>
+          </dl>
+          <h2>文件列表</h2>
+          <ul id="metadata-detail" class="filetree treeview" th:utext="${metadata.getFileTree()}">
+          </ul>
+        </div>
+      </div>
+      <div class="right-content">
+        <div id="ad-r">
+          <!-- ad code -->
+        </div>
       </div>
     </div>
     <div class="footer">

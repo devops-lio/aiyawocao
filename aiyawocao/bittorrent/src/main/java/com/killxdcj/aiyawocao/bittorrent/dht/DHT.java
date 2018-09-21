@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.bittorrent.dht;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedMap;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.BencodedString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,7 @@ public class DHT {
   private Meter pingNodeReqMeter;
   private Meter pingNodeRespMeter;
   private Meter blackPacketMeter;
+  private Timer dhtPacketSize;
 
   public DHT(BittorrentConfig config, MetaWatcher metaWatcher, MetricRegistry metricRegistry)
       throws SocketException {
@@ -107,6 +110,7 @@ public class DHT {
     pingNodeReqMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeReq"));
     pingNodeRespMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTPingNodeResp"));
     blackPacketMeter = metricRegistry.meter(MetricRegistry.name(DHT.class, "DHTBlackPacket"));
+    dhtPacketSize = metricRegistry.timer(MetricRegistry.name(DHT.class, "DHTPacketSize"));
   }
 
   public void shutdown() {
@@ -127,6 +131,7 @@ public class DHT {
         DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
         datagramSocket.receive(packet);
         inBoundwidthMeter.mark(packet.getLength());
+        dhtPacketSize.update(packet.getLength(), TimeUnit.MILLISECONDS);
         if (enableBlk && blkManager.isInBlack(packet.getAddress())) {
           blackPacketMeter.mark();
           continue;
@@ -270,7 +275,7 @@ public class DHT {
         handleAnnouncePeerQuery(packet, krpc);
         break;
       default:
-        LOGGER.warn("unsupport krpc packet action, host:{}, packet:{}", krpc, packet.getAddress());
+        LOGGER.debug("unsupport krpc packet action, host:{}, packet:{}", krpc, packet.getAddress());
         blkManager.markGetPeers(packet.getAddress());
     }
   }
@@ -340,10 +345,8 @@ public class DHT {
       case ANNOUNCE_PEER:
         break;
       default:
-        LOGGER.debug(
-            "unsupport krpc packet action, action:{}, packet:{}",
-            transaction.getKrpc().action(),
-            krpc);
+        LOGGER.warn("unsupport krpc packet action, action:{}, packet:{}",
+            transaction.getKrpc().action(), krpc);
     }
   }
 

@@ -25,7 +25,7 @@ public class MetadataFetcher {
             return t;
           });
   private ExecutorService executorService =
-      Executors.newCachedThreadPool(
+      Executors.newFixedThreadPool(10,
           r -> {
             Thread t = new Thread(r);
             t.setName("MetadataFetcher Executor");

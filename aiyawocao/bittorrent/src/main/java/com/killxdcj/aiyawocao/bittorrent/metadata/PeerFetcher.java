@@ -318,7 +318,7 @@ public class PeerFetcher {
               "fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
               task.getInfohash().asHexString().toUpperCase(),
               pieceTotal,
-              piece,
+              piece + 1,
               data.length);
 
           if (metadata.size() == pieceTotal) {

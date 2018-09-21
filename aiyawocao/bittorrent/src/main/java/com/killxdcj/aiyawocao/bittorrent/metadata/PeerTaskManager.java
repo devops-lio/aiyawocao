@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PeerTaskManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PeerTaskManager.class);
 
   private ConcurrentMap<Peer, List<Task>> peerTasks = new ConcurrentHashMap<>();
 
@@ -29,6 +32,9 @@ public class PeerTaskManager {
         peerTasks.remove(peer);
         return null;
       } else {
+        if (tasks.size() > 10) {
+          LOGGER.info("pendind fetch task size {} > 10, {}", tasks.size(), peer.getAddr());
+        }
         return tasks.remove(0);
       }
     }

@@ -316,7 +316,7 @@ public class PeerFetcher {
           metadata.put(piece, data);
           LOGGER.info(
               "fetched metadata piece, infohash:{}, total:{}, cur:{}, size:{}bytes",
-              task.getInfohash().asHexString(),
+              task.getInfohash().asHexString().toUpperCase(),
               pieceTotal,
               piece,
               data.length);

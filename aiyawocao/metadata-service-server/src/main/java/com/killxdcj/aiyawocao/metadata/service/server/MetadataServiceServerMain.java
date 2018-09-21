@@ -62,6 +62,7 @@ public class MetadataServiceServerMain {
         NettyServerBuilder.forPort(config.getPort())
             .addService(rocksDBBackendMetadataService)
             .executor(executor)
+            .maxMessageSize(20 * 1024 * 1024)
             .build();
 
     server.start();

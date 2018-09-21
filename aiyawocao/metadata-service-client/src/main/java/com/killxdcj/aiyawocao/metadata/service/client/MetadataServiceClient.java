@@ -157,7 +157,7 @@ public class MetadataServiceClient {
       putMetadataMeter.mark();
       localCache.put(new BencodedString(infohash), EXIST);
     } catch (StatusRuntimeException sre) {
-      throw sre.getCause();
+      throw sre;
     } finally {
       putMetadataTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
     }

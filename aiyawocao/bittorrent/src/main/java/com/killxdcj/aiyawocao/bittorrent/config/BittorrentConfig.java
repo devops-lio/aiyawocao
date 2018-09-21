@@ -6,7 +6,7 @@ import java.util.List;
 public class BittorrentConfig {
 
   private int port = 10240;
-  private int maxPacketSize = 64 * 1024;
+  private int maxPacketSize = 768;
   private List<String> primeNodes =
       new ArrayList() {
         {

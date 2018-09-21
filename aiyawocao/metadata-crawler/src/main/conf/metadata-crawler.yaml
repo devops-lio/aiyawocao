@@ -2,7 +2,7 @@ bittorrentConfig:
   blackThreshold: 30
   enableBlack: true
   maxNeighbor: 10000
-  maxPacketSize: 65536
+  maxPacketSize: 768
   nodeidChangeThreshold: 50
   outBandwidthLimit: 1048576
   port: 10241

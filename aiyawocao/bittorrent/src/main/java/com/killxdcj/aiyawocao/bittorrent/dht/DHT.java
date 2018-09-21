@@ -190,6 +190,7 @@ public class DHT {
         Node node = nodeManager.getNode();
         if (node == null) {
           neighborEmpty.inc();
+          LOGGER.warn("maybe neighbors is empty");
           for (String primeNode : config.getPrimeNodes()) {
             String[] ipPort = primeNode.split(":");
             node = new Node(InetAddress.getByName(ipPort[0]), Integer.parseInt(ipPort[1]));
@@ -294,7 +295,7 @@ public class DHT {
       peers.add(new Peer(nodex.getAddr(), node.getPort()));
     }
     if (peers.size() == 0) {
-      LOGGER.warn("Peers is empty, maybe neighbors is empty");
+      LOGGER.debug("Peers is empty, maybe neighbors is empty");
     }
 
     KRPC resp =

@@ -124,11 +124,11 @@ public class DHT {
 
   private void workProc() {
     Thread.currentThread().setName("DHT Main WorkProc");
-    int maxPacketSize = config.getMaxPacketSize();
     KRPC krpc;
+    int maxPacketSize = config.getMaxPacketSize();
+    DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
     while (!exit) {
       try {
-        DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
         datagramSocket.receive(packet);
         inBoundwidthMeter.mark(packet.getLength());
         dhtPacketSize.update(packet.getLength(), TimeUnit.MILLISECONDS);

@@ -33,7 +33,7 @@ public class PeerTaskManager {
         return null;
       } else {
         if (tasks.size() > 10) {
-          LOGGER.info("pendind fetch task size {} > 10, {}", tasks.size(), peer.getAddr());
+          LOGGER.info("pending fetch task size {} > 10, {}:{}", tasks.size(), peer.getAddr(), peer.getPort());
         }
         return tasks.remove(0);
       }

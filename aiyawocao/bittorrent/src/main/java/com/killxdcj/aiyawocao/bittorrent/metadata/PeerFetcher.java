@@ -237,7 +237,7 @@ public class PeerFetcher {
 
           byte extended = packet.readByte();
           if (extended != EXTENDED) {
-            LOGGER.warn("unknow extended: {}", extended);
+            LOGGER.debug("unknow extended: {}", extended);
             continue;
           }
 

@@ -85,4 +85,8 @@ public class RestfulController {
     predictService.cleanHotWords();
     return "{\"result\": \"ok\"}";
   }
+
+  public Object addHotwords() {
+    return null;
+  }
 }

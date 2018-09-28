@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 public class ESUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ESUtils.class);
+  private static final Logger INDEX_ERROR = LoggerFactory.getLogger("indexerror");
+
   private Namespace nameSpace;
   private Timer costtime;
   private Meter successed;
@@ -104,9 +106,13 @@ public class ESUtils {
           try {
             BulkRequest request = new BulkRequest();
             for (String metadata : batch) {
-              String infohash = JSON.parseObject(metadata).getString("infohash");
-              request.add(
-                  new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+              try {
+                String infohash = JSON.parseObject(metadata).getString("infohash");
+                request.add(
+                    new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+              } catch (Throwable t) {
+                INDEX_ERROR.info("build request error, {}", metadata);
+              }
             }
             BulkResponse responses = client.bulk(request);
             for (BulkItemResponse response : responses.getItems()) {
@@ -119,12 +125,11 @@ public class ESUtils {
                 successed.mark();
               }
             }
-          } catch (Exception e) {
-            StringBuilder sb = new StringBuilder();
+          } catch (Throwable e) {
             for (String metadata : batch) {
-              sb.append("," + JSON.parseObject(metadata).getString("infohash"));
+              INDEX_ERROR.info("index error, {}", metadata);
             }
-            LOGGER.error("index error, " + sb.toString(), e);
+            LOGGER.error("index error", e);
           } finally {
             batch.clear();
             costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);

@@ -5,22 +5,25 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.common.utils.TimeUtils;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.util.Pair;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
 
 @Service
 public class PredictService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PredictService.class);
+
+  @Autowired
+  private RedisPoolService redisPoolService;
 
   private LoadingCache<String, AtomicLong> wordsFrequency;
   private List<String> hotWordsCache = new ArrayList<>();
@@ -38,10 +41,27 @@ public class PredictService {
   }};
 
   public List<String> getHotWordsCache() {
-    return getHotWords(8);
+    return getHotWordsFromCache(8);
   }
 
-  public List<String> getHotWords(int size) {
+  public List<String> getHotSearch() {
+    List<String> hotSearch = getHotSearchFromRedis();
+    if (hotSearch.size() == 0) {
+      hotSearch = getHotWordsFromCache(10);
+    }
+    return hotSearch;
+  }
+
+  public List<String> getHotSearchFromRedis() {
+    try (Jedis jedis = redisPoolService.getJedis()) {
+      return jedis.lrange("hot_search_all", 0,9);
+    } catch (Throwable t) {
+      LOGGER.error("get hot search from redis error", t);
+      return Collections.EMPTY_LIST;
+    }
+  }
+
+  public List<String> getHotWordsFromCache(int size) {
     if (hotWordsCache.size() < size || TimeUtils.getCurTime() > nextUpdateTime) {
       List<String> newHotWords = wordsFrequency.asMap().keySet().stream()
           .sorted((o1, o2) -> (int) (wordsFrequency.getUnchecked(o2).get() - wordsFrequency.getUnchecked(o1).get()))

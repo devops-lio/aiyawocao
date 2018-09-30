@@ -35,7 +35,7 @@ public class WebController {
 
   @RequestMapping("")
   public String home(Model model) {
-    model.addAttribute("hotWords", predictService.getHotWords(10));
+    model.addAttribute("hotWords", predictService.getHotSearch());
     return "home";
   }
 

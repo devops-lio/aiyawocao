@@ -9,7 +9,9 @@ import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -30,10 +32,10 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ESUtils {
-
+public class ESReIndexUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(ESUtils.class);
   private static final Logger INDEX_ERROR = LoggerFactory.getLogger("indexerror");
+  private static final Logger METADATA = LoggerFactory.getLogger("metadata");
 
   private Namespace nameSpace;
   private Timer costtime;
@@ -41,8 +43,8 @@ public class ESUtils {
   private Meter error;
 
   public static void main(String[] args) {
-    ESUtils esUtils = new ESUtils();
-    esUtils.start(args);
+    ESReIndexUtils esReIndexUtils = new ESReIndexUtils();
+    esReIndexUtils.start(args);
   }
 
   public void start(String[] args) {
@@ -117,30 +119,45 @@ public class ESUtils {
     long start = System.currentTimeMillis();
     try {
       BulkRequest request = new BulkRequest();
+      Map<String, String> indexId2Meta = new HashMap<>();
       for (String metadata : batch) {
         try {
-          String infohash = JSON.parseObject(metadata).getString("infohash");
-          request.add(
-              new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+          Map<String, Object> metaHuman = JSON.parseObject(metadata, Map.class);
+          if (metaHuman.containsKey("files")) {
+            long length = 0;
+            for (Map<String, String> file : (List<Map<String, String>>) metaHuman.get("files")) {
+              length += Long.parseLong(file.get("length"));
+            }
+            metaHuman.put("length", "" + length);
+            metaHuman.put("filenum", "" + ((List<Map<String, String>>) metaHuman.get("files")).size());
+          } else {
+            metaHuman.put("filenum", "1");
+          }
+          String newMetadata = JSON.toJSONString(metaHuman);
+          METADATA.info(newMetadata);
+
+          String infohash = (String)metaHuman.get("infohash");
+          request.add(new IndexRequest(index, type, infohash).source(newMetadata, XContentType.JSON));
+          indexId2Meta.put(infohash, newMetadata);
         } catch (Throwable t) {
-          INDEX_ERROR.info("build request error, {}", metadata);
+          INDEX_ERROR.info("index error build request, {}", metadata);
         }
       }
       BulkResponse responses = client.bulk(request);
       for (BulkItemResponse response : responses.getItems()) {
         if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
           error.mark();
-          LOGGER.info("index error, {} -> {}, {}", response.getId(),
-              response.status().getStatus(),
-              response.getFailureMessage());
+          INDEX_ERROR.info("index error status, status: {}, failuerMsg:{}, meta:{}",
+              response.status().getStatus(), response.getFailureMessage(), indexId2Meta.get(response.getId()));
         } else {
           successed.mark();
         }
       }
     } catch (Throwable e) {
       for (String metadata : batch) {
-        INDEX_ERROR.info("index error, {}", metadata);
+        INDEX_ERROR.info("index error api, {}", metadata);
       }
+      error.mark();
       LOGGER.error("index error", e);
     } finally {
       costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);

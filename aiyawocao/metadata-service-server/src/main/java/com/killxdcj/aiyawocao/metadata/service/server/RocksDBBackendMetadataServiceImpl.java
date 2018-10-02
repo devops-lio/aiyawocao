@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -177,6 +178,16 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
       Map<String, Object> metaHuman = (Map<String, Object>) bencoding.decode().toHuman();
       metaHuman.put("infohash", infohash.toUpperCase());
       metaHuman.put("date", SDF.format(new Date()));
+      if (metaHuman.containsKey("files")) {
+        long length = 0;
+        for (Map<String, String> file : (List<Map<String, String>>) metaHuman.get("files")) {
+          length += Long.parseLong(file.get("length"));
+        }
+        metaHuman.put("length", "" + length);
+        metaHuman.put("filenum", "" + ((List<Map<String, String>>) metaHuman.get("files")).size());
+      } else {
+        metaHuman.put("filenum", "1");
+      }
       METADATA.info(JSON.toJSONString(metaHuman));
       rocksDB.put(request.getInfohash().toByteArray(), DUMMY_VALUE);
       if (this.config.getEnableBitfilter()) {

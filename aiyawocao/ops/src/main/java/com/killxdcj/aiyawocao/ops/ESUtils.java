@@ -102,44 +102,51 @@ public class ESUtils {
       while (lineIterator.hasNext()) {
         batch.add(lineIterator.nextLine());
         if (batch.size() >= bulkSize) {
-          start = System.currentTimeMillis();
-          try {
-            BulkRequest request = new BulkRequest();
-            for (String metadata : batch) {
-              try {
-                String infohash = JSON.parseObject(metadata).getString("infohash");
-                request.add(
-                    new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
-              } catch (Throwable t) {
-                INDEX_ERROR.info("build request error, {}", metadata);
-              }
-            }
-            BulkResponse responses = client.bulk(request);
-            for (BulkItemResponse response : responses.getItems()) {
-              if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
-                error.mark();
-                LOGGER.info("index error, {} -> {}, {}", response.getId(),
-                    response.status().getStatus(),
-                    response.getFailureMessage());
-              } else {
-                successed.mark();
-              }
-            }
-          } catch (Throwable e) {
-            for (String metadata : batch) {
-              INDEX_ERROR.info("index error, {}", metadata);
-            }
-            LOGGER.error("index error", e);
-          } finally {
-            batch.clear();
-            costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
-          }
+          indexBatch(index, type, client, batch);
+          batch.clear();
         }
+      }
+      if (batch.size() > 0) {
+        indexBatch(index, type, client, batch);
       }
     } catch (IOException e) {
       LOGGER.error("metadata file error, " + file.getAbsolutePath(), e);
     }
     LOGGER.info("complete index {}", file);
+  }
+
+  private void indexBatch(String index, String type, RestHighLevelClient client, List<String> batch) {
+    long start = System.currentTimeMillis();
+    try {
+      BulkRequest request = new BulkRequest();
+      for (String metadata : batch) {
+        try {
+          String infohash = JSON.parseObject(metadata).getString("infohash");
+          request.add(
+              new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+        } catch (Throwable t) {
+          INDEX_ERROR.info("build request error, {}", metadata);
+        }
+      }
+      BulkResponse responses = client.bulk(request);
+      for (BulkItemResponse response : responses.getItems()) {
+        if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
+          error.mark();
+          LOGGER.info("index error, {} -> {}, {}", response.getId(),
+              response.status().getStatus(),
+              response.getFailureMessage());
+        } else {
+          successed.mark();
+        }
+      }
+    } catch (Throwable e) {
+      for (String metadata : batch) {
+        INDEX_ERROR.info("index error, {}", metadata);
+      }
+      LOGGER.error("index error", e);
+    } finally {
+      costtime.update(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+    }
   }
 
   private RestHighLevelClient buildESClient() {

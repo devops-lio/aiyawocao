@@ -15,8 +15,9 @@ do
     /usr/lib/jdk1.8.0_172/bin/java -Xms1024m -Xmx1024m -cp ./lib/ops-1.1-SNAPSHOT.jar com.killxdcj.aiyawocao.ops.ESReIndexUtils index -e es.host:9620 -p $datedir -i metadata-v2 -t metadata-v2 -b 500
     echo `date`": reindex finished "$date
     echo `date`": zip metadata start "$date
-    rm -rf "metadata."$date"/*"
-    mv logs/metadata/* "metadata."$date"/"
+    rm -rf $datedir
+    mkdir -p $datedir
+    mv logs/metadata/* $datedir
     zip -q -r "/data/metadata/archive-new/medata."$date".zip" "metadata."$date
     echo `date`": zip metadata finished "$date
     rm -rf $datedir

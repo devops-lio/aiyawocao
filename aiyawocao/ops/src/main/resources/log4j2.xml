@@ -9,7 +9,7 @@
       </Policies>
       <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile fileName="./logs/metadata/metadata.log" filePattern="./logs/metadata/metadata.%i.zip"
+    <RollingFile fileName="./logs/metadata/metadata" filePattern="./logs/metadata/metadata.%i"
       name="metadata">
       <PatternLayout pattern="%m%n"/>
       <Policies>

@@ -127,7 +127,7 @@ curl -XGET "http://localhost:9200/metadata/_analyze?pretty=true" -H 'Content-Typ
 }
 '
 
-curl -X PUT "localhost:9200/metadata-v2" -H 'Content-Type: application/json' -d '
+curl -X PUT "es.host:9620/metadata-v2" -H 'Content-Type: application/json' -d '
 {
   "settings": {
     "index": {

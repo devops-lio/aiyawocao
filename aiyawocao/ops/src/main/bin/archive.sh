@@ -18,7 +18,7 @@ do
 	unzip -q /data/aiyawocao/metadata/human/$name -d tmp/
 done
 echo "start index human metadata"
-/usr/lib/jdk1.8.0_172/bin/java -Xmx200m -Xmn150m -cp ./lib/ops-1.1-SNAPSHOT.jar com.killxdcj.aiyawocao.ops.ESUtils index -e es.host:9620 -p tmp/ -i metadata -t v1 -b 500
+/usr/lib/jdk1.8.0_172/bin/java -Xmx200m -Xms100m -cp ./lib/ops-1.1-SNAPSHOT.jar com.killxdcj.aiyawocao.ops.ESUtils index -e es.host:9620 -p tmp/ -i metadata -t v1 -b 500
 
 # rsyncd 
 cd /opt/index

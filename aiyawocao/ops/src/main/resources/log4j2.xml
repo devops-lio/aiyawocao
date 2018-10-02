@@ -9,14 +9,15 @@
       </Policies>
       <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile fileName="./logs/metadata/metadata.log" filePattern="./logs/metadata/metadata.%d{yyyyMMdd}.zip"
+    <RollingFile fileName="./logs/metadata/metadata.log" filePattern="./logs/metadata/metadata.%i.zip"
       name="metadata">
       <PatternLayout pattern="%m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
       </Policies>
     </RollingFile>
-    <RollingFile fileName="./logs/indexerror.log" filePattern="./logs/indexerror.%d{yyyyMMdd}.%i.zip" name="indexerror">
+    <RollingFile fileName="./logs/indexerror.log" filePattern="./logs/indexerror.%d{yyyyMMdd}.%i" name="indexerror">
       <PatternLayout pattern="%d %m%n"/>
       <Policies>
         <SizeBasedTriggeringPolicy size="500 MB"/>

@@ -37,6 +37,10 @@
     <span class="sort">排序: </span>
     <span class="active" th:if="${sort} eq 'relevance'">相关度</span>
     <a th:href="'/search?keyword=' + ${keyword} + '&s=relevance'" th:unless="${sort} eq 'relevance'">相关度</a>
+    <span class="active" th:if="${sort} eq 'length'">文件大小</span>
+    <a th:href="'/search?keyword=' + ${keyword} + '&s=length'" th:unless="${sort} eq 'length'">文件大小</a>
+    <span class="active" th:if="${sort} eq 'filenum'">文件数量</span>
+    <a th:href="'/search?keyword=' + ${keyword} + '&s=filenum'" th:unless="${sort} eq 'filenum'">文件数量</a>
     <span class="active" th:if="${sort} eq 'date'">收录时间</span>
     <a th:href="'/search?keyword=' + ${keyword} + '&s=date'" th:unless="${sort} eq 'date'">收录时间</a>
   </div>

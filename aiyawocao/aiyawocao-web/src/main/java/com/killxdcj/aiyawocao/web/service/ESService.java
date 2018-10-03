@@ -37,6 +37,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder.Order;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class ESService {
             .fetchSource(true);
 
     SearchRequest searchRequest =
-        new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+        new SearchRequest(index).types(type).source(searchSourceBuilder);
 
     SearchResponse searchResponse = client.search(searchRequest);
     return searchResponse.getHits();
@@ -144,6 +145,9 @@ public class ESService {
       HighlightBuilder highlightBuilder = new HighlightBuilder()
           .field("name")
           .field("files.path")
+          .order(Order.SCORE)
+          .highlighterType("fvh")
+          .numOfFragments(10)
           .preTags("skrbt-high-pre")
           .postTags("skrbt-high-post");
 
@@ -160,14 +164,21 @@ public class ESService {
         switch (sortFiled) {
           case "date":
             searchSourceBuilder.sort("date", SortOrder.DESC);
-            default:
+            break;
+          case "length":
+            searchSourceBuilder.sort("length", SortOrder.DESC);
+            break;
+          case "filenum":
+            searchSourceBuilder.sort("filenum", SortOrder.DESC);
+            break;
+          default:
               // TODO
               break;
         }
       }
 
       SearchRequest searchRequest =
-          new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+          new SearchRequest(index).types(type).source(searchSourceBuilder);
 
       SearchResponse searchResponse = client.search(searchRequest);
       return SearchResult.fromSearchResponse(searchResponse);
@@ -235,7 +246,7 @@ public class ESService {
               .timeout(new TimeValue(30, TimeUnit.SECONDS))
               .fetchSource(true);
       SearchRequest searchRequest =
-          new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+          new SearchRequest(index).types(type).source(searchSourceBuilder);
 
       SearchResponse searchResponse = client.search(searchRequest);
       return SearchResult.fromSearchResponse(searchResponse);
@@ -273,39 +284,46 @@ public class ESService {
   }
 
   public static void main(String[] args) throws IOException {
-    HttpHost esHost = new HttpHost("10.8.121.183", 9200, "http");
+    HttpHost esHost = new HttpHost("es.host", 9620, "http");
     RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(esHost));
     QueryBuilder queryBuilder =
         new MultiMatchQueryBuilder("建国大业", "name", "files.path")
             .type(Type.MOST_FIELDS)
             .operator(Operator.AND);
+    try {
 
-    HighlightBuilder highlightBuilder = new HighlightBuilder()
-        .field("name")
-        .field("files.path")
-        .preTags("skrbt-high-pre")
-        .postTags("skrbt-high-post");
+      HighlightBuilder highlightBuilder = new HighlightBuilder()
+          .field("name")
+          .field("files.path")
+          .numOfFragments(10)
+          .order(Order.SCORE).highlighterType("fvh")
+          .preTags("skrbt-high-pre")
+          .postTags("skrbt-high-post");
 
-    SearchSourceBuilder searchSourceBuilder =
-        new SearchSourceBuilder()
-            .query(queryBuilder)
-            .highlighter(highlightBuilder)
-            .from(0)
-            .size(1)
-            .timeout(new TimeValue(30, TimeUnit.SECONDS))
-            .fetchSource(true);
+      SearchSourceBuilder searchSourceBuilder =
+          new SearchSourceBuilder()
+              .query(queryBuilder)
+              .highlighter(highlightBuilder)
+              .from(0)
+              .size(10)
+              .timeout(new TimeValue(30, TimeUnit.SECONDS))
+              .fetchSource(true);
 
-    SearchRequest searchRequest =
-        new SearchRequest("metadata").types("v1").source(searchSourceBuilder);
+      SearchRequest searchRequest =
+          new SearchRequest("metadata-v4").types("metadata-v4").source(searchSourceBuilder);
 
-    SearchResponse searchResponse = client.search(searchRequest);
-    for (SearchHit hit : searchResponse.getHits()) {
-      System.out.println(hit.getHighlightFields());
-    }
-    SearchResult searchResult = new SearchResult(searchResponse);
-    for (Metadata me : searchResult.getMetadatas()) {
-      System.out.println(me.getName() + " -> " + me.getHighlightName());
-      System.out.println(me.getDigestFiles(10));
+      SearchResponse searchResponse = client.search(searchRequest);
+      for (SearchHit hit : searchResponse.getHits()) {
+        System.out.println(hit.getSourceAsString());
+//        System.out.println(hit.getHighlightFields());
+      }
+//      SearchResult searchResult = new SearchResult(searchResponse);
+//      for (Metadata me : searchResult.getMetadatas()) {
+//        System.out.println(me.getName() + " -> " + me.getHighlightName());
+//        System.out.println(me.getDigestFiles(10));
+//      }
+    } finally {
+      client.close();
     }
   }
 }

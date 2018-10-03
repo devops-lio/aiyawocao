@@ -16,6 +16,7 @@
         <OnStartupTriggeringPolicy/>
         <SizeBasedTriggeringPolicy size="1024 MB"/>
       </Policies>
+      <DefaultRolloverStrategy max="100"/>
     </RollingFile>
     <RollingFile fileName="./logs/indexerror.log" filePattern="./logs/indexerror.%d{yyyyMMdd}.%i" name="indexerror">
       <PatternLayout pattern="%d %m%n"/>

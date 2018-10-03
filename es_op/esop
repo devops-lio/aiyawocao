@@ -127,7 +127,7 @@ curl -XGET "http://localhost:9200/metadata/_analyze?pretty=true" -H 'Content-Typ
 }
 '
 
-curl -X PUT "es.host:9620/metadata-v2" -H 'Content-Type: application/json' -d '
+curl -X PUT "es.host:9620/metadata-v4" -H 'Content-Type: application/json' -d '
 {
   "settings": {
     "index": {
@@ -136,7 +136,7 @@ curl -X PUT "es.host:9620/metadata-v2" -H 'Content-Type: application/json' -d '
     }
   },
   "mappings": {
-    "metadata-v2": {
+    "metadata-v4": {
       "dynamic": false,
       "properties": {
         "date": {
@@ -161,19 +161,23 @@ curl -X PUT "es.host:9620/metadata-v2" -H 'Content-Type: application/json' -d '
         },
         "name": {
           "type": "text",
+          "term_vector" : "with_positions_offsets",
           "analyzer": "ik_max_word",
           "fields": {
             "standard": {
-              "type": "text"
+              "type": "text",
+              "term_vector" : "with_positions_offsets"
             }
           }
         },
         "files.path": {
           "type": "text",
+          "term_vector" : "with_positions_offsets",
           "analyzer": "ik_max_word",
           "fields": {
             "standard": {
-              "type": "text"
+              "type": "text",
+              "term_vector" : "with_positions_offsets"
             }
           }
         }

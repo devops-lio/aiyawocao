@@ -42,6 +42,9 @@ public class ESReIndexUtils {
   private Meter successed;
   private Meter error;
 
+  private volatile int ok = 0;
+  private volatile int failed = 0;
+
   public static void main(String[] args) {
     ESReIndexUtils esReIndexUtils = new ESReIndexUtils();
     esReIndexUtils.start(args);
@@ -76,6 +79,7 @@ public class ESReIndexUtils {
     String type = nameSpace.getString("type");
     int bulkSize = nameSpace.getInt("bulkSize");
 
+    LOGGER.info("index started {}", path);
     try (RestHighLevelClient client = buildESClient()) {
       File root = new File(path);
       if (root.isFile()) {
@@ -90,7 +94,7 @@ public class ESReIndexUtils {
     } finally {
       InfluxdbBackendMetrics.shutdown();
     }
-    LOGGER.info("fininshed");
+    LOGGER.info("index fininshed {}, successed:{}, failed:{}", path, ok, failed);
   }
 
   private void indexFile(File file, RestHighLevelClient client, String index, String type,
@@ -140,6 +144,7 @@ public class ESReIndexUtils {
           request.add(new IndexRequest(index, type, infohash).source(newMetadata, XContentType.JSON));
           indexId2Meta.put(infohash, newMetadata);
         } catch (Throwable t) {
+          failed++;
           INDEX_ERROR.info("index error build request, {}", metadata);
         }
       }
@@ -147,15 +152,18 @@ public class ESReIndexUtils {
       for (BulkItemResponse response : responses.getItems()) {
         if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
           error.mark();
+          failed++;
           INDEX_ERROR.info("index error status, status: {}, failuerMsg:{}, meta:{}",
               response.status().getStatus(), response.getFailureMessage(), indexId2Meta.get(response.getId()));
         } else {
+          ok++;
           successed.mark();
         }
       }
     } catch (Throwable e) {
       for (String metadata : batch) {
         INDEX_ERROR.info("index error api, {}", metadata);
+        failed++;
       }
       error.mark();
       LOGGER.error("index error", e);

@@ -9,7 +9,9 @@ import com.killxdcj.aiyawocao.common.metrics.InfluxdbBackendMetricsConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -116,12 +118,13 @@ public class ESUtils {
   private void indexBatch(String index, String type, RestHighLevelClient client, List<String> batch) {
     long start = System.currentTimeMillis();
     try {
+      Map<String, String> metadataMap = new HashMap<>();
       BulkRequest request = new BulkRequest();
       for (String metadata : batch) {
         try {
           String infohash = JSON.parseObject(metadata).getString("infohash");
-          request.add(
-              new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+          request.add(new IndexRequest(index, type, infohash).source(metadata, XContentType.JSON));
+          metadataMap.put(infohash, metadata);
         } catch (Throwable t) {
           INDEX_ERROR.info("build request error, {}", metadata);
         }
@@ -130,16 +133,17 @@ public class ESUtils {
       for (BulkItemResponse response : responses.getItems()) {
         if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
           error.mark();
-          LOGGER.info("index error, {} -> {}, {}", response.getId(),
+          LOGGER.info("index error status, {} -> {}, {}, {}", response.getId(),
               response.status().getStatus(),
-              response.getFailureMessage());
+              response.getFailureMessage(),
+              metadataMap.get(response.getId()));
         } else {
           successed.mark();
         }
       }
     } catch (Throwable e) {
       for (String metadata : batch) {
-        INDEX_ERROR.info("index error, {}", metadata);
+        INDEX_ERROR.info("index error api, {}", metadata);
       }
       LOGGER.error("index error", e);
     } finally {

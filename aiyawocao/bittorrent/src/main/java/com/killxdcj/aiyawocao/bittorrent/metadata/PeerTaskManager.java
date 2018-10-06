@@ -1,5 +1,6 @@
 package com.killxdcj.aiyawocao.bittorrent.metadata;
 
+import com.killxdcj.aiyawocao.bittorrent.dht.BlackListManager;
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,11 @@ public class PeerTaskManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(PeerTaskManager.class);
 
   private ConcurrentMap<Peer, List<Task>> peerTasks = new ConcurrentHashMap<>();
+  private BlackListManager blackListManager;
+
+  public PeerTaskManager() {
+    blackListManager = BlackListManager.getInstance();
+  }
 
   public boolean submitTask(Task task) {
     boolean isNewPeer = false;
@@ -34,6 +40,9 @@ public class PeerTaskManager {
       } else {
         if (tasks.size() > 10) {
           LOGGER.info("pending fetch task size {} > 10, {}:{}", tasks.size(), peer.getAddr(), peer.getPort());
+          blackListManager.markBlack(peer.getAddr());
+          peerTasks.remove(peer);
+          return null;
         }
         return tasks.remove(0);
       }

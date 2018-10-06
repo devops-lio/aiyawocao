@@ -86,7 +86,7 @@ public class DHT {
     }
     datagramSocket = new DatagramSocket(port);
     nodeManager = new NodeManager(config.getMaxNeighbor());
-    blkManager = new BlackListManager(config.getBlackThreshold());
+    blkManager = BlackListManager.getInstance(config.getBlackThreshold());
     transactionManager = new TransactionManager();
     workProcThread = new Thread(this::workProc);
     workProcThread.start();

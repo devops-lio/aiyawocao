@@ -1,6 +1,9 @@
 package com.killxdcj.aiyawocao.ops;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.protobuf.ByteString;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClientConfig;
 import java.io.File;
@@ -32,6 +35,9 @@ public class RemoveMetadata {
         case "remove":
           remove();
           break;
+        case "exist":
+          exist();
+          break;
           default:
             break;
       }
@@ -62,19 +68,39 @@ public class RemoveMetadata {
     System.out.println("finished, " + cnt);
   }
 
+  public void exist() {
+    MetadataServiceClientConfig config = new MetadataServiceClientConfig();
+    config.setServer(nameSpace.getString("btproxy"));
+    MetadataServiceClient client = new MetadataServiceClient(config, new MetricRegistry());
+
+    try {
+      boolean exist = client.doesMetadataExist(nameSpace.getString("infohash"));
+      System.out.println(nameSpace.getString("infohash") + ":" + exist);
+    } catch (DecoderException e) {
+      e.printStackTrace();
+    }
+  }
+
   public ArgumentParser buildParser() {
     ArgumentParser parser =
         ArgumentParsers.newFor("MetadataAdmin").build().defaultHelp(true).description("Metadata Admin Utils");
 
     Subparsers subparsers = parser.addSubparsers().title("actions");
-    Subparser index =
+    Subparser remove =
         subparsers
             .addParser("remove")
             .setDefault("action", "remove")
             .defaultHelp(true)
             .help("Remove Metadata");
-    index.addArgument("-f", "--file").required(true).help("File path, contains infohash");
-    index.addArgument("-b", "--btproxy").required(true).help("BTProxy, host:port");
+    remove.addArgument("-f", "--file").required(true).help("File path, contains infohash");
+    remove.addArgument("-b", "--btproxy").required(true).help("BTProxy, host:port");
+
+    Subparser exist = subparsers.addParser("exist")
+        .setDefault("action", "exist")
+        .defaultHelp(true)
+        .help("Does Metadata exist");
+    exist.addArgument("-i", "--infohash").required(true).help("infohash");
+    exist.addArgument("-b", "--btproxy").required(true).help("BTProxy, host:port");
 
     return parser;
   }

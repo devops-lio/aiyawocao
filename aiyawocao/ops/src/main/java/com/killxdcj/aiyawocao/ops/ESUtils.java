@@ -133,7 +133,7 @@ public class ESUtils {
       for (BulkItemResponse response : responses.getItems()) {
         if (response.status().getStatus() != 201 && response.status().getStatus() != 200) {
           error.mark();
-          LOGGER.info("index error status, {} -> {}, {}, {}", response.getId(),
+          INDEX_ERROR.info("index error status, {} -> {}, {}, {}", response.getId(),
               response.status().getStatus(),
               response.getFailureMessage(),
               metadataMap.get(response.getId()));

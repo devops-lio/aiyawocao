@@ -34,6 +34,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.killxdcj.aiyawocao</groupId>
+      <artifactId>metadata-service-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>net.sourceforge.argparse4j</groupId>
       <artifactId>argparse4j</artifactId>
       <version>0.8.1</version>

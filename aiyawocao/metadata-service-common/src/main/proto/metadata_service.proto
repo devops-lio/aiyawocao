@@ -36,9 +36,18 @@ message ParseMetadataResponse {
     string metadataJson = 1;
 }
 
+message RemoveMetadataRequest {
+    bytes infohash = 1;
+}
+
+message RemoveMetadataResponse {
+    bool result = 1;
+}
+
 service MetadataService {
     rpc doesMetadataExist (DoesMetadataExistRequest) returns (DoesMetadataExistResponse);
     rpc putMetadata (PutMetadataRequest) returns (PutMetadataResponse);
     rpc getMetadata (GetMetadataRequest) returns (GetMetadataResponse);
     rpc parseMetadata (ParseMetadataRequest) returns (ParseMetadataResponse);
+    rpc removeMetadata (RemoveMetadataRequest) returns (RemoveMetadataResponse);
 }

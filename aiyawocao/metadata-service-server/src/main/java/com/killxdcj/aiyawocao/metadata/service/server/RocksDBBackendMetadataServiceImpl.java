@@ -17,6 +17,8 @@ import com.killxdcj.aiyawocao.metadata.service.ParseMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.ParseMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.PutMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.PutMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.RemoveMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.RemoveMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.server.config.MetadataServiceServerConfig;
 import com.killxdcj.aiyawocao.metadata.service.server.config.RocksDBBackendConfig;
 import io.grpc.stub.StreamObserver;
@@ -229,6 +231,19 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   public void parseMetadata(ParseMetadataRequest request,
       StreamObserver<ParseMetadataResponse> responseObserver) {
     super.parseMetadata(request, responseObserver);
+  }
+
+  @Override
+  public void removeMetadata(RemoveMetadataRequest request,
+      StreamObserver<RemoveMetadataResponse> responseObserver) {
+    try {
+      rocksDB.delete(request.getInfohash().toByteArray());
+      RemoveMetadataResponse response = RemoveMetadataResponse.newBuilder().setResult(true).build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (RocksDBException e) {
+      responseObserver.onError(e);
+    }
   }
 
   private String buildOriginalMetadataPath(String infohash) {

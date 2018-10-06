@@ -19,6 +19,8 @@ import com.killxdcj.aiyawocao.metadata.service.ParseMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.ParseMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.PutMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.PutMetadataResponse;
+import com.killxdcj.aiyawocao.metadata.service.RemoveMetadataRequest;
+import com.killxdcj.aiyawocao.metadata.service.RemoveMetadataResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -198,6 +200,16 @@ public class MetadataServiceClient {
       throw sre.getCause();
     } finally {
       parseMetadataTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+    }
+  }
+
+  public void removeMetadata(byte[] infohash) throws Throwable {
+    try {
+      RemoveMetadataRequest request = RemoveMetadataRequest.newBuilder()
+          .setInfohash(ByteString.copyFrom(infohash)).build();
+      RemoveMetadataResponse response = getNextStub().removeMetadata(request);
+    } catch (StatusRuntimeException sre) {
+      throw sre.getCause();
     }
   }
 

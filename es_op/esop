@@ -186,3 +186,78 @@ curl -X PUT "es.host:9620/metadata-v4" -H 'Content-Type: application/json' -d '
   }
 }
 '
+
+curl -X PUT "es.host:9620/metadata-v5" -H 'Content-Type: application/json' -d '
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "metadata-v5": {
+      "dynamic": false,
+      "properties": {
+        "date": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        "infohash": {
+          "type": "keyword"
+        },
+        "length": {
+          "type": "long"
+        },
+        "filenum": {
+          "type": "integer"
+        },
+        "popularity": {
+          "type": "integer",
+          "null_value": 0
+        },
+        "name": {
+          "type": "text",
+          "term_vector" : "with_positions_offsets",
+          "analyzer": "ik_max_word",
+          "fields": {
+            "standard": {
+              "type": "text",
+              "term_vector" : "with_positions_offsets"
+            }
+          }
+        },
+        "files.path": {
+          "type": "text",
+          "term_vector" : "with_positions_offsets",
+          "analyzer": "ik_max_word",
+          "fields": {
+            "standard": {
+              "type": "text",
+              "term_vector" : "with_positions_offsets"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+'
+
+curl -X POST "es.host:9620/_reindex?wait_for_completion=false" -H 'Content-Type: application/json' -d '
+{
+  "size": 1000,
+  "source": {
+    "index": "metadata-v4",
+    "type": "metadata-v4"
+  },
+  "dest": {
+    "index": "metadata-v5",
+    "type": "metadata-v5"
+  }
+}
+'
+
+curl -X GET "es.host:9620/_tasks?detailed=true&actions=*reindex"
+curl -X GET "es.host:9620/_tasks/xz4kXaKMRE-FiJC98cYIJg:3978777"
+

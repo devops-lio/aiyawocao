@@ -32,6 +32,7 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -63,6 +64,9 @@ public class ESService {
 
   @Value("${es.type}")
   private String type;
+
+  @Value("${es.filenum.limit}")
+  private int filenumLimit;
 
   private RestHighLevelClient client;
 
@@ -136,11 +140,13 @@ public class ESService {
   public SearchResult search(String keyword, int from, int size, String sortFiled, boolean fuzzyQuery) throws IOException {
     long start = TimeUtils.getCurTime();
     try {
-      MultiMatchQueryBuilder queryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
+      MultiMatchQueryBuilder matchQueryBuilder = new MultiMatchQueryBuilder(keyword, "name", "files.path")
           .type(Type.MOST_FIELDS);
       if (!fuzzyQuery) {
-        queryBuilder.operator(Operator.AND);
+        matchQueryBuilder.operator(Operator.AND);
       }
+
+      RangeQueryBuilder rangeQueryBuilder = new RangeQueryBuilder("filenum").lte(filenumLimit);
 
       HighlightBuilder highlightBuilder = new HighlightBuilder()
           .field("name")
@@ -153,7 +159,8 @@ public class ESService {
 
       SearchSourceBuilder searchSourceBuilder =
           new SearchSourceBuilder()
-              .query(queryBuilder)
+              .query(matchQueryBuilder)
+              .postFilter(rangeQueryBuilder)
               .highlighter(highlightBuilder)
               .from(from)
               .size(size)

@@ -38,7 +38,7 @@
   <div class="torrent-page">
     <div class="torrent-content clearfix">
       <div class="left-content">
-        <div id="ad-lh" style="width:0px;">
+        <div id="ad-lh" style="width:800px;padding-top:4px;" onmouseover="onMouseOverAd()" onmouseout="onMouseOutAd()">
           <!-- ad code -->
         </div>
         <div class="torrent-info">
@@ -64,10 +64,14 @@
             </dd>
             <dt>磁力链接</dt>
             <dd>
-              <i class="fa fa-magnet"></i> <a title="Magnet Link"
-                                              th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-                                              th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-                                              class="magnet" onclick="popup();"></a>
+              <i class="fa fa-magnet"></i>
+              <a title="Magnet Link" id="magnet" class="hide text-hide"
+                 th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                 th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                 onclick="popup();"></a>
+              <a id="fakemagnet" class="magnet" href="javascript:void(0)" onclick="showMagnet()">
+                获取下载链接
+              </a>
             </dd>
           </dl>
           <h2>文件列表</h2>
@@ -116,5 +120,98 @@
     var s = document.getElementsByTagName("script")[0];
     s.parentNode.insertBefore(bp, s);
   })();
+</script>
+<script type="text/javascript">
+  if (!isPC()) {
+    document.getElementById('ad-lh').style.display = 'none';
+    doShowMagnet();
+  } else {
+    if (!needClickAd()) {
+      doShowMagnet();
+    } else {
+      window.addEventListener("visibilitychange", onVisibilityChange);
+    }
+  }
+
+  var remain = 30;
+  var stopTimer = false;
+  var needStartTimer = true;
+  function showMagnet() {
+    if (!needClickAd()) {
+      doShowMagnet();
+      return;
+    }
+
+    if (needStartTimer) {
+      needStartTimer = false;
+      onTimer();
+    }
+  }
+
+  function doShowMagnet() {
+    document.getElementById("fakemagnet").setAttribute("class", "hide text-hide");
+    document.getElementById("magnet").setAttribute("class", "magnet");
+  }
+
+  function onTimer() {
+    if (stopTimer) {
+      return;
+    }
+
+    if (remain == 0) {
+      doShowMagnet();
+    } else {
+      document.getElementById("fakemagnet").innerHTML = "点击任意广告 或 耐心等待 " + remain + " 秒";
+      remain -= 1;
+      setTimeout("onTimer()", 1000);
+    }
+  }
+
+  var mouseOverAd = false;
+  var showMagnetOnVisibility = false;
+  function onMouseOverAd() {
+    mouseOverAd = true;
+  }
+  function onMouseOutAd() {
+    mouseOverAd = false;
+  }
+  function onVisibilityChange() {
+    if(document.hidden) {
+      if (mouseOverAd) {
+        showMagnetOnVisibility=true;
+      }
+    } else {
+      if (showMagnetOnVisibility) {
+        stopTimer = true;
+        setCookie("clickad", "skrbt");
+        doShowMagnet();
+      }
+    }
+  }
+
+  function needClickAd() {
+    var hasCookie = getCookie("clickad");
+    return !hasCookie;
+  }
+  function setCookie(name, value) {
+    document.cookie = name + '=' + escape(value) + ";path=/";;
+  }
+  function getCookie(name)
+  {
+    var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
+    if(arr=document.cookie.match(reg)){
+      return unescape(arr[2]);
+    }
+    else{
+     return null;
+    }
+  }
+
+  function isPC() {
+    var p = navigator.platform;
+    if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0) || (p.indexOf("X11") == 0) || (p.indexOf("Linux") == 0)) {
+      return true;
+    }
+  }
 </script>
 </html>

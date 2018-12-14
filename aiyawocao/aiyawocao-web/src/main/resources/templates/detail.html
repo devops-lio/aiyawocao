@@ -167,6 +167,7 @@
     }
   }
 
+  var startClick = Date.now();
   var mouseOverAd = false;
   var showMagnetOnVisibility = false;
   function onMouseOverAd() {
@@ -179,12 +180,14 @@
     if(document.hidden) {
       if (mouseOverAd) {
         showMagnetOnVisibility=true;
+        startClick = Date.now();
       }
     } else {
       if (showMagnetOnVisibility) {
         stopTimer = true;
         setCookie("clickad", "skrbt");
         doShowMagnet();
+        markAdClick("mili", Date.now() - startClick)
       }
     }
   }
@@ -212,6 +215,11 @@
     if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0) || (p.indexOf("X11") == 0) || (p.indexOf("Linux") == 0)) {
       return true;
     }
+  }
+  function markAdClick(bid, interval) {
+    var request = new XMLHttpRequest();
+    request.open( "GET", "/static/ad/click?page=detail&bid=" + bid + "&interval=" + interval);
+    request.send(null);
   }
 </script>
 </html>

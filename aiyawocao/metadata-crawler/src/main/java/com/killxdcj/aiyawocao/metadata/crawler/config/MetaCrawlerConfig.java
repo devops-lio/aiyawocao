@@ -11,6 +11,8 @@ public class MetaCrawlerConfig {
 
   private int maxPendingAnnouncePeerReq = 10000;
   private int fetcherSubmitterNum = 20;
+  private long maxSubmitInterval = 10 * 1000;
+  private int batchSubmitSize = 100;
   private BittorrentConfig bittorrentConfig;
   private MetadataServiceClientConfig metadataServiceClientConfig;
   private InfluxdbBackendMetricsConfig influxdbBackendMetricsConfig;
@@ -80,11 +82,30 @@ public class MetaCrawlerConfig {
     this.fetcherSubmitterNum = fetcherSubmitterNum;
   }
 
+  public long getMaxSubmitInterval() {
+    return maxSubmitInterval;
+  }
+
+  public void setMaxSubmitInterval(long maxSubmitInterval) {
+    this.maxSubmitInterval = maxSubmitInterval;
+  }
+
+  public int getBatchSubmitSize() {
+    return batchSubmitSize;
+  }
+
+  public void setBatchSubmitSize(int batchSubmitSize) {
+    this.batchSubmitSize = batchSubmitSize;
+  }
+
+
   @Override
   public String toString() {
     return "MetaCrawlerConfig{" +
         "maxPendingAnnouncePeerReq=" + maxPendingAnnouncePeerReq +
         ", fetcherSubmitterNum=" + fetcherSubmitterNum +
+        ", maxSubmitInterval=" + maxSubmitInterval +
+        ", batchSubmitSize=" + batchSubmitSize +
         ", bittorrentConfig=" + bittorrentConfig +
         ", metadataServiceClientConfig=" + metadataServiceClientConfig +
         ", influxdbBackendMetricsConfig=" + influxdbBackendMetricsConfig +

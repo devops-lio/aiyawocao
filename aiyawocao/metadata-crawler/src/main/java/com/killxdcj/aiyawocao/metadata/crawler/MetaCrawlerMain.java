@@ -15,13 +15,16 @@ import com.killxdcj.aiyawocao.metadata.crawler.config.MetaCrawlerConfig;
 import com.killxdcj.aiyawocao.metadata.service.client.MetadataServiceClient;
 import java.io.FileNotFoundException;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +83,8 @@ public class MetaCrawlerMain {
           return t;
         });
     for (int i = 0; i < config.getFetcherSubmitterNum(); i++) {
-      fetcherSubmitter.submit(this::submitNIOMetafetcher);
+//      fetcherSubmitter.submit(this::submitNIOMetafetcher);
+      fetcherSubmitter.submit(this::submitNIOMetafetcherBatch);
     }
 
     metricRegistry =
@@ -158,6 +162,45 @@ public class MetaCrawlerMain {
     LOGGER.info("MetaCrawler stoped");
   }
 
+  private void submitNIOMetafetcherBatch() {
+    long nextSubmitTime = 0;
+    List<Object[]> reqs = new ArrayList<>();
+    while (!exit) {
+      try {
+        Object[] req = pendingAnnouncePeerReq.poll(config.getMaxSubmitInterval(), TimeUnit.MILLISECONDS);
+        if (req != null) {
+          reqs.add(req);
+        }
+
+        if (req != null && reqs.size() < config.getBatchSubmitSize() && System.currentTimeMillis() < nextSubmitTime) {
+          continue;
+        }
+
+        nextSubmitTime = System.currentTimeMillis() + config.getMaxSubmitInterval();
+        List<Boolean> exists = client.doesMetadatasExist(reqs.stream()
+            .map(r -> ((BencodedString) r[0]).asHexString().toUpperCase())
+            .collect(Collectors.toList()));
+        for (int i = 0; i < reqs.size(); i++) {
+          if (exists.get(i)) {
+            metaFetchHasFetched.mark();
+            continue;
+          }
+
+          Object[] r = reqs.get(i);
+          BencodedString infohash = (BencodedString) r[0];
+          Peer peer = (Peer) r[1];
+          String infohashStr = infohash.asHexString().toUpperCase();
+          doSubmit(infohash, peer, infohashStr);
+        }
+        reqs.clear();
+      } catch (InterruptedException e) {
+        return;
+      } catch (Exception e) {
+        LOGGER.error("submit metafetchers error", e);
+      }
+    }
+  }
+
   private void submitNIOMetafetcher() {
     while (!exit) {
       try {
@@ -170,48 +213,51 @@ public class MetaCrawlerMain {
           LOGGER.debug("infohash has been fetched, {}", infohashStr);
           continue;
         }
-
-        fetcher.submit(
-            infohash,
-            peer,
-            new MetadataListener() {
-              @Override
-              public void onSuccedded(
-                  Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
-                LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
-                metaFetchSuccessed.mark();
-                metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
-                if (client.doesMetadataExist(infohash.asBytes())) {
-                  LOGGER.info("{} has been fetched by others", infohashStr);
-                  return;
-                }
-                try {
-                  client.putMetadata(infohash.asBytes(), metadata);
-                  LOGGER.info("{} meta uploaded", infohashStr);
-                } catch (Throwable t) {
-                  LOGGER.error("upload metadata error, " + infohashStr, t);
-                }
-              }
-
-              @Override
-              public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
-                if (t instanceof TimeoutException) {
-                  metaFetchTimeout.mark();
-                } else {
-                  metaFetchError.mark();
-                }
-                metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
-                if (LOGGER.isDebugEnabled()) {
-                  LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
-                      t.getMessage(), costtime);
-                }
-              }
-            });
+        doSubmit(infohash, peer, infohashStr);
       } catch (InterruptedException e) {
         return;
       } catch (Exception e) {
         LOGGER.error("submit metafetcher error", e);
       }
     }
+  }
+
+  private void doSubmit(BencodedString infohash, Peer peer, String infohashStr) {
+    fetcher.submit(
+        infohash,
+        peer,
+        new MetadataListener() {
+          @Override
+          public void onSuccedded(
+              Peer peer, BencodedString infohash, byte[] metadata, long costtime) {
+            LOGGER.info("meta fetched, {}, {}, costtime: {}ms", infohashStr, peer, costtime);
+            metaFetchSuccessed.mark();
+            metaFetchSuccessedTimer.update(costtime, TimeUnit.MILLISECONDS);
+            if (client.doesMetadataExist(infohash.asBytes())) {
+              LOGGER.info("{} has been fetched by others", infohashStr);
+              return;
+            }
+            try {
+              client.putMetadata(infohash.asBytes(), metadata);
+              LOGGER.info("{} meta uploaded", infohashStr);
+            } catch (Throwable t) {
+              LOGGER.error("upload metadata error, " + infohashStr, t);
+            }
+          }
+
+          @Override
+          public void onFailed(Peer peer, BencodedString infohash, Throwable t, long costtime) {
+            if (t instanceof TimeoutException) {
+              metaFetchTimeout.mark();
+            } else {
+              metaFetchError.mark();
+            }
+            metaFetchErrorTimer.update(costtime, TimeUnit.MILLISECONDS);
+            if (LOGGER.isDebugEnabled()) {
+              LOGGER.info("meta fetch error, {}, {}, {}, costtime: {}ms", infohashStr, peer,
+                  t.getMessage(), costtime);
+            }
+          }
+        });
   }
 }

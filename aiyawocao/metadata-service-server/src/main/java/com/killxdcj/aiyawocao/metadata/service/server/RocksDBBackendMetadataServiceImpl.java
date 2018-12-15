@@ -5,11 +5,14 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.protobuf.ByteString;
 import com.killxdcj.aiyawocao.bittorrent.bencoding.Bencoding;
 import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketException;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadatasExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadatasExistResponse;
 import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.GetMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.MetadataServiceGrpc;
@@ -25,6 +28,7 @@ import io.grpc.stub.StreamObserver;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +66,10 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
   private AtomicInteger totalSize = new AtomicInteger(0);
 
   private Timer doesExistCosttime;
+  private Timer doesExistBatchCosttime;
   private Timer putCosttime;
   private Meter doesExistThroughput;
+  private Meter doesExistBatchThroughput;
   private Meter putThroughput;
   private Meter bitfilterHit;
   private Meter existThroughput;
@@ -94,8 +100,10 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
     registry.register(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "MetadataNum"),
         (Gauge<Integer>) () -> totalSize.get());
     doesExistCosttime = registry.timer(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExist.costtime"));
+    doesExistBatchCosttime = registry.timer(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExistBatch.costtime"));
     putCosttime = registry.timer(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "put.costtime"));
     doesExistThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExist.throughput"));
+    doesExistBatchThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "doesExistBatch.throughput"));
     putThroughput = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "put.throughput"));
     bitfilterHit = registry.meter(MetricRegistry.name(RocksDBBackendMetadataServiceImpl.class, "bitfilterHit"));
     existThroughput = registry.meter(MetricRegistry.name(RocksDBBackendConfig.class, "exist.throughput"));
@@ -243,6 +251,49 @@ public class RocksDBBackendMetadataServiceImpl extends MetadataServiceGrpc.Metad
       responseObserver.onCompleted();
     } catch (RocksDBException e) {
       responseObserver.onError(e);
+    }
+  }
+
+  @Override
+  public void doesMetadatasExist(DoesMetadatasExistRequest request,
+      StreamObserver<DoesMetadatasExistResponse> responseObserver) {
+    long start = TimeUtils.getCurTime();
+    try {
+      List<Boolean> exists = new ArrayList<>();
+      for (ByteString infohash : request.getInfohashList()) {
+        exists.add(doesMetadataExist(infohash.toByteArray()));
+      }
+      DoesMetadatasExistResponse response = DoesMetadatasExistResponse.newBuilder()
+          .addAllExist(exists)
+          .build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } finally {
+      doesExistBatchCosttime.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+      doesExistBatchThroughput.mark();
+    }
+  }
+
+  private boolean doesMetadataExist(byte[] key) {
+    long start = TimeUtils.getCurTime();
+    boolean exist = false;
+    try {
+      exist = mayExist(key);
+      if (exist) {
+        exist = rocksDB.get(key) != null;
+      } else {
+        bitfilterHit.mark();
+      }
+
+      if (exist) {
+        existThroughput.mark();
+      }
+    } catch (RocksDBException e) {
+      LOGGER.error("rocksdb error", e);
+    } finally {
+      doesExistCosttime.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+      doesExistThroughput.mark();
+      return exist;
     }
   }
 

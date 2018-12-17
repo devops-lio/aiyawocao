@@ -7,12 +7,10 @@ import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +86,10 @@ public class WebController {
   @RequestMapping("detail/{magic}/{infohash}")
   public String detail(@PathVariable String magic, @PathVariable String infohash, Model model) {
     try {
+      infohash = infohash.toUpperCase();
+      magic = magic.toUpperCase();
       if (!WebUtils.verifyMagic(infohash, magic)) {
+        LOGGER.warn("magic verify failed, infohash:{}, magic:{}", infohash, magic);
         return "home";
       }
 
@@ -104,7 +105,8 @@ public class WebController {
       keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
 //      keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
       List<String> finalKeywords = new ArrayList<>(keywords);
-      Collections.shuffle(finalKeywords);
+      Collections.sort(finalKeywords, (o1, o2) -> o2.length() - o1.length());
+//      Collections.shuffle(finalKeywords);
       model.addAttribute(
           "keywords",
           finalKeywords.size() > 6 ? finalKeywords.subList(0, 6) : finalKeywords);

@@ -12,6 +12,8 @@ import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.killxdcj.aiyawocao.bittorrent.utils.TimeUtils;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistRequest;
 import com.killxdcj.aiyawocao.metadata.service.DoesMetadataExistResponse;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadatasExistRequest;
+import com.killxdcj.aiyawocao.metadata.service.DoesMetadatasExistResponse;
 import com.killxdcj.aiyawocao.metadata.service.GetMetadataRequest;
 import com.killxdcj.aiyawocao.metadata.service.GetMetadataResponse;
 import com.killxdcj.aiyawocao.metadata.service.MetadataServiceGrpc;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.apache.commons.codec.DecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +52,14 @@ public class MetadataServiceClient {
   private Timer putMetadataTimer;
   private Timer getMetadataTimer;
   private Timer parseMetadataTimer;
+  private Timer doesMetadatasExistTimer;
 
   private Meter doesMetadataExistMeter;
   private Meter doesMetadataExistHitCacheMeter;
   private Meter putMetadataMeter;
   private Meter getMetadataMeter;
   private Meter parseMetadataMeter;
+  private Meter doesMetadatasExistMeter;
 
   public MetadataServiceClient(MetadataServiceClientConfig config, MetricRegistry metricRegistry) {
     this.config = config;
@@ -90,6 +95,8 @@ public class MetadataServiceClient {
         .timer(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.costtime"));
     parseMetadataTimer = metricRegistry
         .timer(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.costtime"));
+    doesMetadatasExistTimer = metricRegistry
+        .timer(MetricRegistry.name(MetadataServiceClient.class, "doesMetadatasExist.costtime"));
 
     doesMetadataExistMeter = metricRegistry
         .meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadataExist.throughput"));
@@ -101,6 +108,8 @@ public class MetadataServiceClient {
         .meter(MetricRegistry.name(MetadataServiceClient.class, "getMetadata.throughput"));
     parseMetadataMeter = metricRegistry
         .meter(MetricRegistry.name(MetadataServiceClient.class, "parseMetadata.throughput"));
+    doesMetadatasExistMeter = metricRegistry
+        .meter(MetricRegistry.name(MetadataServiceClient.class, "doesMetadatasExist.throughput"));
   }
 
   public void shutdown() {
@@ -140,6 +149,64 @@ public class MetadataServiceClient {
       return false;
     } finally {
       doesMetadataExistTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
+    }
+  }
+
+  public List<Boolean> doesMetadatasExist(List<String> infohashs) {
+    return doesMetadatasExistReal(infohashs.stream().map(s -> {
+      try {
+        return JTorrentUtils.toInfohashBytes(s);
+      } catch (DecoderException e) {
+        return null;
+      }
+    }).filter(bytes -> bytes != null).collect(Collectors.toList()));
+  }
+
+  public List<Boolean> doesMetadatasExistReal(List<byte[]> infohashs) {
+    List<BencodedString> toQuery = new ArrayList<>();
+    for (byte[] infohash : infohashs) {
+      BencodedString bInfohash = new BencodedString(infohash);
+      if (config.getEnableLocalCache()) {
+        if (localCache.getUnchecked(bInfohash) == UNKNOW) {
+          toQuery.add(bInfohash);
+        } else {
+          doesMetadataExistHitCacheMeter.mark();
+        }
+      } else {
+        toQuery.add(bInfohash);
+      }
+    }
+
+    long start = TimeUtils.getCurTime();
+    try {
+      DoesMetadatasExistRequest request = DoesMetadatasExistRequest.newBuilder()
+          .addAllInfohash(toQuery.stream().map(s -> ByteString.copyFrom(s.asBytes()))
+              .collect(Collectors.toList())).build();
+      DoesMetadatasExistResponse response = getNextStub().doesMetadatasExist(request);
+      doesMetadatasExistMeter.mark();
+      if (config.getEnableLocalCache()) {
+        List<Boolean> exists = response.getExistList();
+        for (int i = 0; i < toQuery.size(); i++) {
+          localCache.put(toQuery.get(i), exists.get(i) ? EXIST : NOT_EXIST);
+        }
+        List<Boolean> rets = new ArrayList<>();
+        for (byte[] infohash : infohashs) {
+          byte cache = localCache.getUnchecked(new BencodedString(infohash));
+          if (cache == UNKNOW) {
+            LOGGER.warn("batch query local cache unexist");
+          }
+
+          rets.add(cache == EXIST);
+        }
+        return rets;
+      } else {
+        return response.getExistList();
+      }
+    } catch (StatusRuntimeException sre) {
+      LOGGER.error("doesMetadatasExist rpc error", sre);
+      return null;
+    } finally {
+      doesMetadatasExistTimer.update(TimeUtils.getElapseTime(start), TimeUnit.MILLISECONDS);
     }
   }
 

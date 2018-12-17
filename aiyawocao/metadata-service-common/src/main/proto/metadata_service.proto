@@ -44,10 +44,19 @@ message RemoveMetadataResponse {
     bool result = 1;
 }
 
+message DoesMetadatasExistRequest {
+    repeated bytes infohash = 1;
+}
+
+message DoesMetadatasExistResponse {
+    repeated bool exist = 1;
+}
+
 service MetadataService {
     rpc doesMetadataExist (DoesMetadataExistRequest) returns (DoesMetadataExistResponse);
     rpc putMetadata (PutMetadataRequest) returns (PutMetadataResponse);
     rpc getMetadata (GetMetadataRequest) returns (GetMetadataResponse);
     rpc parseMetadata (ParseMetadataRequest) returns (ParseMetadataResponse);
     rpc removeMetadata (RemoveMetadataRequest) returns (RemoveMetadataResponse);
+    rpc doesMetadatasExist (DoesMetadatasExistRequest) returns (DoesMetadatasExistResponse);
 }

@@ -28,3 +28,5 @@ metadataServiceClientConfig:
   expiredTime: 1200000
 maxPendingAnnouncePeerReq: 10000
 fetcherSubmitterNum: 20
+maxSubmitInterval: 10000
+batchSubmitSize: 500

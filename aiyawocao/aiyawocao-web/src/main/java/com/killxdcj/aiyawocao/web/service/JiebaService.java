@@ -22,6 +22,7 @@ public class JiebaService {
     return jiebaSegmenter.process(content, SegMode.SEARCH).stream()
         .map(r -> r.word)
         .sorted((o1, o2) -> o2.length() - o1.length())
+        .filter(s -> s.length() > 2)
         .collect(Collectors.toList());
   }
 

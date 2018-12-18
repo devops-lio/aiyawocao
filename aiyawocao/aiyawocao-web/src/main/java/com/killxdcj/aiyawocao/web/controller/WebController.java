@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.web.controller;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
+import com.killxdcj.aiyawocao.web.service.JiebaService;
 import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
@@ -30,6 +31,9 @@ public class WebController {
 
   @Autowired
   private PredictService predictService;
+
+  @Autowired
+  private JiebaService jiebaService;
 
   @RequestMapping("")
   public String home(Model model) {
@@ -99,17 +103,8 @@ public class WebController {
 
       Metadata metadata = esService.detail(infohash);
       model.addAttribute("metadata", metadata);
-      List<String> nameKeywords = esService.analyze(metadata.getName());
-//      List<String> contentKeywords = esService.analyze(String.join(",", metadata.getAllOriginalFiles()));
-      Set<String> keywords = new HashSet<>();
-      keywords.addAll(nameKeywords.size() > 5 ? nameKeywords.subList(0, 5) : nameKeywords);
-//      keywords.addAll(contentKeywords.size() > 5 ? contentKeywords.subList(0, 5) : contentKeywords);
-      List<String> finalKeywords = new ArrayList<>(keywords);
-      Collections.sort(finalKeywords, (o1, o2) -> o2.length() - o1.length());
-//      Collections.shuffle(finalKeywords);
-      model.addAttribute(
-          "keywords",
-          finalKeywords.size() > 6 ? finalKeywords.subList(0, 6) : finalKeywords);
+      List<String> keywords = jiebaService.analyze(metadata.getName());
+      model.addAttribute("keywords", keywords.size() > 6 ? keywords.subList(0, 6) : keywords);
       return "detail";
     } catch (IOException e) {
       LOGGER.error("query infohash error", e);

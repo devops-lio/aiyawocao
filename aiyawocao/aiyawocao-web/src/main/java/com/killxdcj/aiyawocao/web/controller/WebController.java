@@ -1,5 +1,8 @@
 package com.killxdcj.aiyawocao.web.controller;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
@@ -7,14 +10,13 @@ import com.killxdcj.aiyawocao.web.service.JiebaService;
 import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,13 +29,26 @@ public class WebController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WebController.class);
 
-  @Autowired private ESService esService;
+  @Value("${ad.enable}")
+  private boolean enableAD;
+
+  @Autowired
+  private ESService esService;
 
   @Autowired
   private PredictService predictService;
 
   @Autowired
   private JiebaService jiebaService;
+
+  private LoadingCache<String, AtomicInteger> hotInfohash = CacheBuilder.newBuilder()
+      .expireAfterWrite(24, TimeUnit.HOURS)
+      .build(new CacheLoader<String, AtomicInteger>() {
+        @Override
+        public AtomicInteger load(String key) throws Exception {
+          return new AtomicInteger(0);
+        }
+      });
 
   @RequestMapping("")
   public String home(Model model) {
@@ -81,8 +96,8 @@ public class WebController {
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
       model.addAttribute("sort", sort);
       return "search";
-    } catch (IOException e) {
-      LOGGER.error("xx", e);
+    } catch (Throwable e) {
+      LOGGER.error("handle search error", e);
       return "home";
     }
   }
@@ -105,9 +120,15 @@ public class WebController {
       model.addAttribute("metadata", metadata);
       List<String> keywords = jiebaService.analyze(metadata.getName());
       model.addAttribute("keywords", keywords.size() > 6 ? keywords.subList(0, 6) : keywords);
+      AtomicInteger hot = hotInfohash.getUnchecked(infohash.toUpperCase());
+      model.addAttribute("showad", "true");
+      if (hot.incrementAndGet() <= 2) {
+        model.addAttribute("showad", "false");
+      }
+      addCommon(model);
       return "detail";
     } catch (IOException e) {
-      LOGGER.error("query infohash error", e);
+      LOGGER.error("handle detail error, " + infohash, e);
       return "home";
     }
   }
@@ -139,6 +160,12 @@ public class WebController {
     } catch (IOException e) {
       LOGGER.error("recent error", e);
       return "home";
+    }
+  }
+
+  private void addCommon(Model model) {
+    if (!enableAD) {
+      model.addAttribute("showad", "false");
     }
   }
 }

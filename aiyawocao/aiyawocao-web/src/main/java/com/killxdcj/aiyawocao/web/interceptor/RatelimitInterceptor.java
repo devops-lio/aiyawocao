@@ -28,9 +28,9 @@ public class RatelimitInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
-    String remoteIP = request.getHeader("x-real-ip");
+    String remoteIP = request.getHeader("X-Forwarded-For");
     if (StringUtils.isEmpty(remoteIP)) {
-      remoteIP = request.getHeader("X-Forwarded-For");
+      remoteIP = request.getHeader("x-real-ip");
     }
     if (StringUtils.isEmpty(remoteIP)) {
       return true;

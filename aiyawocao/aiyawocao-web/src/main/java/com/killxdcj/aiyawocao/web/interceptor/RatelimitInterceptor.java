@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +29,29 @@ public class RatelimitInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    // limit bot rate
+    String agent = request.getHeader("User-Agent").toLowerCase();
+    if (agent.contains("bot") || agent.contains("spider")) {
+      if (agent.contains("google")) {
+        if (!ipRateLimiter.get("google", () -> RateLimiter.create(0.5)).tryAcquire()) {
+          LOGGER.info("Google Bot request was rejected, {}", agent);
+          return false;
+        }
+      } else if (agent.contains("yandex")) {
+        if (!ipRateLimiter.get("yandex", () -> RateLimiter.create(0.5)).tryAcquire()) {
+          LOGGER.info("Yandex Bot request was rejected, {}", agent);
+          return false;
+        }
+      } else if (agent.contains("baidu") || agent.contains("sougou") || agent.contains("bing") || agent.contains("360")) {
+        // white list
+      } else {
+        if (!ipRateLimiter.get("unknow", () -> RateLimiter.create(0.2)).tryAcquire()) {
+          LOGGER.info("Unknow Bot request was rejected, {}", agent);
+          return false;
+        }
+      }
+    }
+
     String remoteIP = request.getHeader("X-Forwarded-For");
     if (StringUtils.isEmpty(remoteIP)) {
       remoteIP = request.getHeader("x-real-ip");
@@ -65,7 +89,7 @@ public class RatelimitInterceptor implements HandlerInterceptor {
         .build(new CacheLoader<String, RateLimiter>() {
           @Override
           public RateLimiter load(String key) throws Exception {
-            return RateLimiter.create(1);
+            return RateLimiter.create(0.5);
           }
         });
   }

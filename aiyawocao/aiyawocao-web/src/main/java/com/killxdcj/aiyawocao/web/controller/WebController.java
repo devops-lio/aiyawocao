@@ -32,6 +32,9 @@ public class WebController {
   @Value("${ad.enable}")
   private boolean enableAD;
 
+  @Value("${ad.page.hot}")
+  private int adPageHot;
+
   @Autowired
   private ESService esService;
 
@@ -122,7 +125,7 @@ public class WebController {
       model.addAttribute("keywords", keywords.size() > 6 ? keywords.subList(0, 6) : keywords);
       AtomicInteger hot = hotInfohash.getUnchecked(infohash.toUpperCase());
       model.addAttribute("showad", "true");
-      if (hot.incrementAndGet() <= 2) {
+      if (hot.incrementAndGet() < adPageHot) {
         model.addAttribute("showad", "false");
       }
       addCommon(model);

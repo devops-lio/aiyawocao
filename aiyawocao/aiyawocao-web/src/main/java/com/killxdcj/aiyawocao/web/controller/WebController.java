@@ -10,7 +10,9 @@ import com.killxdcj.aiyawocao.web.service.JiebaService;
 import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -23,11 +25,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Controller
 @RequestMapping("/")
 public class WebController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WebController.class);
+
+  private static final Map<String, String> webMap = new HashMap(){{
+    put("skrbt", "");
+    put("lemon", "lemon/");
+    put("lemen", "lemon/");
+  }};
 
   @Value("${ad.enable}")
   private boolean enableAD;
@@ -54,18 +64,19 @@ public class WebController {
       });
 
   @RequestMapping("")
-  public String home(Model model) {
+  public String home(HttpServletRequest request, Model model) {
     model.addAttribute("hotWords", predictService.getHotSearch());
-    return "home";
+    return getTemplatesPrefix(request) + "home";
   }
 
   @RequestMapping("about")
-  public String about() {
-    return "about";
+  public String about(HttpServletRequest request) {
+    return getTemplatesPrefix(request) + "about";
   }
 
   @RequestMapping("search")
   public String search(
+      HttpServletRequest request,
       @RequestParam String keyword,
       @RequestParam(value = "p", required = false, defaultValue = "1") int page,
       @RequestParam(value = "s", required = false, defaultValue = "relevance") String sort,
@@ -98,25 +109,25 @@ public class WebController {
       model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
       model.addAttribute("sort", sort);
-      return "search";
+      return getTemplatesPrefix(request) + "search";
     } catch (Throwable e) {
       LOGGER.error("handle search error", e);
-      return "home";
+      return getTemplatesPrefix(request) + "home";
     }
   }
 
   @RequestMapping("detail/{magic}/{infohash}")
-  public String detail(@PathVariable String magic, @PathVariable String infohash, Model model) {
+  public String detail(HttpServletRequest request, @PathVariable String magic, @PathVariable String infohash, Model model) {
     try {
       infohash = infohash.toUpperCase();
       magic = magic.toUpperCase();
       if (!WebUtils.verifyMagic(infohash, magic)) {
         LOGGER.warn("magic verify failed, infohash:{}, magic:{}", infohash, magic);
-        return "home";
+        return getTemplatesPrefix(request) + "home";
       }
 
       if (infohash.equals("315854C6D68D5155C70D8C6E1B3869A6BDA28B08") || infohash.equals("B9571A124BC1F23068F5BDF0FE263F49380FA5BB")) {
-        return "home";
+        return getTemplatesPrefix(request) + "home";
       }
 
       Metadata metadata = esService.detail(infohash);
@@ -129,15 +140,15 @@ public class WebController {
         model.addAttribute("showad", "false");
       }
       addCommon(model);
-      return "detail";
+      return getTemplatesPrefix(request) + "detail";
     } catch (IOException e) {
       LOGGER.error("handle detail error, " + infohash, e);
-      return "home";
+      return getTemplatesPrefix(request) + "home";
     }
   }
 
   @RequestMapping("recent")
-  public String recent(@RequestParam(value = "p", required = false, defaultValue = "1") int page,
+  public String recent(HttpServletRequest request, @RequestParam(value = "p", required = false, defaultValue = "1") int page,
       Model model) {
     try {
       SearchResult result = esService.recent((page - 1) * 10, 10);
@@ -159,10 +170,10 @@ public class WebController {
       model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
       model.addAttribute("sort", "date");
-      return "recent";
+      return getTemplatesPrefix(request) + "recent";
     } catch (IOException e) {
       LOGGER.error("recent error", e);
-      return "home";
+      return getTemplatesPrefix(request) + "home";
     }
   }
 
@@ -170,5 +181,15 @@ public class WebController {
     if (!enableAD) {
       model.addAttribute("showad", "false");
     }
+  }
+
+  private String getTemplatesPrefix(HttpServletRequest request) {
+    String serverName = request.getServerName();
+    for (Map.Entry<String, String> entry : webMap.entrySet()){
+      if (serverName.indexOf(entry.getKey()) != -1) {
+        return entry.getValue();
+      }
+    }
+    return "";
   }
 }

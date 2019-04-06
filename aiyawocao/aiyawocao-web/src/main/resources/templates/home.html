@@ -27,7 +27,7 @@
       <img width="304" height="93" src="/img/logo.png" alt="SKRBT LOGO" class="logo">
     </div>
     <div class="search-area">
-      <form action="/search" method="get" accept-charset="utf-8" class="search-form">
+      <form id="search-form" action="/search" method="get" accept-charset="utf-8" class="search-form">
         <input type="text" name="keyword" maxlength="2048" class="search-input"
                placeholder="Indexing 127,911,028 torrents">
         <button class="search-btn"><i class="fa fa-search"></i></button>
@@ -44,6 +44,19 @@
   </div>
 </div>
 </body>
+
+<script>
+  (function(){
+    var anoleDomains = ["skrbt0.xyz", "skrbt1.xyz"];
+    if (anoleDomains.indexOf(document.domain) == -1) {
+      var curProtocol = window.location.protocol.split(':')[0];
+      randDomain = anoleDomains[Math.floor(Math.random() * anoleDomains.length)];
+      newSearch = curProtocol + "://" + randDomain + "/search";
+      document.getElementById("search-form").setAttribute("action", newSearch);
+    }
+  })();
+</script>
+
 <script>
   (function(){
     var bp = document.createElement('script');
@@ -56,6 +69,25 @@
     }
     var s = document.getElementsByTagName("script")[0];
     s.parentNode.insertBefore(bp, s);
+  })();
+</script>
+
+<script>
+  (function () {
+    var curProtocol = window.location.protocol.split(':')[0];
+    var s = document.getElementsByTagName("script")[0];
+
+    var fakejs0 = document.createElement('script');
+    fakejs0.src = curProtocol + "://skrbt0.xyz/js/fake.js";
+    s.parentNode.insertBefore(fakejs0, s);
+
+    var fakejs1 = document.createElement('script');
+    fakejs1.src = curProtocol + "://skrbt1.xyz/js/fake.js";
+    s.parentNode.insertBefore(fakejs1, s);
+
+    var fakejs2 = document.createElement('script');
+    fakejs2.src = curProtocol + "://skrbt2.xyz/js/fake.js";
+    s.parentNode.insertBefore(fakejs2, s);
   })();
 </script>
 </html>

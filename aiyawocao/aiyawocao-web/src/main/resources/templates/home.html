@@ -47,8 +47,9 @@
 
 <script>
   (function(){
+    var fakeDomains = ["skrbt.world", "www.skrbt.world"];
     var anoleDomains = ["skrbt0.xyz", "skrbt1.xyz"];
-    if (anoleDomains.indexOf(document.domain) == -1) {
+    if (fakeDomains.indexOf(document.domain) != -1) {
       var curProtocol = window.location.protocol.split(':')[0];
       randDomain = anoleDomains[Math.floor(Math.random() * anoleDomains.length)];
       newSearch = curProtocol + "://" + randDomain + "/search";

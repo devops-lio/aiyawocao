@@ -51,39 +51,6 @@
       </form>
 
       <div class="center-block">
-        <ul class="list-inline text-center">
-          <li>
-            <label class="radio-inline">
-              查询线路：
-            </label>
-          </li>
-          <li>
-            <label class="radio-inline">
-              <input type="radio" name="domain" id="domain1" value="lemencili1.xyz"> 线路一
-            </label>
-          </li>
-          <li>
-            <label class="radio-inline">
-              <input type="radio" name="domain" id="domain2" value="lemencili2.xyz"> 线路二
-            </label>
-          </li>
-          <li>
-            <label class="radio-inline">
-              <input type="radio" name="domain" id="domain3" value="lemencili3.xyz"> 线路三
-            </label>
-          </li>
-          <li>
-            <label class="radio-inline">
-              <input type="radio" name="domain" id="domain4" value="lemencili4.xyz"> 线路四
-            </label>
-          </li>
-          <li>
-            <label class="radio-inline">
-              <input type="radio" name="domain" id="domain5" value="lemencili5.xyz"> 线路五
-            </label>
-          </li>
-        </ul>
-
         <ul class="list-inline">
           <li><h5>热门搜索:</h5></li>
           <li><a href="/search?keyword=毒液" class="link">毒液</a></li>
@@ -117,30 +84,31 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 
 <script>
-  $(document).ready(function () {
-    var domains = document.getElementsByName("domain");
-    if (domains.length > 0) {
+  (function(){
+    var fakeDomains = ["lemoncili.com", "www.lemoncili.com", "lemencili3.xyz", "lemencili4.xyz", "lemencili5.xyz"];
+    var anoleDomains = ["lemencili1.xyz", "lemencili2.xyz"];
+    if (fakeDomains.indexOf(document.domain) != -1) {
       var curProtocol = window.location.protocol.split(':')[0];
-      var curDomain = document.domain;
-      var idx = -1;
-      for (var i = 0; i < domains.length; i++) {
-        if (domains[i].value == curDomain) {
-          idx = i;
-          break;
-        }
-      }
-      if (idx == -1) {
-        idx = Math.floor(Math.random() * domains.length);
-        domains[idx].checked = true;
-        new_url = curProtocol + "://" + domains[idx].value + "/search";
-        document.getElementById("search-form").setAttribute("action", new_url);
-      }
-      $('input[type=radio][name=domain]').change(function () {
-        new_url = curProtocol + "://" + this.value + "/search";
-        document.getElementById("search-form").setAttribute("action", new_url);
-      });
+      randDomain = anoleDomains[Math.floor(Math.random() * anoleDomains.length)];
+      newSearch = curProtocol + "://" + randDomain + "/search";
+      document.getElementById("search-form").setAttribute("action", newSearch);
     }
-  });
+  })();
+</script>
+
+<script>
+  (function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+      bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+  })();
 </script>
 
 <script>

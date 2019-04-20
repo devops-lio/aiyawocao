@@ -130,26 +130,12 @@
     doShowMagnet();
   }
 
-  var ispc = isPC();
-  if (!needClickAd()) {
-    doShowMagnet();
-  } else {
-    document.addEventListener("visibilitychange", onVisibilityChange);
-  }
-
-  var remain = 30;
-  var stopTimer = false;
-  var needStartTimer = true;
   function showMagnet() {
-    if (!needClickAd()) {
-      doShowMagnet();
-      return;
+    if (needClickAd()) {
+      window.open("http://185.255.130.250/778ws.html", "_blank");
+      setCookie("clickad", "skrbt");
     }
-
-    if (needStartTimer) {
-      needStartTimer = false;
-      onTimer();
-    }
+    doShowMagnet();
   }
 
   function doShowMagnet() {
@@ -157,54 +143,18 @@
     document.getElementById("magnet").setAttribute("class", "magnet");
   }
 
-  function onTimer() {
-    if (stopTimer) {
-      return;
-    }
-
-    if (remain == 0) {
-      doShowMagnet();
-    } else {
-      document.getElementById("fakemagnet").innerHTML = "点击任意广告 或 耐心等待 " + remain + " 秒";
-      remain -= 1;
-      setTimeout("onTimer()", 1000);
-    }
-  }
-
-  var startClick = Date.now();
-  var mouseOverAd = false;
-  var showMagnetOnVisibility = false;
-  function onMouseOverAd() {
-    mouseOverAd = true;
-  }
-  function onMouseOutAd() {
-    mouseOverAd = false;
-  }
-  function onVisibilityChange() {
-    if(document.hidden) {
-      if (mouseOverAd || (!ispc && !needStartTimer)) {
-        showMagnetOnVisibility=true;
-        startClick = Date.now();
-      }
-    } else {
-      if (showMagnetOnVisibility) {
-        stopTimer = true;
-        setCookie("clickad", "skrbt");
-        doShowMagnet();
-        markAdClick("mili", Date.now() - startClick)
-      }
-    }
-  }
-
   function needClickAd() {
     var hasCookie = getCookie("clickad");
-    return !hasCookie;
+    var ispc = isPC();
+    return !hasCookie && !ispc;
   }
+
   function setCookie(name, value) {
     var expiredate=new Date();
-    expiredate.setTime(expiredate.getTime() + 60 * 60 * 1000);
+    expiredate.setTime(expiredate.getTime() + 10 * 60 * 1000);
     document.cookie = name + "=" + escape(value) + ";expires=" + expiredate.toGMTString() + ";path=/";
   }
+
   function getCookie(name)
   {
     var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
@@ -217,15 +167,11 @@
   }
 
   function isPC() {
+    return false;
     var p = navigator.platform;
     if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0) || (p.indexOf("X11") == 0) || (p.indexOf("Linux") == 0)) {
       return true;
     }
-  }
-  function markAdClick(bid, interval) {
-    var request = new XMLHttpRequest();
-    request.open( "GET", "/static/ad/click?page=detail&bid=" + bid + "&interval=" + interval);
-    request.send(null);
   }
 </script>
 </html>

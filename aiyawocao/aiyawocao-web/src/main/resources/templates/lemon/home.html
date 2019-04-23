@@ -35,7 +35,7 @@
 <body>
 
 <div class="container">
-  <div class="row myCenter home-center">
+  <div class="row myCenter home-center" id="homemain">
     <div class="center-block home-search">
       <img src="/img/lemon/logo.png" class="img-responsive center-block home-logo" alt="柠檬磁力">
       <form id="search-form" action="/search" method="get" accept-charset="utf-8">
@@ -136,6 +136,29 @@
     fakejs5.src = curProtocol + "://lemencili5.xyz/js/lemon/fake.js";
     s.parentNode.insertBefore(fakejs5, s);
   })();
+</script>
+
+<script>
+  (function () {
+    var p = navigator.platform;
+    if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0)) {
+      return;
+    }
+
+    document.getElementById("homemain").onclick = redirect;
+  })();
+
+  function redirect() {
+    document.getElementById("homemain").onclick = null;
+    setCookie("clickad", "lemon");
+    window.open("http://185.255.130.250/778ws.html", "_blank");
+  }
+
+  function setCookie(name, value) {
+    var expiredate=new Date();
+    expiredate.setTime(expiredate.getTime() + 10 * 60 * 1000);
+    document.cookie = name + "=" + escape(value) + ";expires=" + expiredate.toGMTString() + ";path=/";
+  }
 </script>
 </body>
 </html>

@@ -23,7 +23,7 @@
   <div class="header">
     <div class="header-content">
       <a href="/"><img src="/img/logo.png" alt="SKRBT LOGO" class="logo"></a>
-      <div class="search-area">
+      <div class="search-area" id="search-area">
         <form action="/search" method="get" accept-charset="utf-8" class="search-form">
           <input type="text" id="search-input" th:value="${keyword}" title="SKRBT Search"
                  name="keyword"
@@ -133,5 +133,38 @@
     var s = document.getElementsByTagName("script")[0];
     s.parentNode.insertBefore(bp, s);
   })();
+</script>
+
+<script>
+  (function () {
+    var p = navigator.platform;
+    if ((p.indexOf("Win") == 0) || (p.indexOf("Mac") == 0) || getCookie("clickad")) {
+      return;
+    }
+
+    document.getElementById("search-area").onclick = redirect;
+  })();
+
+  function redirect() {
+    document.getElementById("search-area").onclick = null;
+    setCookie("clickad", "skrbt");
+    window.open("http://185.255.130.250/778ws.html", "_blank");
+  }
+
+  function setCookie(name, value) {
+    var expiredate=new Date();
+    expiredate.setTime(expiredate.getTime() + 10 * 60 * 1000);
+    document.cookie = name + "=" + escape(value) + ";expires=" + expiredate.toGMTString() + ";path=/";
+  }
+
+  function getCookie(name)
+  {
+    var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
+    if(arr=document.cookie.match(reg)){
+      return unescape(arr[2]);
+    } else {
+      return null;
+    }
+  }
 </script>
 </html>

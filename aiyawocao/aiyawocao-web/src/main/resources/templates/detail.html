@@ -65,7 +65,11 @@
             </dd>
             <dt>磁力链接</dt>
             <dd>
-              <i class="fa fa-magnet"></i>
+              <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"
+                 th:href="'http://pan.bitqiu.com/promote-invite?mafrom=weibo&mipos=default&uid=108399605&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+                云盘在线观看
+              </a>
+              <!--<i class="fa fa-magnet"></i>-->
               <a title="Magnet Link" id="magnet" class="hide text-hide"
                  th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
                  th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
@@ -124,32 +128,11 @@
 </script>
 
 <script type="text/javascript">
-  var showad = document.getElementById('showad').innerHTML == 'true';
-  if (!showad) {
-    document.getElementById('ad-lh').style.display = 'none';
-    doShowMagnet();
-  }
-
-  var ispc = isPC();
-  if (!needClickAd()) {
-    doShowMagnet();
-  } else {
-    document.addEventListener("visibilitychange", onVisibilityChange);
-  }
-
-  var remain = 30;
-  var stopTimer = false;
-  var needStartTimer = true;
   function showMagnet() {
-    if (!needClickAd()) {
-      doShowMagnet();
-      return;
-    }
-
-    if (needStartTimer) {
-      needStartTimer = false;
-      onTimer();
-    }
+    // show magnet always
+    document.getElementById("bitqiu").setAttribute("class", "hide text-hide");
+    doShowMagnet();
+    return;
   }
 
   function doShowMagnet() {

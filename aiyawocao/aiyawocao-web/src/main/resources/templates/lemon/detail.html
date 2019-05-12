@@ -80,6 +80,7 @@
           <p class="text-center">获取最新地址和资讯</p>
         </div>
       </div>
+
       <div class="panel panel-default border-radius">
         <div class="panel-heading">
           <h3 class="panel-title">磁链地址</h3>
@@ -88,6 +89,20 @@
           <i class="fa fa-magnet"></i>
           <a th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
              th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"></a>
+        </div>
+      </div>
+
+      <div class="panel panel-default border-radius">
+        <div class="panel-heading">
+          <h3 class="panel-title">种子下载</h3>
+        </div>
+        <div class="panel-body">
+          <p>
+            <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"
+               th:href="'http://pan.bitqiu.com/promote-invite?mafrom=weibo&mipos=default&uid=108399605&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+            云盘在线观看
+            </a>
+          </p>
         </div>
       </div>
 

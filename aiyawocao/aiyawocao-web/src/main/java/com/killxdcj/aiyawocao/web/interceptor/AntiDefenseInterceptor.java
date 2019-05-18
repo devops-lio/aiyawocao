@@ -161,6 +161,6 @@ public class AntiDefenseInterceptor implements HandlerInterceptor {
     rejectMeterReqCntLimit = registry.meter(MetricRegistry.name(AntiDefenseInterceptor.class, "reject.ReqCntLimit"));
     rejectMeterReqRateLimit = registry.meter(MetricRegistry.name(AntiDefenseInterceptor.class, "reject.ReqRateLimit"));
     rejectMeterBotReqRateLimit = registry.meter(MetricRegistry.name(AntiDefenseInterceptor.class, "reject.BotReqRateLimit"));
-    rejectMeterBotReqRateLimit = registry.meter(MetricRegistry.name(AntiDefenseInterceptor.class, "reject.BlackAgent"));
+    rejectMeterBlackAgent = registry.meter(MetricRegistry.name(AntiDefenseInterceptor.class, "reject.BlackAgent"));
   }
 }

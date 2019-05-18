@@ -1,6 +1,6 @@
 package com.killxdcj.aiyawocao.web.config;
 
-import com.killxdcj.aiyawocao.web.interceptor.RatelimitInterceptor;
+import com.killxdcj.aiyawocao.web.interceptor.AntiDefenseInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -10,11 +10,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
   @Autowired
-  RatelimitInterceptor ratelimitInterceptor;
+  AntiDefenseInterceptor antiDefenseInterceptor;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(ratelimitInterceptor)
+    registry.addInterceptor(antiDefenseInterceptor)
         .addPathPatterns("/rest/**", "/search/**", "/detail/**", "/recent/**");
   }
 }

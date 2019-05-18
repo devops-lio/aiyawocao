@@ -65,16 +65,6 @@ public class AntiDefenseInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    // limit req per day
-    int reqLastDay = reqCnt.getUnchecked(remoteIP).addAndGet(1);
-    if (reqLastDay > reqlimitPerDay) {
-      LOGGER.info("request was reject, ip: {}, total req last day: {}, url: {}",
-          remoteIP, reqLastDay, request.getRequestURI());
-      response.sendError(403, "If you need to relax the restrictions, contact the administrator by mail.");
-      rejectMeterReqCntLimit.mark();
-      return false;
-    }
-
     // limit bot rate
     if (agent.contains("bot") || agent.contains("spider")) {
       if (agent.contains("google")) {
@@ -104,6 +94,16 @@ public class AntiDefenseInterceptor implements HandlerInterceptor {
       LOGGER.info("request was rejected, ip:{}, url:{}", remoteIP, request.getRequestURI());
       response.sendError(403, "If you need to relax the restrictions, contact the administrator by mail.");
       rejectMeterReqRateLimit.mark();
+      return false;
+    }
+
+    // limit req per day
+    int reqLastDay = reqCnt.getUnchecked(remoteIP).addAndGet(1);
+    if (reqLastDay > reqlimitPerDay) {
+      LOGGER.info("request was reject, ip: {}, total req last day: {}, url: {}",
+          remoteIP, reqLastDay, request.getRequestURI());
+      response.sendError(403, "If you need to relax the restrictions, contact the administrator by mail.");
+      rejectMeterReqCntLimit.mark();
       return false;
     }
 

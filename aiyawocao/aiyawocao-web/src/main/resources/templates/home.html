@@ -48,7 +48,7 @@
 <script>
   (function(){
     var fakeDomains = ["skrbt.world", "www.skrbt.world", "skrbt2.xyz"];
-    var anoleDomains = ["skrbt0.xyz", "skrbt1.xyz"];
+    var anoleDomains = ["skrbt0.xyz"];
     if (fakeDomains.indexOf(document.domain) != -1) {
       var curProtocol = window.location.protocol.split(':')[0];
       randDomain = anoleDomains[Math.floor(Math.random() * anoleDomains.length)];
@@ -81,10 +81,6 @@
     var fakejs0 = document.createElement('script');
     fakejs0.src = curProtocol + "://skrbt0.xyz/js/fake.js";
     s.parentNode.insertBefore(fakejs0, s);
-
-    var fakejs1 = document.createElement('script');
-    fakejs1.src = curProtocol + "://skrbt1.xyz/js/fake.js";
-    s.parentNode.insertBefore(fakejs1, s);
 
     var fakejs2 = document.createElement('script');
     fakejs2.src = curProtocol + "://skrbt2.xyz/js/fake.js";

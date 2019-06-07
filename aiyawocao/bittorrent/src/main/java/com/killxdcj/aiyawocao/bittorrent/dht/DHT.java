@@ -30,6 +30,8 @@ public class DHT {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(DHT.class);
 
+  private static final Logger BTSTAT = LoggerFactory.getLogger("btstat");
+
   private BittorrentConfig config;
   private MetaWatcher metaWatcher;
   private MetricRegistry metricRegistry;
@@ -302,6 +304,7 @@ public class DHT {
         KRPC.buildGetPeersRespPacketWithPeers(
             krpc.getTransId(), buildDummyNodeId(infohash), "caojian", peers);
     sendKrpcPacket(node, resp);
+    BTSTAT.info("{},{}", packet.getAddress().toString().replace("/", ""), infohash.asHexString());
   }
 
   private void handleAnnouncePeerQuery(DatagramPacket packet, KRPC krpc) throws IOException {
@@ -320,6 +323,7 @@ public class DHT {
     KRPC resp = KRPC.buildAnnouncePeerRespPacket(krpc.getTransId(), buildDummyNodeId(krpc.getId()));
     Node node = new Node(krpc.getId(), packet.getAddress(), packet.getPort());
     sendKrpcPacket(node, resp);
+    BTSTAT.info("{},{}", packet.getAddress().toString().replace("/", ""), infohash.asHexString());
   }
 
   private void handleResponse(DatagramPacket packet, KRPC krpc) {

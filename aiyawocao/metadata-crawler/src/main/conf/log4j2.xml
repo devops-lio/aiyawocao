@@ -16,10 +16,30 @@
         </Delete>
       </DefaultRolloverStrategy>
     </RollingFile>
+    <!-- for stat -->
+    <RollingFile fileName="/var/log/aiyawocao/btstat.log" filePattern="/var/log/aiyawocao/btstat.log.%d{yyyyMMddHH}"
+      name="btstat">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss},%m%n"/>
+      <Policies>
+        <OnStartupTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+        <TimeBasedTriggeringPolicy modulate="true"/>
+      </Policies>
+      <DefaultRolloverStrategy>
+        <Delete basePath="/var/log/aiyawocao/" maxDepth="1">
+          <IfFileName glob="btstat.log.*" />
+          <IfLastModified age="2h" />
+        </Delete>
+      </DefaultRolloverStrategy>
+    </RollingFile>
   </Appenders>
   <Loggers>
     <Root level="info">
       <AppenderRef ref="aiyawocao"></AppenderRef>
     </Root>
+    <logger additivity="false" name="btstat">
+      <level value="info"/>
+      <appender-ref ref="btstat"/>
+    </logger>
   </Loggers>
 </Configuration>

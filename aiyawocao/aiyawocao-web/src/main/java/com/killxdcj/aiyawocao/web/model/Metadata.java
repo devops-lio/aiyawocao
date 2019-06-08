@@ -1,6 +1,7 @@
 package com.killxdcj.aiyawocao.web.model;
 
 import com.killxdcj.aiyawocao.common.utils.CommonUtils;
+import com.killxdcj.aiyawocao.common.utils.InfohashUtils;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +55,10 @@ public class Metadata {
 
   public String getInfohash() {
     return (String) originalData.get("infohash");
+  }
+
+  public String getEncodedInfohash() throws Exception {
+    return InfohashUtils.encode(getInfohash());
   }
 
   public String getMagic() {

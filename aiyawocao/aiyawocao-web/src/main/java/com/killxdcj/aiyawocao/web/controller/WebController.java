@@ -3,6 +3,7 @@ package com.killxdcj.aiyawocao.web.controller;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.killxdcj.aiyawocao.common.utils.InfohashUtils;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.ESService;
@@ -37,6 +38,7 @@ public class WebController {
     put("skrbt", "");
     put("lemon", "lemon/");
     put("lemen", "lemon/");
+    put("xiaowang", "xiaowang/");
   }};
 
   @Value("${ad.enable}")
@@ -126,25 +128,43 @@ public class WebController {
         return getTemplatesPrefix(request) + "home";
       }
 
-      if (infohash.equals("315854C6D68D5155C70D8C6E1B3869A6BDA28B08") || infohash.equals("B9571A124BC1F23068F5BDF0FE263F49380FA5BB")) {
-        return getTemplatesPrefix(request) + "home";
-      }
-
-      Metadata metadata = esService.detail(infohash);
-      model.addAttribute("metadata", metadata);
-      List<String> keywords = jiebaService.analyze(metadata.getName());
-      model.addAttribute("keywords", keywords.size() > 6 ? keywords.subList(0, 6) : keywords);
-      AtomicInteger hot = hotInfohash.getUnchecked(infohash.toUpperCase());
-      model.addAttribute("showad", "true");
-      if (hot.incrementAndGet() < adPageHot) {
-        model.addAttribute("showad", "false");
-      }
-      addCommon(model);
-      return getTemplatesPrefix(request) + "detail";
+      return doDetail(request, infohash, model);
     } catch (IOException e) {
       LOGGER.error("handle detail error, " + infohash, e);
       return getTemplatesPrefix(request) + "home";
     }
+  }
+
+  @RequestMapping("detail/{infohash}")
+  public String detailNew(
+      HttpServletRequest request,
+      @PathVariable String infohash,
+      Model model) {
+    try {
+      String realInfohash = InfohashUtils.decode(infohash).toUpperCase();
+      return doDetail(request, realInfohash, model);
+    } catch (Exception e) {
+      LOGGER.error("handle detail error, " + infohash, e);
+      return getTemplatesPrefix(request) + "home";
+    }
+  }
+
+  public String doDetail(
+      HttpServletRequest request,
+      @PathVariable String infohash,
+      Model model) throws IOException {
+    Metadata metadata = esService.detail(infohash);
+    model.addAttribute("metadata", metadata);
+    List<String> keywords = jiebaService.analyze(metadata.getName());
+    model.addAttribute("keywords", keywords.size() > 6 ? keywords.subList(0, 6) : keywords);
+    AtomicInteger hot = hotInfohash.getUnchecked(infohash);
+    model.addAttribute("showad", "true");
+    if (hot.incrementAndGet() < adPageHot) {
+      model.addAttribute("showad", "false");
+    }
+    addCommon(model);
+
+    return getTemplatesPrefix(request) + "detail";
   }
 
   @RequestMapping("recent")

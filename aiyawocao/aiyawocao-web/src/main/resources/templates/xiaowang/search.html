@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+  <title th:text="${keyword} + ' - 磁力链接与种子下载'">Search</title>
+  <meta name="keywords" th:content="${keyword} + ',种子下载,磁力链接,BT下载,迅雷下载'"/>
+  <meta name="description" th:content="${keyword} + ' 种子,磁力链接搜索结果'"/>
+
+  <link rel="shortcut icon" href="/img/xiaowang/favicon.ico" type="image/x-icon"/>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+  <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+  <!--[if lt IE 9]>
+  <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="/css/xiaowang/style.css" rel="stylesheet">
+
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e3ac6c184d4b45cd91a4a4df68ecd98a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3">
+    </div>
+    <div class="col-md-6">
+      <a href="/"><img src="/img/xiaowang/xiaowang.png" class="img-responsive center-block logo-img" alt="Responsive image"></a>
+
+      <form id="search-form" action="/search" method="get" accept-charset="utf-8">
+        <div class="input-group" style="width: 100%">
+          <input type="text" name="keyword" class="form-control search-input" placeholder="输入电影、电视、演员等磁力链接资源名称...">
+          <span class="input-group-btn">
+              <button class="btn btn-success search-btn" type="submit"><strong>磁力搜索</strong></button>
+            </span>
+        </div>
+      </form>
+
+      <div class="panel panel-default search-panel" style="margin-top: 20px; margin-bottom: 10px">
+        <div class="panel-body">
+          <p th:text="'为您索检到磁力链接 ' + ${result.getTotalHits()} + ' 条, 耗时: ' + ${result.getTook()}" style="margin-bottom: 0px"/>
+        </div>
+      </div>
+
+      <div class="panel panel-default search-panel" style="margin-bottom: 0px">
+        <div class="panel-body">
+          排序：
+          <a role="button" class="btn btn-success btn-xs no-radius"
+                  th:if="${sort} eq 'relevance'">相关度</a>
+          <a role="button" class="btn btn-xs sort-btn-unactive" th:href="'/search?keyword=' + ${keyword} + '&s=relevance'"
+                  th:unless="${sort} eq 'relevance'">相关度</a>
+
+          <a role="button" class="btn btn-success btn-xs no-radius"
+                  th:if="${sort} eq 'length'">文件大小</a>
+          <a role="button" class="btn btn-xs sort-btn-unactive" th:href="'/search?keyword=' + ${keyword} + '&s=length'"
+                  th:unless="${sort} eq 'length'">文件大小</a>
+
+          <a role="button" class="btn btn-success btn-xs no-radius"
+                  th:if="${sort} eq 'filenum'">文件数量</a>
+          <a role="button" class="btn btn-xs sort-btn-unactive" th:href="'/search?keyword=' + ${keyword} + '&s=filenum'"
+                  th:unless="${sort} eq 'filenum'">文件数量</a>
+
+          <a role="button" class="btn btn-success btn-xs no-radius"
+                  th:if="${sort} eq 'date'">收录时间</a>
+          <a role="button" class="btn btn-xs sort-btn-unactive" th:href="'/search?keyword=' + ${keyword} + '&s=date'"
+                  th:unless="${sort} eq 'date'">收录时间</a>
+
+        </div>
+      </div>
+
+      <div class="panel panel-default search-panel" th:each="metadata : ${result.getMetadatas()}">
+        <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
+          <h3 class="panel-title">
+            <a th:href="'/detail/' + ${metadata.getEncodedInfohash()}"
+               th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}"
+               style="color: #0E90D2" target="_blank">
+            </a>
+          </h3>
+        </div>
+        <div class="panel-body">
+          <ul class="list-unstyled">
+            <li th:each="file : ${metadata.getDigestFiles()}" style="margin-top: 5px">
+              <span th:utext="${file.getKey()}"/>
+              <span class="badge" style="background-color: #5cb85c" th:text="${file.getValue()}"/>
+            </li>
+            <li th:if="${metadata.getDigestFiles().size() gt 10}">...</li>
+          </ul>
+        </div>
+        <div class="panel-footer" style="background-color: #ffffff; border-color: #5cb85c">
+          文件大小: <span th:text="${metadata.getHumanFileSize()}" style="color: #cc0000"/>
+          文件数量: <span th:text="${metadata.getFileNum()}" style="color: #cc0000"/>
+          收录时间: <span th:text="${metadata.getDate()}" style="color: #cc0000"/>
+        </div>
+      </div>
+
+      <nav aria-label="Page navigation">
+        <ul class="pagination" style="margin: 0px">
+          <li>
+            <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${pre}"
+               style="border-radius: 0px; border-color: #5cb85c; color: #5cb85c">
+              上一页
+            </a>
+          </li>
+
+          <li th:each="i : ${#numbers.sequence(startPage, curPage - 1)}" th:if="${startPage} != ${curPage}">
+            <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${i}" th:text="${i}"
+               style="margin-left: 7px; border-color: #5cb85c; color: #5cb85c"></a>
+          </li>
+
+
+          <li class="active">
+            <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${curPage}" th:text="${curPage}"
+               style="margin-left: 7px; background-color: #5cb85c; border-color: #5cb85c"></a>
+          </li>
+
+          <li th:each="i : ${#numbers.sequence(curPage + 1, startPage + pageNum - 1)}"
+              th:if="${startPage + pageNum - 1} != ${curPage}">
+            <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${i}" th:text="${i}"
+               style="margin-left: 7px; border-color: #5cb85c; color: #5cb85c"></a>
+          </li>
+
+          <li>
+            <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${next}"
+               style="margin-left: 7px; border-color: #5cb85c; color: #5cb85c">
+              下一页
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="panel panel-default bottom-panel">
+        <div class="panel-body" style="text-align: center">
+          Copyright ©2019
+          <a href="/">小王磁力</a>
+          <a href="mailto:xiaowangcili@gmail.com">联系我们</a>
+        </div>
+      </div>
+
+    </div>
+    <div class="col-md-3">
+    </div>
+  </div>
+</div>
+
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+  (function () {
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+      bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    } else {
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+  })();
+</script>
+</body>
+</html>

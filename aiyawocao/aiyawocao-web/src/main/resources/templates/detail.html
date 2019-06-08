@@ -6,7 +6,7 @@
   <meta name="keywords" content="种子搜索,磁力搜索,磁力链接,种子搜索神器,BT种子下载,p2p种子搜索器" />
   <meta name="description" th:content="${metadata.getName()} + ' 种子,磁力链接'" />
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/jquery.treeview.css" type="text/css">
   <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
   <script type="text/javascript" src="/js/jquery.treeview.js"></script>
@@ -59,10 +59,10 @@
                 <dd th:text="${metadata.getInfohash()}"></dd>
               </div>
             </div>
-            <dt>关键词</dt>
-            <dd>
-              <a class="tag" rel="tag" th:each="key : ${keywords}" th:href="'/search?keyword=' + ${key}" th:text="${key}"></a>
-            </dd>
+            <!--<dt>关键词</dt>-->
+            <!--<dd>-->
+              <!--<a class="tag" rel="tag" th:each="key : ${keywords}" th:href="'/search?keyword=' + ${key}" th:text="${key}"></a>-->
+            <!--</dd>-->
             <dt>磁力链接</dt>
             <dd>
               <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"

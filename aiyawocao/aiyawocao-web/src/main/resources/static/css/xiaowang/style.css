@@ -70,3 +70,7 @@ input.form-control:focus {
   outline: none;
   box-shadow: none;
 }
+
+html {
+  word-wrap: break-word;
+}

@@ -64,3 +64,9 @@
 .highlight {
   color: #cc0000;
 }
+
+input.form-control:focus {
+  border-color: #5cb85c;
+  outline: none;
+  box-shadow: none;
+}

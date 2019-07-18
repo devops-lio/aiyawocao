@@ -67,7 +67,11 @@
             <dd>
               <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"
                  th:href="'http://pan.bitqiu.com/promote-invite?mafrom=weibo&mipos=default&uid=108399605&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
-                云盘在线观看
+                比特球在线播放
+              </a>
+              <a title="showdou" id="showdou" class="magnet" target="_blank"
+                 href="https://showdou.com/?from=lemoncili">
+                可可在线播放
               </a>
               <!--<i class="fa fa-magnet"></i>-->
               <a title="Magnet Link" id="magnet" class="hide text-hide"
@@ -131,6 +135,7 @@
   function showMagnet() {
     // show magnet always
     document.getElementById("bitqiu").setAttribute("class", "hide text-hide");
+    document.getElementById("showdou").setAttribute("class", "hide text-hide");
     doShowMagnet();
     return;
   }

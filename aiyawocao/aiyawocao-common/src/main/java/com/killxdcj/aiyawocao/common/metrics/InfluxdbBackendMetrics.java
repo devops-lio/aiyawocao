@@ -35,6 +35,7 @@ public class InfluxdbBackendMetrics {
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .filter(MetricFilter.ALL)
                 .tag("cluster", config.getCluster())
+                .transformer(new SquareBracketsMetricMeasurementTransformer())
                 .build();
         reporter.start(config.getReportPeriod(), TimeUnit.SECONDS);
         return registry;

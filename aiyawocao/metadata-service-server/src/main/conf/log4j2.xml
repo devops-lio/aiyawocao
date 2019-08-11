@@ -1,26 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <RollingFile fileName="/var/log/aiyawocao/metadata-service.log" filePattern="/var/log/aiyawocao/metadata-service.log.%d{yyyyMMdd}"
-      name="aiyawocao">
+    <RollingFile name="aiyawocao" fileName="/var/log/aiyawocao/metadata-service.log"
+      filePattern="/var/log/aiyawocao/metadata-service.log.%d{yyyyMMdd}.%i">
       <PatternLayout pattern="%d %p %c{1}: %m%n"/>
       <Policies>
         <OnStartupTriggeringPolicy/>
         <SizeBasedTriggeringPolicy size="100 MB"/>
         <TimeBasedTriggeringPolicy modulate="true"/>
       </Policies>
-      <DefaultRolloverStrategy>
-        <Delete basePath="/var/log/aiyawocao/" maxDepth="1">
-          <IfFileName glob="metadata-service.log.*" />
-          <IfLastModified age="2d" />
-        </Delete>
-      </DefaultRolloverStrategy>
+      <DefaultRolloverStrategy max="5"/>
     </RollingFile>
-    <RollingFile fileName="/data/aiyawocao/metadata/human/metadata.log" filePattern="/data/aiyawocao/metadata/human/metadata.%d{yyyyMMdd}.%i.zip"
-      name="metadata">
+    <RollingFile name="metadata" fileName="/data/aiyawocao/metadata/human/metadata.log"
+      filePattern="/data/aiyawocao/metadata/human/metadata.%d{yyyyMMdd}.%i.zip">
       <PatternLayout pattern="%m%n"/>
       <Policies>
-        <SizeBasedTriggeringPolicy size="500 MB"/>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
         <TimeBasedTriggeringPolicy modulate="true"/>
       </Policies>
     </RollingFile>
@@ -29,7 +24,7 @@
     <Root level="info">
       <AppenderRef ref="aiyawocao"></AppenderRef>
     </Root>
-    <logger additivity="false" name="metadata">
+    <logger name="metadata" additivity="false">
       <level value="info"/>
       <appender-ref ref="metadata"/>
     </logger>

@@ -1,4 +1,4 @@
-executorThreadNum: 50
+executorThreadNum: 30
 port: 10242
 aliOSSBackendConfig:
   accessKeyId: example-accesskey-id
@@ -19,4 +19,3 @@ influxdbBackendMetricsConfig:
 rocksDBBackendConfig:
   originalMetadataPath: /data/aiyawocao/metadata/original
   rocksDBPath: /data/aiyawocao/metadata/index
-  enableBitfilter: true

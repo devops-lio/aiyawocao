@@ -46,10 +46,26 @@ public class Bencoding {
   }
 
   private BencodedString readString() {
-    int index = indexOf(AbstractBencodedValue.STRING_SPLIT, curIndex);
-    int length = Integer.parseInt(new String(data, curIndex, index - curIndex));
-    curIndex = index + 1 + length;
-    return new BencodedString(data, index + 1, length);
+//    int index = indexOf(AbstractBencodedValue.STRING_SPLIT, curIndex);
+//    int length = Integer.parseInt(new String(data, curIndex, index - curIndex));
+//    curIndex = index + 1 + length;
+//    return new BencodedString(data, index + 1, length);
+
+    byte[] lengthBytes = new byte[20];
+    int lengthLen = 0;
+    for (; curIndex < maxLength; curIndex++) {
+      if (data[curIndex] == AbstractBencodedValue.STRING_SPLIT) {
+        break;
+      }
+      if (AbstractBencodedValue.STRING_ENTRYS.contains(data[curIndex])) {
+        lengthBytes[lengthLen++] = data[curIndex];
+      }
+    }
+
+    int length = Integer.parseInt(new String(lengthBytes, 0, lengthLen));
+    BencodedString ret = new BencodedString(data, curIndex + 1, length);
+    curIndex = curIndex + length + 1;
+    return ret;
   }
 
   private BencodedInteger readInteger() {

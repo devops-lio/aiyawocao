@@ -13,6 +13,7 @@ import com.killxdcj.aiyawocao.bittorrent.exception.InvalidBittorrentPacketExcept
 import com.killxdcj.aiyawocao.bittorrent.peer.Peer;
 import com.killxdcj.aiyawocao.bittorrent.utils.JTorrentUtils;
 import com.revinate.guava.util.concurrent.RateLimiter;
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +129,7 @@ public class DHT {
     KRPC krpc;
     int maxPacketSize = config.getMaxPacketSize();
     DatagramPacket packet = new DatagramPacket(new byte[maxPacketSize], maxPacketSize);
+    int invalid_packet_cnt = 0;
     while (!exit) {
       try {
         datagramSocket.receive(packet);
@@ -159,7 +162,15 @@ public class DHT {
         }
       } catch (IOException e) {
         LOGGER.error("DHT Main WorkProc error", e);
-      } catch (InvalidBittorrentPacketException e) {
+      } catch (InvalidBittorrentPacketException | NumberFormatException e) {
+        if (invalid_packet_cnt++ % 100 == 0) {
+          try {
+            FileUtils.writeByteArrayToFile(new File("./debug/" +
+                System.currentTimeMillis()), packet.getData(), 0, packet.getLength());
+          } catch (IOException e1) {
+            LOGGER.error("Save invalid packet failed.", e1);
+          }
+        }
         LOGGER.debug("decode bittorrent packet error", e);
       } catch (Throwable t) {
         LOGGER.error("DHT Main WorkProc fetal error", t);
@@ -309,9 +320,19 @@ public class DHT {
     BencodedMap reqData = (BencodedMap) krpc.getData().get(KRPC.QUERY_ARGS);
     BencodedString infohash = (BencodedString) reqData.get(KRPC.INFO_HASH);
 
-    int port = reqData.get(KRPC.PORT).asLong().intValue();
+    int port = 0;
+    if (reqData.containsKey(KRPC.PORT)) {
+      port = reqData.get(KRPC.PORT).asLong().intValue();
+    }
+
     if (reqData.containsKey(KRPC.IMPLIED_PORT) && reqData.get(KRPC.IMPLIED_PORT).asLong() != 0) {
       port = packet.getPort();
+    }
+
+    if (port == 0) {
+      port = packet.getPort();
+      LOGGER.info("Announce peer query has no port, use udp port instead, ip:{}, port:{}, infohash:{}",
+          packet.getAddress(), packet.getPort(), infohash.asHexString());
     }
 
     Peer peer = new Peer(packet.getAddress(), port);

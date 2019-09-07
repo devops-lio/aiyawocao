@@ -6,6 +6,8 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+
 public class WebUtils {
   private static final String MAGIC_KEY = "aiyawocao";
   private static final Set<String> IMG_TYPES = new HashSet<String>(Arrays.asList("bmp", "jpg",
@@ -44,5 +46,17 @@ public class WebUtils {
     }
 
     return DEFAULT_FILE_ICON;
+  }
+
+  public static String parseRealIPFromRequest(HttpServletRequest request) {
+    String remoteIP = request.getHeader("X-Forwarded-For");
+    if (StringUtils.isEmpty(remoteIP)) {
+      remoteIP = request.getHeader("x-real-ip");
+    }
+    if (StringUtils.isEmpty(remoteIP)) {
+      return request.getRemoteHost();
+    }
+
+    return remoteIP.split(",")[0];
   }
 }

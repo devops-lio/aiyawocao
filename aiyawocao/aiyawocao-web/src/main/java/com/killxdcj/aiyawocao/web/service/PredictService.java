@@ -5,9 +5,12 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.common.utils.TimeUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.util.Pair;
 import javax.annotation.PostConstruct;
@@ -91,9 +94,9 @@ public class PredictService {
   }
 
   public void markRequest(String keyword) {
-    for (String word : keyword.split(" ")) {
-      wordsFrequency.getUnchecked(word).incrementAndGet();
-    }
+    Arrays.stream(keyword.split(" "))
+        .filter(s -> s.length() > 1)
+        .forEach(s -> wordsFrequency.getUnchecked(s).incrementAndGet());
   }
 
   public void cleanHotWords() {

@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.common.utils.InfohashUtils;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
+import com.killxdcj.aiyawocao.web.service.BlackKeyWordsService;
 import com.killxdcj.aiyawocao.web.service.ESService;
 import com.killxdcj.aiyawocao.web.service.JiebaService;
 import com.killxdcj.aiyawocao.web.service.PredictService;
@@ -57,6 +58,9 @@ public class WebController {
   @Autowired
   private JiebaService jiebaService;
 
+  @Autowired
+  private BlackKeyWordsService blackKeyWordsService;
+
   private LoadingCache<String, AtomicInteger> hotInfohash = CacheBuilder.newBuilder()
       .expireAfterWrite(24, TimeUnit.HOURS)
       .build(new CacheLoader<String, AtomicInteger>() {
@@ -85,6 +89,11 @@ public class WebController {
       @RequestParam(value = "s", required = false, defaultValue = "relevance") String sort,
       Model model) {
     try {
+      if (blackKeyWordsService.shouldPrevent(keyword)) {
+        LOGGER.info("Prevent by blkKeywordsCheck, keyword: {}, ip: {}", keyword, WebUtils.parseRealIPFromRequest(request));
+        return getTemplatesPrefix(request) + "home";
+      }
+
       if (page == 1) {
         predictService.markRequest(keyword);
       }

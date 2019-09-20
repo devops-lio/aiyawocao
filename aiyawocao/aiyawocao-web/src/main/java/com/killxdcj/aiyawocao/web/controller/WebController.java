@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,15 @@ public class WebController {
         }
       });
 
+  private LoadingCache<String, AtomicBoolean /* use fuzzy */> fuzzyQueryKeyword = CacheBuilder.newBuilder()
+      .expireAfterWrite(30, TimeUnit.MINUTES)
+      .build(new CacheLoader<String, AtomicBoolean>() {
+        @Override
+        public AtomicBoolean load(String s) throws Exception {
+          return new AtomicBoolean(false);
+        }
+      });
+
   @RequestMapping("")
   public String home(HttpServletRequest request, Model model) {
     model.addAttribute("hotWords", predictService.getHotSearch());
@@ -98,11 +108,22 @@ public class WebController {
         predictService.markRequest(keyword);
       }
 
-      SearchResult result = esService.search(keyword, (page - 1) * 10, 10, sort, false);
-      if (result.getTotalHits() == 0) {
-        LOGGER.info("search hits is empty, use fuzzyQuery, {}", keyword);
+      SearchResult result = null;
+      AtomicBoolean fuzzyQuery = fuzzyQueryKeyword.getUnchecked(keyword);
+      if (!fuzzyQuery.get()) {
+        result = esService.search(keyword, (page - 1) * 10, 10, sort, false);
+        if (result.getTotalHits() == 0) {
+          LOGGER.info("search hits is empty, use fuzzyQuery, {}", keyword);
+          result = esService.search(keyword, (page - 1) * 10, 10, sort, true);
+          if (page == 1) {
+            fuzzyQuery.set(true);
+          }
+        }
+      } else {
+        LOGGER.info("previous search hits is empty, use fuzzyQuery, {}", keyword);
         result = esService.search(keyword, (page - 1) * 10, 10, sort, true);
       }
+
       model.addAttribute("result", result);
       model.addAttribute("keyword", keyword);
 

@@ -113,7 +113,7 @@ public class AntiDefenseInterceptor implements HandlerInterceptor {
   private String parseRealIP(HttpServletRequest request) {
     String remoteIP = request.getHeader("X-Forwarded-For");
     if (StringUtils.isEmpty(remoteIP)) {
-      remoteIP = request.getHeader("x-real-ip");
+      remoteIP = request.getHeader("X-Real-IP");
     }
     if (StringUtils.isEmpty(remoteIP)) {
       return request.getRemoteHost();

@@ -39,9 +39,9 @@
       <h4 class="text-center">最新地址</h4>
       <p class="text-center"><a href="https://lemencili1.xyz" target="_blank">https://lemencili1.xyz</a></p>
       <p class="text-center"><a href="https://lemencili4.xyz" target="_blank">https://lemencili2.xyz</a></p>
-      <p class="text-center"><a href="https://lemencili5.xyz" target="_blank">https://lemencili3.xyz</a></p>
+      <p class="text-center"><a href="https://lemencili1.xyz" target="_blank">https://lemencili3.xyz</a></p>
       <p class="text-center"><a href="https://lemencili4.xyz" target="_blank">https://lemencili4.xyz</a></p>
-      <p class="text-center"><a href="https://lemencili5.xyz" target="_blank">https://lemencili5.xyz</a></p>
+      <p class="text-center"><a href="https://lemencili1.xyz" target="_blank">https://lemencili5.xyz</a></p>
       </div>
     </div>
 
@@ -50,4 +50,15 @@
   </div>
 </div>
 </body>
+<script>
+  (function(){
+    var links=new Array("https://lemencili1.xyz", "https://lemencili4.xyz");
+    var reallinks=document.getElementsByTagName("a");
+    var idx=Date.now()%links.length;
+    for (var i = 0; i < reallinks.length; i++) {
+      reallinks[i].setAttribute("href", links[idx%links.length]);
+      idx=idx+1;
+    }
+  })();
+</script>
 </html>

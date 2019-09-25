@@ -94,17 +94,27 @@
 
       <div class="panel panel-default border-radius">
         <div class="panel-heading">
-          <h3 class="panel-title">云盘在线观看</h3>
+          <h3 class="panel-title">资源下载</h3>
         </div>
         <div class="panel-body">
           <p>
-            <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"
+            <a title="bitqiu" class="btn btn-primary" target="_blank" style="border-radius: 0px;"
                th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
-              云盘在线播放
+              在线播放
             </a>
-            <a title="bitqiu" id="bitqiu" class="magnet" target="_blank"
+            <a title="bitqiu" class="btn btn-success" target="_blank" style="border-radius: 0px;"
                th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
-              云盘离线下载
+              高速下载
+            </a>
+            <a title="bitqiu" class="btn btn-info" target="_blank" style="border-radius: 0px;"
+               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+              离线下载
+            </a>
+          </p>
+          <p>
+            <a title="bitqiu" target="_blank"
+               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+              <strong style="font-size: 15px; color: #0003F0; margin-top: 10px;">下载没速度？点这里！</strong>
             </a>
           </p>
         </div>

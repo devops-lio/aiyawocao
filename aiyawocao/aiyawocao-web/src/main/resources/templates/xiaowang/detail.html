@@ -69,16 +69,20 @@
         <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
           <h3 class="panel-title" style="color: #5cb85c">
             <i class="fa fa-list" aria-hidden="true"></i>
-            <strong>种子详情</strong>
+            <strong>资源下载</strong>
           </h3>
         </div>
         <div class="panel-body">
-          <ul class="list-unstyled" style="margin-bottom: 0px">
-            <li th:text="'种子哈希：' + ${metadata.getInfohash()}"/>
-            <li th:text="'文件数目：' + ${metadata.getFileNum()}"/>
-            <li th:text="'文件大小：' + ${metadata.getHumanFileSize()}"/>
-            <li th:text="'收录时间：' + ${metadata.getDate()}"/>
-          </ul>
+          <p>
+            <a title="bitqiu" class="btn btn-primary" target="_blank" style="border-radius: 0px;"
+               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+              在线播放
+            </a>
+            <a title="bitqiu" class="btn btn-info" target="_blank" style="border-radius: 0px;"
+               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
+              离线下载
+            </a>
+          </p>
         </div>
       </div>
 
@@ -86,7 +90,7 @@
         <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
           <h3 class="panel-title" style="color: #5cb85c">
             <i class="fa fa-list" aria-hidden="true"></i>
-            <strong>种子下载</strong>
+            <strong>磁力链接</strong>
           </h3>
         </div>
         <div class="panel-body">
@@ -100,20 +104,16 @@
         <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
           <h3 class="panel-title" style="color: #5cb85c">
             <i class="fa fa-list" aria-hidden="true"></i>
-            <strong>在线观看</strong>
+            <strong>种子详情</strong>
           </h3>
         </div>
         <div class="panel-body">
-          <p>
-            <a title="bitqiu" id="bitqiu" target="_blank"
-               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
-              云盘在线播放
-            </a>
-            <a title="bitqiu" id="bitqiu" target="_blank"
-               th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
-              云盘离线下载
-            </a>
-          </p>
+          <ul class="list-unstyled" style="margin-bottom: 0px">
+            <li th:text="'种子哈希：' + ${metadata.getInfohash()}"/>
+            <li th:text="'文件数目：' + ${metadata.getFileNum()}"/>
+            <li th:text="'文件大小：' + ${metadata.getHumanFileSize()}"/>
+            <li th:text="'收录时间：' + ${metadata.getDate()}"/>
+          </ul>
         </div>
       </div>
 

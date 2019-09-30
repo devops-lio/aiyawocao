@@ -37,7 +37,7 @@ public class WebController {
   private static final Logger LOGGER = LoggerFactory.getLogger(WebController.class);
 
   private static final Map<String, String> webMap = new HashMap(){{
-    put("skrbt", "");
+    put("skrbt", "skrbt/");
     put("lemon", "lemon/");
     put("lemen", "lemon/");
     put("xiaowang", "xiaowang/");
@@ -241,6 +241,6 @@ public class WebController {
         return entry.getValue();
       }
     }
-    return "";
+    return "skrbt/";
   }
 }

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title th:text="${keyword} + ' - 磁力链接与种子下载'">Search</title>
+    <meta name="keywords" th:content="${keyword} + ',种子下载,磁力链接,BT下载,迅雷下载'"/>
+    <meta name="description" th:content="${keyword} + ' 种子,磁力链接搜索结果'"/>
+
+    <link rel="shortcut icon" href="/img/skrbt/logo.ico" type="image/x-icon"/>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+    <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link href="/css/skrbt/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?e7309b1c8541555237ee96ee27557d76";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row site-wrapper-border">
+    </div>
+    <div class="row common-navbar-header">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-6">
+            <form id="search-form" action="/search" method="get" accept-charset="utf-8">
+                <div class="input-group" style="width: 100%">
+          <span class="input-group-btn">
+              <a href="/"><img src="/img/skrbt/logo.png" height="42px" style="margin-right: 8px;"></a>
+          </span>
+                    <input type="text" name="keyword" class="form-control search-input" style="float: none"
+                           placeholder="输入电影、电视、演员等磁力链接资源名称..." th:value="${keyword}">
+                    <span class="input-group-btn">
+                        <button class="btn btn-danger search-btn" type="submit">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"/>
+                        </button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
+        </div>
+    </div>
+
+    <div class="row search-result-toolbar">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-6">
+            <ul class="list-inline">
+                <li>排序:</li>
+                <li class="sort-type-selected" th:if="${sort} eq 'relevance'">相关度</li>
+                <li><a class="sort-type" th:href="'/search?keyword=' + ${keyword} + '&s=relevance'"
+                       th:unless="${sort} eq 'relevance'">相关度</a></li>
+                <li class="sort-type-selected" th:if="${sort} eq 'length'">文件大小</li>
+                <li><a class="sort-type" th:href="'/search?keyword=' + ${keyword} + '&s=length'"
+                       th:unless="${sort} eq 'length'">文件大小</a></li>
+                <li class="sort-type-selected" th:if="${sort} eq 'filenum'">文件数量</li>
+                <li><a class="sort-type" th:href="'/search?keyword=' + ${keyword} + '&s=filenum'"
+                       th:unless="${sort} eq 'filenum'">文件数量</a></li>
+                <li class="sort-type-selected" th:if="${sort} eq 'date'">收录时间</li>
+                <li><a class="sort-type" th:href="'/search?keyword=' + ${keyword} + '&s=date'"
+                       th:unless="${sort} eq 'date'">收录时间</a></li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <div class="row">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-6">
+            <small class="result-stats"
+                   th:text="'找到约 ' + ${result.getTotalHits()} + ' 条结果 (用时' + ${result.getTook()} + ')'"/>
+
+            <ul class="list-unstyled" style="margin-top: 15px;" th:each="metadata : ${result.getMetadatas()}">
+                <li><a class="result-resource-title common-link"
+                       th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}"
+                       th:title="${metadata.getName()}" th:utext="${metadata.getHighlightName()}" target="_blank"></a>
+                </li>
+                <li class="result-resource-meta-info">
+                    <a class="common-link" title="Download using magnet" target="_blank"
+                       th:href="'/detail/' + ${metadata.getMagic()} + '/' + ${metadata.getInfohash()}">
+                        <i class="fa fa-magnet"></i> 磁力链接
+                    </a>
+                    文件大小:&nbsp;<span class="result-resource-meta-info-value" th:text="${metadata.getHumanFileSize()}"/>
+                    文件数量:&nbsp;<span class="result-resource-meta-info-value" th:text="${metadata.getFileNum()}"/>
+                    收录时间:&nbsp;<span class="result-resource-meta-info-value" th:text="${metadata.getDate()}"/>
+                    热度:&nbsp;<span class="result-resource-meta-info-value" th:text="${metadata.getPopularity()}"/>
+                </li>
+                <li  class="result-resource-file" th:each="file : ${metadata.getDigestFiles()}">
+                    <span th:utext="${file.getKey()}" />
+                    <span class="result-resource-file-size" th:text="${file.getValue()}" />
+                </li>
+                <li class="result-resource-file" th:if="${metadata.getDigestFiles().size() gt 10}">...</li>
+            </ul>
+
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li>
+                        <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${pre}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(startPage, curPage - 1)}" th:if="${startPage} != ${curPage}">
+                        <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${i}"
+                           th:text="${i}"></a>
+                    </li>
+
+                    <li class="active">
+                        <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${curPage}"
+                           th:text="${curPage}">
+                            <span class="sr-only">(current)</span>
+                        </a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(curPage + 1, startPage + pageNum - 1)}"
+                        th:if="${startPage + pageNum - 1} != ${curPage}">
+                        <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${i}"
+                           th:text="${i}"></a>
+                    </li>
+
+                    <li>
+                        <a th:href="'/search?keyword=' + ${keyword} + '&s=' + ${sort} + '&p=' + ${next}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
+        </div>
+    </div>
+</div>
+
+<nav class="navbar-default footer">
+    <div class="container">
+        <p class="navbar-text">
+            @2018
+            <a href="/" class="common-link">SkrBT </a>
+            <a href="/about" class="common-link">联系我们</a>
+        </p>
+    </div>
+</nav>
+
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

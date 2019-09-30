@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>关于 SkrBT</title>
+    <meta name="keywords" content="种子搜索,磁力搜索,磁力链接,种子搜索神器,BT种子下载,p2p种子搜索器"/>
+    <meta name="description"
+          content="SkrBT - 专注于从DHT网络爬取种子和磁力链接,目前索引了上千万的磁力链接,资源涵盖了电影、剧集、音乐、图书、图片、综艺、软件、动漫、教程、游戏等领域,是全银河系资源最丰富的种子搜索、磁力链接搜索专业网站。"/>
+
+    <link rel="shortcut icon" href="/img/skrbt/logo.ico" type="image/x-icon"/>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+    <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link href="/css/skrbt/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?e7309b1c8541555237ee96ee27557d76";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row site-wrapper-border">
+    </div>
+    <div class="row common-navbar-header">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-6">
+            <form id="search-form" action="/search" method="get" accept-charset="utf-8">
+                <div class="input-group" style="width: 100%">
+          <span class="input-group-btn">
+             <a href="/"><img src="/img/skrbt/logo.png" height="42px" style="margin-right: 8px;"></a>
+          </span>
+                    <input type="text" name="keyword" class="form-control search-input" style="float: none"
+                           placeholder="输入电影、电视、演员等磁力链接资源名称...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-danger search-btn" type="submit">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"/>
+                        </button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-6">
+            <h1>关于 SkrBT</h1>
+            <p><a href="/" class="common-link">SkrBT</a> 致力于打造全银河系资源最丰富的磁力链接、种子搜索引擎。</p>
+            <p>SkrBT 只存储了种子的磁力链接和包含的文件信息（文件名、文件大小等），没在服务器存储任何文件内容。</p>
+            <p>如果发现有种子信息侵犯了你的权益，请联系我们删除：skrbt9613#gmail.com<</p>
+            <p>广告合作请联系我们：skrbt9613#gmail.com</p>
+
+            <h3>友情链接</h3>
+            <p><a href="https://rarbg.is/torrents.php" class="common-link">RARBG</a></p>
+            <p><a href="https://lai.yuweining.cn/archives/909/" class="common-link">BT 磁力搜索引擎索引</a></p>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar-default footer">
+    <div class="container">
+        <p class="navbar-text">
+            @2018
+            <a href="/" class="common-link">SkrBT </a>
+            <a href="/about" class="common-link">联系我们</a>
+        </p>
+    </div>
+</nav>
+
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+</body>
+</html>

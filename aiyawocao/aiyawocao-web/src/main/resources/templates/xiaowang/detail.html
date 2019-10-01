@@ -69,6 +69,23 @@
         <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
           <h3 class="panel-title" style="color: #5cb85c">
             <i class="fa fa-list" aria-hidden="true"></i>
+            <strong>种子详情</strong>
+          </h3>
+        </div>
+        <div class="panel-body">
+          <ul class="list-unstyled" style="margin-bottom: 0px">
+            <li th:text="'文件数目：' + ${metadata.getFileNum()}"/>
+            <li th:text="'文件大小：' + ${metadata.getHumanFileSize()}"/>
+            <li th:text="'收录时间：' + ${metadata.getDate()}"/>
+            <li th:text="'种子哈希：' + ${metadata.getInfohash()}"/>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel panel-default detail-panel">
+        <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
+          <h3 class="panel-title" style="color: #5cb85c">
+            <i class="fa fa-list" aria-hidden="true"></i>
             <strong>资源下载</strong>
           </h3>
         </div>
@@ -97,23 +114,6 @@
           <i class="fa fa-magnet"></i>
           <a th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
              th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"></a>
-        </div>
-      </div>
-
-      <div class="panel panel-default detail-panel">
-        <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
-          <h3 class="panel-title" style="color: #5cb85c">
-            <i class="fa fa-list" aria-hidden="true"></i>
-            <strong>种子详情</strong>
-          </h3>
-        </div>
-        <div class="panel-body">
-          <ul class="list-unstyled" style="margin-bottom: 0px">
-            <li th:text="'种子哈希：' + ${metadata.getInfohash()}"/>
-            <li th:text="'文件数目：' + ${metadata.getFileNum()}"/>
-            <li th:text="'文件大小：' + ${metadata.getHumanFileSize()}"/>
-            <li th:text="'收录时间：' + ${metadata.getDate()}"/>
-          </ul>
         </div>
       </div>
 

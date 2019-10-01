@@ -1,3 +1,17 @@
+/* common css */
+html {
+  position: relative;
+  min-height: 100%;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/* css for lemon */
+
 .center-block {
   display: block;
   margin-left: auto;
@@ -18,16 +32,6 @@
 
 .highlight {
   color: #cc0000;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-  word-wrap: break-word;
-}
-
-body {
-  margin-bottom: 60px;
 }
 
 .header {

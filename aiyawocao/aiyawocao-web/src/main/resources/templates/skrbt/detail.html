@@ -67,27 +67,38 @@
         <div class="col-md-1">
         </div>
         <div class="col-md-6">
-            <h2 th:text="${metadata.getName()}"></h2>
-            <dl class="dl-horizontal">
-                <dt class="resource-metadata-dt">文件大小</dt>
-                <dd class="resource-metadata-dd" th:text="${metadata.getHumanFileSize()}"></dd>
-                <dt class="resource-metadata-dt">文件数量</dt>
-                <dd class="resource-metadata-dd" th:text="${metadata.getFileNum()}"></dd>
-                <dt class="resource-metadata-dt">热度</dt>
-                <dd class="resource-metadata-dd" th:text="${metadata.getPopularity()}"></dd>
-                <dt class="resource-metadata-dt">收录时间</dt>
-                <dd class="resource-metadata-dd" th:text="${metadata.getDate()}"></dd>
-                <dt class="resource-metadata-dt">磁力链接</dt>
-                <dd class="resource-metadata-dd">
-                    <a class="common-link" title="Download using magnet" target="_blank"
-                       th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
-                       th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}" onclick="popup();">
-                        <i class="fa fa-magnet"></i>
-                    </a>
-                </dd>
-                <dt class="resource-metadata-dt">资源下载</dt>
-                <dd class="resource-metadata-dd">
-                    <p>
+            <h3 th:text="${metadata.getName()}"></h3>
+            <table>
+                <tr>
+                    <td class="resource-metadata-type">文件大小</td>
+                    <td class="resource-metadata-data" th:text="${metadata.getHumanFileSize()}"/></td>
+                </tr>
+                <tr>
+                    <td class="resource-metadata-type">文件数量</td>
+                    <td class="resource-metadata-data" th:text="${metadata.getFileNum()}"></td>
+                </tr>
+                <tr>
+                    <td class="resource-metadata-type">种子热度</td>
+                    <td class="resource-metadata-data" th:text="${metadata.getPopularity()}"></td>
+                </tr>
+                <tr>
+                    <td class="resource-metadata-type">收录时间</td>
+                    <td class="resource-metadata-data" th:text="${metadata.getDate()}"></td>
+                </tr>
+                <tr>
+                    <td class="resource-metadata-type">磁力链接</td>
+                    <td class="resource-metadata-data">
+                        <a class="common-link" title="Download using magnet" target="_blank"
+                           th:href="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                           th:text="'magnet:?xt=urn:btih:' + ${metadata.getInfohash()}"
+                           onclick="popup();">
+                            <i class="fa fa-magnet"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="resource-metadata-type">资源下载</td>
+                    <td class="resource-metadata-data">
                         <a title="bitqiu" class="btn btn-primary btn-sm" target="_blank" style="border-radius: 0px;"
                            th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
                             在线播放
@@ -100,17 +111,17 @@
                            th:href="'https://pan.bitqiu.com/promote-invite?mafrom=promote&mipos=cps&uid=108402133&agentdown=magnet:?xt=urn:btih:' + ${metadata.getInfohash()}">
                             离线下载
                         </a>
-                    </p>
-                </dd>
-            </dl>
+                    </td>
+                </tr>
+            </table>
 
             <h3>文件列表</h3>
-            <dl class="dl-horizontal">
-        <span th:each="file : ${metadata.getDigestFiles(100)}">
-          <dt class="resource-metadata-file-size" th:text="${file.getValue()}"/>
-        <dd class="resource-metadata-file-name" th:utext="${file.getKey()}"/>
-        </span>
-            </dl>
+            <table>
+                <tr th:each="file : ${metadata.getDigestFiles(100)}">
+                    <td class="resource-metadata-file-size" th:text="${file.getValue()}"/>
+                    <td class="resource-metadata-file-name" th:utext="${file.getKey()}"/>
+                </tr>
+            </table>
         </div>
     </div>
 </div>

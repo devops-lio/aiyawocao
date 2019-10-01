@@ -8,10 +8,11 @@ html {
     position: relative;
     min-height: 100%;
     word-wrap: break-word;
+    word-break: break-all;
 }
 
 body {
-    margin-bottom: 60px;
+    margin-bottom: 80px;
 }
 
 /* for skrbt */
@@ -106,32 +107,33 @@ body {
     color: #12c;
 }
 
-.resource-metadata-dt {
-    width: 70px!important;
+.resource-metadata-type {
+    width: 70px;
+    min-width: 70px;
     text-align: right;
-    margin-right: 15px;
     color: #333;
+    font-weight: bold;
+    vertical-align: top;
 }
 
-.resource-metadata-dd {
+.resource-metadata-data {
     color: #555;
-    min-height: 26px;
-    margin-left: 90px!important;
+    padding-left: 15px;
 }
 
 .resource-metadata-file-size {
-    width: 70px!important;
+    width: 70px;
+    min-width: 70px;
     text-align: right;
-    margin-right: 15px;
     color: #666;
     line-height: 22px;
     font-size: 13px;
+    vertical-align: top;
 }
 
 .resource-metadata-file-name {
     color: #555;
-    min-height: 26px;
-    margin-left: 80px!important;
+    padding-left: 15px;
 }
 
 .footer {

@@ -73,4 +73,5 @@ input.form-control:focus {
 
 html {
   word-wrap: break-word;
+  word-break: break-all;
 }

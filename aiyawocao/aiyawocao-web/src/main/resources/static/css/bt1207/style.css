@@ -1,0 +1,163 @@
+/* common */
+a:hover{
+    cursor: pointer;
+    text-decoration: none;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+body {
+    margin-bottom: 80px;
+}
+
+/* for skrbt */
+.site-wrapper-border {
+    /*background-color: #2e82ff;*/
+    /*height: 3px;*/
+}
+
+.logo-img {
+    max-height: 90px;
+    max-width: 50%;
+    margin-top: 10px;
+}
+
+.search-input {
+    border: 1px solid #ccc;
+    border-right: 0;
+    border-radius: 0px;
+    width: 60%;
+}
+
+.search-btn {
+    background: #2e82ff;
+    border: 1px solid #2e82ff;
+    border-radius: 0px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.home-hotwords {
+    margin-top: 10px;
+}
+
+.home-hotword {
+    padding: 3px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 5px;
+    border-radius: 15px;
+    color: #666;
+}
+
+.common-navbar-header {
+    line-height: 68px;
+    height: 68px;
+    border-bottom: 1px solid #dbdbdb;
+    background-color: #ffffff;
+}
+
+.search-result-toolbar {
+    background: #f8f8f8;
+    line-height: 34px;
+    height: 36px;
+    font-size: 14px;
+}
+
+.sort-type {
+    color: #999;
+}
+
+.sort-type-selected {
+    border-bottom: 3px solid #4285f4;
+    color: #4285f4;
+}
+
+.result-stats {
+    color: gray;
+    font-size: small;
+    padding-bottom: 15px;
+}
+
+.result-resource-title {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.result-resource-meta-info {
+    font-size: 13px;
+    color: gray;
+    line-height: 28px;
+}
+
+.result-resource-meta-info-value {
+    color: #006621;
+    margin-right: 5px;
+}
+
+.result-resource-file {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.result-resource-file-size {
+    color: #999;
+}
+
+.common-link {
+    color: #12c;
+}
+
+.resource-metadata-type {
+    width: 70px;
+    min-width: 70px;
+    text-align: right;
+    color: #333;
+    font-weight: bold;
+    vertical-align: top;
+}
+
+.resource-metadata-data {
+    color: #555;
+    padding-left: 15px;
+}
+
+.resource-metadata-file-size {
+    width: 70px;
+    min-width: 70px;
+    text-align: right;
+    color: #666;
+    line-height: 22px;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.resource-metadata-file-name {
+    color: #555;
+    padding-left: 15px;
+}
+
+.no-border-radius {
+    border-radius: 0px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 12px;
+    color: #999;
+    background-color: #f1f1f1;
+    border-top: 1px solid #e5e5e5;
+}
+
+.highlight {
+    color: #e74c3c;
+}

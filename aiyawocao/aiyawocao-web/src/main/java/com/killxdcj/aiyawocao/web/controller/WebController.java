@@ -42,6 +42,7 @@ public class WebController {
     put("lemen", "lemon/");
     put("xiaowang", "xiaowang/");
     put("laowang", "xiaowang/");
+    put("bt1207", "bt1207/");
   }};
 
   @Value("${ad.enable}")

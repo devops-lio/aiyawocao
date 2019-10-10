@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.killxdcj.aiyawocao.common.utils.InfohashUtils;
+import com.killxdcj.aiyawocao.web.model.FriendLink;
 import com.killxdcj.aiyawocao.web.model.Metadata;
 import com.killxdcj.aiyawocao.web.model.SearchResult;
 import com.killxdcj.aiyawocao.web.service.BlackKeyWordsService;
@@ -12,12 +13,12 @@ import com.killxdcj.aiyawocao.web.service.JiebaService;
 import com.killxdcj.aiyawocao.web.service.PredictService;
 import com.killxdcj.aiyawocao.web.utils.WebUtils;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,17 @@ public class WebController {
     put("xiaowang", "xiaowang/");
     put("laowang", "xiaowang/");
     put("bt1207", "bt1207/");
+  }};
+
+  private static final List<FriendLink> friendLinks = new ArrayList<FriendLink>(){{
+    add(new FriendLink("干净好用的BT磁力链接搜索网站", "https://orzx3.com/archives/141"));
+    add(new FriendLink("各种好用BT种子磁力搜索站汇总", "https://orzx3.com/archives/92"));
+    add(new FriendLink("BT磁力搜索引擎索引", "https://orzx3.com/archives/86"));
+    add(new FriendLink("网盘搜索引擎索引", "https://orzx3.com/archives/74"));
+    add(new FriendLink("BT 磁力搜索引擎索引", "https://www.jianshu.com/p/bd4237d962d8"));
+    add(new FriendLink("2019最好的磁力种子搜索网站", "https://www.jianshu.com/p/b823ae232b10"));
+    add(new FriendLink("干净好用的BT磁力链搜索网站", "https://www.jianshu.com/p/e2f3be1eb866"));
+    add(new FriendLink("九个值得收藏的种子搜索引擎", "https://www.jianshu.com/p/2da7fd01dfc7"));
   }};
 
   @Value("${ad.enable}")
@@ -143,6 +155,7 @@ public class WebController {
       model.addAttribute("pre", page - 1 > 0 ? page - 1 : 1);
       model.addAttribute("next", page + 1 > totalPage ? totalPage : page + 1);
       model.addAttribute("sort", sort);
+      model.addAttribute("friendLinks", getFriendLinks());
       return getTemplatesPrefix(request) + "search";
     } catch (Throwable e) {
       LOGGER.error("handle search error", e);
@@ -243,5 +256,13 @@ public class WebController {
       }
     }
     return "skrbt/";
+  }
+
+  private List<FriendLink> getFriendLinks() {
+    List<FriendLink> links = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      links.add(friendLinks.get(RandomUtils.nextInt() % friendLinks.size()));
+    }
+    return links;
   }
 }

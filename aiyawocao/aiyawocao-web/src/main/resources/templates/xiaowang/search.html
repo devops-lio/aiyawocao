@@ -24,14 +24,13 @@
   <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link href="/css/xiaowang/style.css" rel="stylesheet">
 
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-149375915-3"></script>
   <script>
-    var _hmt = _hmt || [];
-    (function () {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?e3ac6c184d4b45cd91a4a4df68ecd98a";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-149375915-3');
   </script>
 </head>
 <body>
@@ -110,10 +109,17 @@
       </div>
 
       <div class="panel panel-default search-panel">
+        <div class="panel-heading" style="background-color: #ffffff; border-color: #5cb85c">
+          <h3 class="panel-title" style="color: #0E90D2">
+            友情链接
+          </h3>
+        </div>
         <div class="panel-body">
-          <p>更多BT种子搜索网站</p>
-          <a href="http://orzx3.com/archives/92" target="_blank">种子搜索网站汇总</a>
-          <a href="https://www.jianshu.com/p/bd4237d962d8" target="_blank">磁力搜索引擎索引</a>
+          <ul class="list-unstyled">
+            <li th:each="friendLink : ${friendLinks}" style="margin-top: 5px">
+              <a th:href="${friendLink.getUrl()}" th:text="${friendLink.getName()}" target="_blank"/>
+            </li>
+          </ul>
         </div>
       </div>
 

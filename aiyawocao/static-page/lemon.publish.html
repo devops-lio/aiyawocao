@@ -26,10 +26,10 @@
 <body>
 <div class="container-fluid">
   <div class="row" style="margin-top: 100px">
-    <div class="col-md-4">
+    <div class="col-md-3">
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="page-header">
         <h3 class="text-center">磁力柠檬 - 最懂你的磁力搜索引擎！</h3>
       </div>
@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
     </div>
   </div>
 </div>
@@ -67,8 +67,10 @@
     var reallinks=document.getElementsByTagName("a");
     var idx=Date.now()%links.length;
     for (var i = 0; i < reallinks.length; i++) {
-      reallinks[i].setAttribute("href", links[idx%links.length]);
-      idx=idx+1;
+      if (reallinks[i].getAttribute("href").indexOf("xyz") != -1) {
+        reallinks[i].setAttribute("href", links[idx%links.length]);
+        idx=idx+1;
+      }
     }
   })();
 </script>
